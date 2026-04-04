@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "KOT Extension",
+  "description": "Overlay and settings scaffold for KING OF TIME monthly working page helpers.",
+  "version": "0.0.1",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "kot-extension@example.local"
+    }
+  },
+  "host_permissions": ["https://s2.ta.kingoftime.jp/admin/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://s2.ta.kingoftime.jp/admin/*"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "permissions": ["storage"]
+}

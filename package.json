@@ -1,0 +1,21 @@
+{
+  "name": "kot-extension",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "prettier": "npm run format"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.4",
+    "@types/firefox-webext-browser": "^120.0.4",
+    "prettier": "^3.6.2",
+    "tailwindcss": "^4.1.4",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.12"
+  }
+}
