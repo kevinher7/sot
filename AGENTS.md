@@ -69,6 +69,7 @@ npm run build
 - Avoid injecting global styles that could leak into the host page beyond the extension root
 - Preserve the page check in `src/domain/kot/page.ts` as the single source of truth for deciding whether the content script should activate
 - Keep storage reads/writes centralized through `src/platform/webext/storage.ts`
+- For `manifest.json` content scripts, keep the built JS self-contained. Do not introduce imports that make Vite emit extra JS chunks for the content script entrypoint; after changes, verify `dist/content/index.js` does not import other JS files
 - If adding new persisted settings, update the domain settings defaults and normalization path together
 
 # Build and Packaging Notes
