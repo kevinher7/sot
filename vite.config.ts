@@ -29,6 +29,87 @@ async function moveHtmlEntry(entryName: string): Promise<void> {
   await writeFile(finalHtml, updatedHtml);
 }
 
+function createInlineExportObject(chunkSource: string): string | null {
+  const exportMatch = chunkSource.match(/export\{([^}]+)\};?\s*$/u);
+
+  if (!exportMatch) {
+    return null;
+  }
+
+  const exportEntries = exportMatch[1]
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0)
+    .map((entry) => {
+      const aliasMatch = entry.match(/^(.+?)\s+as\s+(.+)$/u);
+
+      if (!aliasMatch) {
+        return `${entry}: ${entry}`;
+      }
+
+      return `${aliasMatch[2]}: ${aliasMatch[1]}`;
+    });
+
+  const body = chunkSource.slice(0, exportMatch.index).trimEnd();
+
+  return `(() => {\n${body}\nreturn { ${exportEntries.join(", ")} };\n})()`;
+}
+
+async function inlineContentSharedImports(): Promise<void> {
+  const distDir = join(process.cwd(), "dist");
+  const contentEntryPath = join(distDir, "content/index.js");
+  const contentSource = await readFile(contentEntryPath, "utf8").catch(
+    () => undefined,
+  );
+
+  if (!contentSource) {
+    return;
+  }
+
+  const importMatch = contentSource.match(
+    /^import\{([^}]+)\}from"(\.\.\/assets\/[^"]+\.js)";/u,
+  );
+
+  if (!importMatch) {
+    return;
+  }
+
+  const importSpecifiers = importMatch[1]
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0)
+    .map((entry) => {
+      const aliasMatch = entry.match(/^(.+?)\s+as\s+(.+)$/u);
+
+      if (!aliasMatch) {
+        return entry;
+      }
+
+      return `${aliasMatch[1]}: ${aliasMatch[2]}`;
+    });
+  const importPath = join(dirname(contentEntryPath), importMatch[2]);
+  const importedChunk = await readFile(importPath, "utf8").catch(
+    () => undefined,
+  );
+
+  if (!importedChunk) {
+    return;
+  }
+
+  const inlineObject = createInlineExportObject(importedChunk);
+
+  if (!inlineObject) {
+    return;
+  }
+
+  const inlinedContent = contentSource.replace(
+    importMatch[0],
+    `const { ${importSpecifiers.join(", ")} } = ${inlineObject};`,
+  );
+
+  await writeFile(contentEntryPath, inlinedContent);
+}
+
 function organizeExtensionOutput(): Plugin {
   return {
     name: "organize-extension-output",
@@ -56,6 +137,7 @@ function organizeExtensionOutput(): Plugin {
       }
 
       await rm(join(distDir, "src"), { recursive: true, force: true });
+      await inlineContentSharedImports();
     },
   };
 }
