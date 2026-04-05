@@ -133,10 +133,7 @@ export function createOverlayViewModel(
 ): OverlayViewModel {
   return {
     monthlyBank: createMonthlyBankMetric(result.monthBankMinutes),
-    monthlyProgress: createProgressMetric(
-      `${formatHoursAndMinutes(result.actualWorkedMinutesSoFar)} / ${formatHoursAndMinutes(result.requiredWorkedMinutesSoFar)}`,
-      result.monthProgressPercent,
-    ),
+    monthlyProgress: createProgressMetric("TOTAL", result.monthProgressPercent),
     todayBreakLeft: createTodayBreakMetric(result, settings),
     todayLabel: formatTodayLabel(now),
     todayWorkLeft: createTodayWorkMetric(result, settings),
