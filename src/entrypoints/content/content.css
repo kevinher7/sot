@@ -287,6 +287,7 @@
 }
 
 .kot-extension-progress-rail {
+  display: flex;
   width: 100%;
   height: 4px;
   overflow: hidden;
@@ -296,25 +297,15 @@
 
 .kot-extension-progress-fill {
   height: 100%;
-  border-radius: 999px;
   background: #10b981;
   transition: width 0.2s ease;
 }
 
-.kot-extension-progress-card[data-tone="warning"] {
-  border-color: rgba(245, 158, 11, 0.4);
-  background: rgba(255, 251, 235, 0.9);
+.kot-extension-progress-fill--actual {
+  background: #10b981;
 }
 
-.kot-extension-progress-fill[data-tone="negative"] {
-  background: #dc2626;
-}
-
-.kot-extension-progress-fill[data-tone="neutral"] {
-  background: #64748b;
-}
-
-.kot-extension-progress-fill[data-tone="warning"] {
+.kot-extension-progress-fill--estimated {
   background: #f59e0b;
 }
 

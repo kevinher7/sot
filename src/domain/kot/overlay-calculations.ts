@@ -51,10 +51,12 @@ export type OverlayCalculationResult = {
   bankTone: OverlayMetricTone;
   displayWorkedMinutesSoFar: number;
   errorDayCount: number;
+  estimatedWorkedMinutesSoFar: number;
   isUsingEstimate: boolean;
   monthBankMinutes: number;
-  monthProgressPercent: number;
-  progressTone: OverlayMetricTone;
+  monthActualProgressPercent: number;
+  monthEstimatedProgressPercent: number;
+  monthlyRequiredWorkedMinutesTotal: number;
   requiredWorkedMinutesSoFar: number;
   todayBreakLeftMinutes: number;
   todayBreakMinutes: number;
@@ -246,6 +248,17 @@ export function calculateRequiredWorkedMinutesSoFar(
   return elapsedWorkdays * settings.standardWorkdayHours * 60;
 }
 
+export function calculateMonthlyRequiredWorkedMinutesTotal(
+  pageSnapshot: KotMonthlyPageSnapshot,
+  settings: OverlayCalculationSettings,
+): number {
+  const workdayCount = pageSnapshot.rows.filter(
+    (row) => row.dayKind === "workday",
+  ).length;
+
+  return workdayCount * settings.standardWorkdayHours * 60;
+}
+
 export function calculateTodayWorkedMinutes(
   pageSnapshot: KotMonthlyPageSnapshot,
 ): number {
@@ -297,13 +310,13 @@ export function calculateMonthBankMinutes(
 
 export function calculateMonthProgressPercent(
   workedMinutesSoFar: number,
-  requiredWorkedMinutesSoFar: number,
+  requiredWorkedMinutesTotal: number,
 ): number {
-  if (requiredWorkedMinutesSoFar <= 0) {
+  if (requiredWorkedMinutesTotal <= 0) {
     return 0;
   }
 
-  return (workedMinutesSoFar / requiredWorkedMinutesSoFar) * 100;
+  return (workedMinutesSoFar / requiredWorkedMinutesTotal) * 100;
 }
 
 function calculateBankTone(
@@ -341,6 +354,11 @@ export function calculateOverlayMetrics(
     elapsedWorkdays,
     input.settings,
   );
+  const monthlyRequiredWorkedMinutesTotal =
+    calculateMonthlyRequiredWorkedMinutesTotal(
+      input.pageSnapshot,
+      input.settings,
+    );
   const todayWorkedMinutes = calculateTodayWorkedMinutes(input.pageSnapshot);
   const todayBreakMinutes = calculateTodayBreakMinutes(input.pageSnapshot);
   const todayDate = createDateKey(input.now);
@@ -387,6 +405,10 @@ export function calculateOverlayMetrics(
     errorDayCount,
     isUsingEstimate,
   );
+  const estimatedWorkedMinutesSoFar = Math.max(
+    displayWorkedMinutesSoFar - input.pageSnapshot.actualWorkedMinutesSoFar,
+    0,
+  );
 
   return {
     actualBankMinutes,
@@ -394,13 +416,18 @@ export function calculateOverlayMetrics(
     bankTone,
     displayWorkedMinutesSoFar,
     errorDayCount,
+    estimatedWorkedMinutesSoFar,
     isUsingEstimate,
     monthBankMinutes,
-    monthProgressPercent: calculateMonthProgressPercent(
-      displayWorkedMinutesSoFar,
-      requiredWorkedMinutesSoFar,
+    monthActualProgressPercent: calculateMonthProgressPercent(
+      input.pageSnapshot.actualWorkedMinutesSoFar,
+      monthlyRequiredWorkedMinutesTotal,
     ),
-    progressTone: bankTone,
+    monthEstimatedProgressPercent: calculateMonthProgressPercent(
+      estimatedWorkedMinutesSoFar,
+      monthlyRequiredWorkedMinutesTotal,
+    ),
+    monthlyRequiredWorkedMinutesTotal,
     requiredWorkedMinutesSoFar,
     todayBreakLeftMinutes: calculateTodayBreakLeftMinutes(
       todayBreakMinutes,

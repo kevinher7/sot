@@ -14,9 +14,9 @@ export type OverlayDurationMetric = {
 };
 
 export type OverlayProgressMetric = {
+  actualPercent: number;
+  estimatedPercent: number;
   label: string;
-  tone: OverlayMetricTone;
-  value: number;
 };
 
 export type OverlayBadgeTone = "error" | "warning";
@@ -155,13 +155,25 @@ function createProgressCard(
     metric.label,
   );
   const rail = createElement(doc, "div", "kot-extension-progress-rail");
-  const fill = createElement(doc, "div", "kot-extension-progress-fill");
-  const safeValue = Math.max(0, Math.min(100, metric.value));
+  const actualFill = createElement(
+    doc,
+    "div",
+    "kot-extension-progress-fill kot-extension-progress-fill--actual",
+  );
+  const estimatedFill = createElement(
+    doc,
+    "div",
+    "kot-extension-progress-fill kot-extension-progress-fill--estimated",
+  );
+  const actualWidth = Math.max(0, Math.min(100, metric.actualPercent));
+  const estimatedWidth = Math.max(
+    0,
+    Math.min(100 - actualWidth, metric.estimatedPercent),
+  );
 
-  card.dataset.tone = metric.tone;
-  fill.dataset.tone = metric.tone;
-  fill.style.width = `${safeValue}%`;
-  rail.append(fill);
+  actualFill.style.width = `${actualWidth}%`;
+  estimatedFill.style.width = `${estimatedWidth}%`;
+  rail.append(actualFill, estimatedFill);
   card.append(label, rail);
 
   return card;

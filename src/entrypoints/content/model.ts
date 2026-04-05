@@ -39,13 +39,13 @@ function createDurationMetric(
 
 function createProgressMetric(
   label: string,
-  value: number,
-  tone: OverlayProgressMetric["tone"],
+  actualPercent: number,
+  estimatedPercent: number,
 ): OverlayProgressMetric {
   return {
+    actualPercent,
+    estimatedPercent,
     label,
-    tone,
-    value,
   };
 }
 
@@ -181,8 +181,8 @@ export function createOverlayViewModel(
     monthLabel: formatMonthLabel(now),
     monthlyProgress: createProgressMetric(
       "TOTAL",
-      result.monthProgressPercent,
-      result.progressTone,
+      result.monthActualProgressPercent,
+      result.monthEstimatedProgressPercent,
     ),
     todayBreakLeft: createTodayBreakMetric(result, settings),
     todayLabel: formatTodayLabel(now),
