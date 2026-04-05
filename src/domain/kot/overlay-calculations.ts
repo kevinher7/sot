@@ -3,7 +3,9 @@ import type { ExtensionSettings } from "./types";
 export type KotDayKind = "workday" | "offday";
 
 export type KotDayRowSnapshot = {
-  breakMinutes: number | null;
+  breakEndMinutes: readonly number[];
+  breakMinutes: number;
+  breakStartMinutes: readonly number[];
   clockInMinutes: number | null;
   clockOutMinutes: number | null;
   day: number;
@@ -11,7 +13,7 @@ export type KotDayRowSnapshot = {
   hasClockIn: boolean;
   hasClockOut: boolean;
   isoDate: string;
-  workedMinutes: number | null;
+  workedMinutes: number;
 };
 
 export type KotMonthlyPageSnapshot = {

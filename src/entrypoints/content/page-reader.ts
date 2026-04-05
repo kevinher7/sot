@@ -3,6 +3,7 @@ import type {
   KotDayRowSnapshot,
   KotMonthlyPageSnapshot,
 } from "../../domain/kot/overlay-calculations";
+import { deriveWorkedMinutes } from "../../domain/kot/worked-minutes";
 
 const ROW_SELECTOR = "tr";
 const ACTION_CELL_WORKING_DATE_SELECTOR = 'input[name="working_date"]';
@@ -14,8 +15,8 @@ const DATE_CELL_SELECTOR =
 const WORK_DAY_TYPE_SELECTOR = 'td[data-ht-sort-index="WORK_DAY_TYPE"]';
 const CLOCK_IN_SELECTOR = 'td[data-ht-sort-index="START_TIMERECORD"]';
 const CLOCK_OUT_SELECTOR = 'td[data-ht-sort-index="END_TIMERECORD"]';
-const BREAK_MINUTES_SELECTOR = 'td[data-ht-sort-index="REST_MINUTE"]';
-const WORKED_MINUTES_SELECTOR = 'td[data-ht-sort-index="ALL_WORK_MINUTE"]';
+const BREAK_START_SELECTOR = 'td[data-ht-sort-index="REST_START_TIMERECORD"]';
+const BREAK_END_SELECTOR = 'td[data-ht-sort-index="REST_END_TIMERECORD"]';
 const OFFDAY_CLASS_NAMES = [
   "htBlock-scrollTable_saturday",
   "htBlock-scrollTable_sunday",
@@ -96,28 +97,13 @@ function parseClockMinutes(text: string): number | null {
   return hours * 60 + minutes;
 }
 
-function parseDurationMinutes(text: string): number | null {
-  const timeMatch = text.match(/(-?\d+):(\d{2})/u);
+function parseClockMinuteList(text: string): number[] {
+  return Array.from(text.matchAll(/(\d{1,2}):(\d{2})/gu), (match) => {
+    const hours = Number.parseInt(match[1], 10);
+    const minutes = Number.parseInt(match[2], 10);
 
-  if (timeMatch) {
-    const hours = Number.parseInt(timeMatch[1], 10);
-    const minutes = Number.parseInt(timeMatch[2], 10);
-    const sign = hours < 0 ? -1 : 1;
-
-    return hours * 60 + sign * minutes;
-  }
-
-  const minuteMatch = text.match(/(-?\d+)\s*分/u);
-
-  if (minuteMatch) {
-    return Number.parseInt(minuteMatch[1], 10);
-  }
-
-  if (/^-?\d+$/u.test(text)) {
-    return Number.parseInt(text, 10);
-  }
-
-  return null;
+    return hours * 60 + minutes;
+  });
 }
 
 function toDayKind(
@@ -138,7 +124,10 @@ function toDayKind(
   return "workday";
 }
 
-function readRowSnapshot(row: HTMLTableRowElement): KotDayRowSnapshot | null {
+function readRowSnapshot(
+  row: HTMLTableRowElement,
+  now: Date,
+): KotDayRowSnapshot | null {
   const dateCell = row.querySelector<HTMLTableCellElement>(DATE_CELL_SELECTOR);
 
   if (!dateCell) {
@@ -164,19 +153,29 @@ function readRowSnapshot(row: HTMLTableRowElement): KotDayRowSnapshot | null {
       row.querySelector<HTMLTableCellElement>(CLOCK_OUT_SELECTOR),
     ),
   );
-  const breakMinutes = parseDurationMinutes(
+  const breakStartMinutes = parseClockMinuteList(
     normalizeCellText(
-      row.querySelector<HTMLTableCellElement>(BREAK_MINUTES_SELECTOR),
+      row.querySelector<HTMLTableCellElement>(BREAK_START_SELECTOR),
     ),
   );
-  const workedMinutes = parseDurationMinutes(
+  const breakEndMinutes = parseClockMinuteList(
     normalizeCellText(
-      row.querySelector<HTMLTableCellElement>(WORKED_MINUTES_SELECTOR),
+      row.querySelector<HTMLTableCellElement>(BREAK_END_SELECTOR),
     ),
   );
+  const derivedWorkedMinutes = deriveWorkedMinutes({
+    breakEndMinutes,
+    breakStartMinutes,
+    clockInMinutes,
+    clockOutMinutes,
+    nowMinutes: now.getHours() * 60 + now.getMinutes(),
+    treatIncompleteAsOngoing: identity.isoDate === createDateKey(now),
+  });
 
   return {
-    breakMinutes,
+    breakEndMinutes,
+    breakMinutes: derivedWorkedMinutes?.breakMinutes ?? 0,
+    breakStartMinutes,
     clockInMinutes,
     clockOutMinutes,
     day: identity.day,
@@ -184,7 +183,7 @@ function readRowSnapshot(row: HTMLTableRowElement): KotDayRowSnapshot | null {
     hasClockIn: clockInMinutes !== null,
     hasClockOut: clockOutMinutes !== null,
     isoDate: identity.isoDate,
-    workedMinutes,
+    workedMinutes: derivedWorkedMinutes?.workedMinutes ?? 0,
   };
 }
 
@@ -196,8 +195,8 @@ function createSnapshotSignature(rows: readonly KotDayRowSnapshot[]): string {
         row.dayKind,
         row.clockInMinutes ?? "-",
         row.clockOutMinutes ?? "-",
-        row.breakMinutes ?? "-",
-        row.workedMinutes ?? "-",
+        row.breakStartMinutes.join(","),
+        row.breakEndMinutes.join(","),
       ].join("|"),
     )
     .join(";");
@@ -218,7 +217,7 @@ export function readMonthlyPageSnapshot(
   const rows = Array.from(
     doc.querySelectorAll<HTMLTableRowElement>(ROW_SELECTOR),
   )
-    .map(readRowSnapshot)
+    .map((row) => readRowSnapshot(row, now))
     .filter((row): row is KotDayRowSnapshot => row !== null)
     .sort((left, right) => left.isoDate.localeCompare(right.isoDate));
 
@@ -229,7 +228,7 @@ export function readMonthlyPageSnapshot(
   const firstRow = rows[0];
   const todayDate = createDateKey(now);
   const actualWorkedMinutesSoFar = rows.reduce((total, row) => {
-    if (row.isoDate > todayDate || row.workedMinutes === null) {
+    if (row.isoDate > todayDate) {
       return total;
     }
 
