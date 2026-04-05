@@ -17,11 +17,13 @@ const TODAY_DAY_FORMATTER = new Intl.DateTimeFormat("ja-JP", {
 });
 
 function createDurationMetric(
+  appearance: OverlayDurationMetric["appearance"],
   value: string,
   unit: OverlayDurationMetric["unit"],
   tone: OverlayDurationMetric["tone"],
 ): OverlayDurationMetric {
   return {
+    appearance,
     tone,
     unit,
     value,
@@ -69,7 +71,7 @@ function createTodayWorkMetric(
   settings: OverlayCalculationSettings,
 ): OverlayDurationMetric {
   if (result.todayStatus === "rest-day") {
-    return createDurationMetric("REST DAY", "", "neutral");
+    return createDurationMetric("rest-day", "REST DAY", "", "neutral");
   }
 
   const remainingMinutes =
@@ -78,6 +80,7 @@ function createTodayWorkMetric(
       : result.todayWorkLeftMinutes;
 
   return createDurationMetric(
+    "default",
     formatHoursAndMinutes(remainingMinutes),
     "h",
     result.todayStatus === "not-started" ? "neutral" : "negative",
@@ -89,7 +92,7 @@ function createTodayBreakMetric(
   settings: OverlayCalculationSettings,
 ): OverlayDurationMetric {
   if (result.todayStatus === "rest-day") {
-    return createDurationMetric("--", "m", "neutral");
+    return createDurationMetric("rest-day", "REST DAY", "", "neutral");
   }
 
   const remainingMinutes =
@@ -98,6 +101,7 @@ function createTodayBreakMetric(
       : result.todayBreakLeftMinutes;
 
   return createDurationMetric(
+    "default",
     formatMinutes(remainingMinutes),
     "m",
     result.todayStatus === "not-started" ? "neutral" : "positive",
@@ -115,6 +119,7 @@ function createMonthlyBankMetric(
         : "neutral";
 
   return createDurationMetric(
+    "default",
     formatSignedHoursAndMinutes(monthBankMinutes),
     "h",
     tone,

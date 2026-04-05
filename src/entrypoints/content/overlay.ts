@@ -4,7 +4,10 @@ export const ROOT_ID = "kot-extension-root";
 
 export type OverlayMetricTone = "positive" | "negative" | "neutral";
 
+export type OverlayDurationMetricAppearance = "default" | "rest-day";
+
 export type OverlayDurationMetric = {
+  appearance: OverlayDurationMetricAppearance;
   tone: OverlayMetricTone;
   unit: "" | "h" | "m";
   value: string;
@@ -80,6 +83,8 @@ function createDurationMetricCard(
     metric.value,
   );
   card.dataset.tone = metric.tone;
+  valueGroup.dataset.appearance = metric.appearance;
+  value.dataset.appearance = metric.appearance;
 
   valueGroup.append(value);
 

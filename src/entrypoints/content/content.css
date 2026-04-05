@@ -202,7 +202,7 @@
 }
 
 .kot-extension-metric-value--neutral {
-  color: #64748b;
+  color: #475569;
 }
 
 .kot-extension-metric-value--positive {
@@ -213,6 +213,11 @@
   font-size: 13px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
+}
+
+.kot-extension-metric-value-text[data-appearance="rest-day"] {
+  font-size: 11px;
+  letter-spacing: 0.04em;
 }
 
 .kot-extension-metric-unit {
