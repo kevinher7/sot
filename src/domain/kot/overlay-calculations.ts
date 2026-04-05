@@ -218,6 +218,17 @@ export function calculateRequiredWorkedMinutesSoFar(
   return elapsedWorkdays * settings.standardWorkdayHours * 60;
 }
 
+function calculateRequiredWorkedMinutesInMonth(
+  pageSnapshot: KotMonthlyPageSnapshot,
+  settings: OverlayCalculationSettings,
+): number {
+  const totalWorkdays = pageSnapshot.rows.filter(
+    (row) => row.dayKind === "workday",
+  ).length;
+
+  return totalWorkdays * settings.standardWorkdayHours * 60;
+}
+
 export function calculateTodayWorkedMinutes(
   pageSnapshot: KotMonthlyPageSnapshot,
 ): number {
@@ -313,6 +324,10 @@ export function calculateOverlayMetrics(
     elapsedWorkdays,
     input.settings,
   );
+  const requiredWorkedMinutesInMonth = calculateRequiredWorkedMinutesInMonth(
+    input.pageSnapshot,
+    input.settings,
+  );
   const todayWorkedMinutes = calculateTodayWorkedMinutes(input.pageSnapshot);
   const todayBreakMinutes = calculateTodayBreakMinutes(input.pageSnapshot);
   const todayDate = createIsoDateKey(input.now);
@@ -369,12 +384,12 @@ export function calculateOverlayMetrics(
     isUsingEstimate,
     monthActualProgressPercent: calculateMonthProgressPercent(
       input.pageSnapshot.actualWorkedMinutesSoFar,
-      requiredWorkedMinutesSoFar,
+      requiredWorkedMinutesInMonth,
     ),
     monthBankMinutes,
     monthEstimatedProgressPercent: calculateMonthProgressPercent(
       displayWorkedMinutesSoFar,
-      requiredWorkedMinutesSoFar,
+      requiredWorkedMinutesInMonth,
     ),
     progressTone: bankTone,
     requiredWorkedMinutesSoFar,
