@@ -9,6 +9,10 @@ import type {
 } from "./overlay";
 
 const TODAY_MONTH_FORMATTER = new Intl.DateTimeFormat("ja-JP", {
+  month: "2-digit",
+});
+
+const MONTH_LABEL_FORMATTER = new Intl.DateTimeFormat("ja-JP", {
   month: "numeric",
 });
 
@@ -48,7 +52,7 @@ function formatTodayLabel(now: Date): string {
 }
 
 function formatMonthLabel(now: Date): string {
-  const month = TODAY_MONTH_FORMATTER.format(now);
+  const month = MONTH_LABEL_FORMATTER.format(now);
 
   return `MONTH ${month}`;
 }
