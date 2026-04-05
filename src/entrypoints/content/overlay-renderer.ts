@@ -153,7 +153,7 @@ function createProgressCard(
       doc,
       "kot-extension-progress-fill kot-extension-progress-fill--actual",
       metric.actualPercent,
-      metric.tone,
+      "positive",
     ),
   );
   card.append(label, rail);
