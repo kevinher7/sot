@@ -9,7 +9,7 @@ import type {
 } from "./overlay";
 
 const TODAY_MONTH_FORMATTER = new Intl.DateTimeFormat("ja-JP", {
-  month: "2-digit",
+  month: "numeric",
 });
 
 const TODAY_DAY_FORMATTER = new Intl.DateTimeFormat("ja-JP", {
