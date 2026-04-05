@@ -2,13 +2,6 @@ type StoragePayload = Record<string, unknown>;
 
 type BrowserApi = typeof browser;
 
-declare global {
-  interface WindowOrWorkerGlobalScope {
-    browser?: BrowserApi;
-    chrome?: BrowserApi;
-  }
-}
-
 export function getBrowserApi(): BrowserApi {
   const runtime = globalThis as typeof globalThis & {
     browser?: BrowserApi;

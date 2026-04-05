@@ -22,20 +22,20 @@ public/
 src/
   entrypoints/
     content/
-    options/
   domain/
     kot/
   platform/
     webext/
 ```
 
-- `entrypoints/` contains extension surfaces referenced by the manifest or extension HTML.
+- `entrypoints/` contains shipped or future extension surfaces.
 - `domain/kot/` contains KOT-specific types and pure page/settings logic.
 - `platform/webext/` contains browser API and storage adapters.
 
 ## Scripts
 
 - `npm install`
+- `npm run lint`
 - `npm run build`
 - `npm run typecheck`
 - `npm run dev`
@@ -43,16 +43,18 @@ src/
 ## Load in Firefox / Zen
 
 1. Run `npm install`.
-2. Run `npm run build`.
-3. Open `about:debugging` in Firefox or Zen.
-4. Choose **This Firefox**.
-5. Click **Load Temporary Add-on**.
-6. Select `dist/manifest.json`.
+2. Run `npm run lint`.
+3. Run `npm run build`.
+4. Open `about:debugging` in Firefox or Zen.
+5. Choose **This Firefox**.
+6. Click **Load Temporary Add-on**.
+7. Select `dist/manifest.json`.
 
 ## Notes
 
 - This scaffold uses Manifest V3.
 - Tailwind CSS is integrated through the official Vite plugin.
 - No feature logic is implemented yet.
-- The options page is intentionally a placeholder for future settings UI.
+- The shipped extension currently contains only the content-script surface.
+- Settings still come from `browser.storage.local`; there is just no built-in options UI right now.
 - The source tree is organized by extension surface and layer to keep future popup/background additions straightforward.

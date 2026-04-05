@@ -8,7 +8,7 @@ The current runtime flow is:
 2. The content script runs on `https://s2.ta.kingoftime.jp/admin/*`
 3. The content entrypoint checks whether the current page is the monthly individual working list page
 4. If the page matches, the extension mounts a lightweight overlay into the document and keeps it positioned relative to the page title
-5. The options page loads extension settings from `browser.storage.local` and renders a scaffold UI for future configuration
+5. The content runtime reads extension settings from `browser.storage.local` and falls back to domain defaults when stored values are missing
 
 This extension runs directly against a third-party production web app, so be careful with DOM selectors, page assumptions, and any logic that may run frequently on resize, navigation, or page mutation. Small mistakes can make the overlay noisy, brittle, or expensive for end users.
 
@@ -28,12 +28,11 @@ This extension runs directly against a third-party production web app, so be car
 - Keep browser API access behind `src/platform/webext/`
 - Prefer small functions with explicit names over large procedural files
 - For DOM rendering, prefer creating elements and assigning `textContent` over injecting large HTML strings
-- Tailwind should be used for extension pages like the options UI; content-script styling may use scoped CSS when interacting with the host page requires it
+- Tailwind should be used for future extension pages; content-script styling may use scoped CSS when interacting with the host page requires it
 
 # Project Structure
 
 - Content script code: `src/entrypoints/content/`
-- Options page code: `src/entrypoints/options/`
 - KOT page detection and settings domain logic: `src/domain/kot/`
 - WebExtension API and storage adapters: `src/platform/webext/`
 - Static extension assets and manifest: `public/`
@@ -59,7 +58,6 @@ npm run build
 - Load the built extension in Firefox/Zen from `dist/manifest.json`
 - If you change manifest entries, verify the referenced files actually exist in `dist/`
 - If you change the content script, verify the overlay still mounts only on the intended KOT page
-- If you change the options page, verify it still loads stored settings and renders without runtime errors
 
 # Extension-Specific Guardrails
 
@@ -76,11 +74,10 @@ npm run build
 
 - The project uses Vite to build a WebExtension-shaped `dist/` directory
 - `public/manifest.json` is copied into the final build and must stay consistent with generated asset paths
-- The Vite config includes custom output organization for extension-friendly paths such as:
+- The Vite config should keep extension-friendly output paths such as:
   - `content/index.js`
   - `content/index.css`
-  - `options/index.html`
-- If you change entrypoint names or locations, update both Vite and the manifest together
+- If future extension surfaces are added, update both Vite and the manifest together
 
 # Project Specifications
 
@@ -101,12 +98,12 @@ npm run build
   - load `dist/manifest.json` in Firefox/Zen
   - open the target KOT page
   - confirm the overlay appears only on the supported page
-  - confirm the options page opens and renders the settings snapshot
+  - confirm runtime settings/defaults are read correctly by the content script
 - If changing settings behavior, verify both default values and stored values are handled correctly
 
 # Future Implementation Notes
 
 - Prefer extending the existing domain/platform split instead of adding cross-cutting utility files
 - If overlay behavior grows, continue splitting responsibilities by concern: page detection, mounting, positioning, rendering, and feature logic
-- If options UI becomes interactive, separate data loading, actions, and view rendering rather than growing a single file
+- If a future options or popup UI is added, separate data loading, actions, and view rendering rather than growing a single file
 - If Chromium support is added later, keep compatibility work isolated to platform adapters and manifest/build differences where possible
