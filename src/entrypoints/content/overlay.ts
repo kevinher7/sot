@@ -236,7 +236,7 @@ function createCtaSection(doc: Document, onToggle: () => void): HTMLDivElement {
     doc,
     "span",
     "kot-extension-cta-label",
-    "View month breakdown",
+    "Month breakdown",
   );
   const icon = createElement(doc, "span", "kot-extension-cta-icon", "▾");
 
