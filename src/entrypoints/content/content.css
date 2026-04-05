@@ -1,6 +1,6 @@
 #kot-extension-root {
   z-index: 2147483647;
-  width: 220px;
+  width: 248px;
   color: #191c1e;
   font-family:
     Inter,
@@ -14,7 +14,7 @@
 
 #kot-extension-root[data-state="loading"],
 #kot-extension-root[data-state="error"] {
-  width: 240px;
+  width: 260px;
 }
 
 #kot-extension-root * {
