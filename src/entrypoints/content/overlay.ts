@@ -7,6 +7,7 @@ export type OverlayDurationMetricAppearance = "default" | "rest-day";
 
 export type OverlayDurationMetric = {
   appearance: OverlayDurationMetricAppearance;
+  cardTone: OverlayMetricTone;
   tone: OverlayMetricTone;
   unit: "" | "h" | "m";
   value: string;
@@ -122,7 +123,7 @@ function createDurationMetricCard(
     "kot-extension-metric-value-text",
     metric.value,
   );
-  card.dataset.tone = metric.tone;
+  card.dataset.tone = metric.cardTone;
   valueGroup.dataset.appearance = metric.appearance;
   value.dataset.appearance = metric.appearance;
 

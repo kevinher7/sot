@@ -26,9 +26,11 @@ function createDurationMetric(
   value: string,
   unit: OverlayDurationMetric["unit"],
   tone: OverlayDurationMetric["tone"],
+  cardTone: OverlayDurationMetric["cardTone"] = tone,
 ): OverlayDurationMetric {
   return {
     appearance,
+    cardTone,
     tone,
     unit,
     value,
@@ -124,10 +126,18 @@ function createTodayBreakMetric(
 function createMonthlyBankMetric(
   result: OverlayCalculationResult,
 ): OverlayDurationMetric {
+  const valueTone =
+    result.monthBankMinutes > 0
+      ? "positive"
+      : result.monthBankMinutes < 0
+        ? "negative"
+        : "neutral";
+
   return createDurationMetric(
     "default",
     formatSignedHoursAndMinutes(result.monthBankMinutes),
     "h",
+    valueTone,
     result.bankTone,
   );
 }
