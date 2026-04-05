@@ -1,6 +1,14 @@
-import { isMonthlyIndividualWorkingListPage } from "../shared/kot-page";
-
 const ROOT_ID = "kot-extension-root";
+const TARGET_HOST = "s2.ta.kingoftime.jp";
+const TARGET_PAGE_ID = "/working/monthly_individual_working_list";
+
+function isMonthlyIndividualWorkingListPage(url: URL): boolean {
+  return (
+    url.hostname === TARGET_HOST &&
+    url.pathname.startsWith("/admin/") &&
+    url.searchParams.get("page_id") === TARGET_PAGE_ID
+  );
+}
 
 function ensureRoot(): HTMLDivElement {
   const existing = document.getElementById(ROOT_ID);
