@@ -19,6 +19,7 @@ export type OverlayViewModel = {
   monthlyBank: OverlayDurationMetric;
   monthlyProgress: OverlayProgressMetric;
   todayBreakLeft: OverlayDurationMetric;
+  todayLabel: string;
   todayWorkLeft: OverlayDurationMetric;
 };
 
@@ -143,7 +144,7 @@ function createTodaySection(
     createDurationMetricCard(doc, "Break left", model.todayBreakLeft),
   );
 
-  section.append(createSectionLabel(doc, "Today"), metrics);
+  section.append(createSectionLabel(doc, model.todayLabel), metrics);
   return section;
 }
 

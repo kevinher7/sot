@@ -1,34 +1,11 @@
+import { getNow, getDelayUntilNextMinute } from "../../platform/time/clock";
 import {
   ROOT_ID,
   ensureOverlayRoot,
   renderOverlayError,
   renderOverlayResult,
-  type OverlayViewModel,
 } from "./overlay";
-
-function getPlaceholderOverlayModel(): OverlayViewModel {
-  return {
-    todayWorkLeft: {
-      value: "--:--",
-      unit: "h",
-      tone: "negative",
-    },
-    todayBreakLeft: {
-      value: "--",
-      unit: "m",
-      tone: "positive",
-    },
-    monthlyBank: {
-      value: "--",
-      unit: "h",
-      tone: "positive",
-    },
-    monthlyProgress: {
-      label: "Total",
-      value: 0,
-    },
-  };
-}
+import { createOverlayViewModel } from "./model";
 
 function isOverlayMutationTarget(node: Node): boolean {
   if (node instanceof HTMLElement) {
@@ -66,19 +43,15 @@ function observeDocumentChanges(
   return observer;
 }
 
-export async function startMonthlyRequiredHoursFeature(
+export async function startMonthlyRequiredHoursRuntime(
   win: Window = window,
   doc: Document = document,
 ): Promise<void> {
+  let refreshScheduled = false;
+  let nextMinuteTimerId: number | null = null;
+
   try {
     const root = ensureOverlayRoot(doc);
-    const model = getPlaceholderOverlayModel();
-    let refreshScheduled = false;
-
-    const refresh = (): void => {
-      refreshScheduled = false;
-      renderOverlayResult(root, doc, model);
-    };
 
     const scheduleRefresh = (): void => {
       if (refreshScheduled) {
@@ -86,12 +59,40 @@ export async function startMonthlyRequiredHoursFeature(
       }
 
       refreshScheduled = true;
-      win.requestAnimationFrame(refresh);
+      win.requestAnimationFrame(() => {
+        refreshScheduled = false;
+        refresh();
+      });
+    };
+
+    const scheduleNextMinuteRefresh = (): void => {
+      if (nextMinuteTimerId !== null) {
+        win.clearTimeout(nextMinuteTimerId);
+      }
+
+      const now = getNow();
+      const delay = getDelayUntilNextMinute(now);
+
+      nextMinuteTimerId = win.setTimeout(() => {
+        refresh();
+      }, delay);
+    };
+
+    const refresh = (): void => {
+      const now = getNow();
+      const model = createOverlayViewModel(now);
+
+      renderOverlayResult(root, doc, model);
+      scheduleNextMinuteRefresh();
     };
 
     observeDocumentChanges(doc, scheduleRefresh);
     refresh();
   } catch (error) {
+    if (nextMinuteTimerId !== null) {
+      win.clearTimeout(nextMinuteTimerId);
+    }
+
     const root = ensureOverlayRoot(doc);
     renderOverlayError(
       root,

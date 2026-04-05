@@ -1,5 +1,5 @@
 import { ensureOverlayRoot, repositionOverlayRoot } from "./overlay";
-import { startMonthlyRequiredHoursFeature } from "./feature";
+import { startMonthlyRequiredHoursRuntime } from "./runtime";
 
 async function mountOverlay(doc: Document, win: Window): Promise<void> {
   if (!doc.body) {
@@ -7,7 +7,7 @@ async function mountOverlay(doc: Document, win: Window): Promise<void> {
   }
 
   ensureOverlayRoot(doc);
-  await startMonthlyRequiredHoursFeature(win, doc);
+  await startMonthlyRequiredHoursRuntime(win, doc);
 }
 
 export function bootstrapContentScript(
