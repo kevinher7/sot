@@ -175,7 +175,7 @@ function createHeader(doc: Document): HTMLElement {
     doc,
     "span",
     "kot-extension-title",
-    "KOT Extension",
+    "SOT (SERVANT OF TIME)",
   );
   const icon = createElement(doc, "span", "kot-extension-icon", "◷");
 
@@ -310,7 +310,12 @@ export function renderOverlayLoading(
   }
 
   shell.append(
-    createElement(doc, "strong", "kot-extension-status-title", "KOT Extension"),
+    createElement(
+      doc,
+      "strong",
+      "kot-extension-status-title",
+      "SOT (SERVANT OF TIME)",
+    ),
     createElement(doc, "div", "kot-extension-status-copy", message),
   );
 }
@@ -338,7 +343,12 @@ export function renderOverlayError(
   }
 
   shell.append(
-    createElement(doc, "strong", "kot-extension-status-title", "KOT Extension"),
+    createElement(
+      doc,
+      "strong",
+      "kot-extension-status-title",
+      "SOT (SERVANT OF TIME)",
+    ),
     createElement(
       doc,
       "div",

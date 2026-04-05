@@ -1,14 +1,16 @@
-# KOT Extension
+# SOT (SERVANT OF TIME)
 
-Browser extension scaffold for KING OF TIME's admin monthly working page.
+SOT (SERVANT OF TIME) is an unofficial extension overlay for the KING OF TIME timecard.
+
+Not affiliated with or endorsed by Human Technologies or KING OF TIME.
 
 ## Target page
 
-The scaffold activates only on URLs under:
+The extension activates only on URLs under:
 
 - `https://s2.ta.kingoftime.jp/admin/*`
 
-and only mounts its placeholder overlay when the page query includes:
+and only mounts its overlay when the page query includes:
 
 - `page_id=/working/monthly_individual_working_list`
 
@@ -32,6 +34,13 @@ src/
 - `domain/kot/` contains KOT-specific types and pure page/settings logic.
 - `platform/webext/` contains browser API and storage adapters.
 
+## Current behavior
+
+- Reads the monthly timecard page and renders an overlay summary in-page
+- Uses `browser.storage.local` settings with domain defaults when values are missing
+- Refreshes the overlay as page data changes and as time advances
+- Stays scoped to the supported KOT monthly page only
+
 ## Scripts
 
 - `npm install`
@@ -52,9 +61,8 @@ src/
 
 ## Notes
 
-- This scaffold uses Manifest V3.
+- The extension uses Manifest V3.
 - Tailwind CSS is integrated through the official Vite plugin.
-- No feature logic is implemented yet.
 - The shipped extension currently contains only the content-script surface.
-- Settings still come from `browser.storage.local`; there is just no built-in options UI right now.
+- Settings come from `browser.storage.local`; there is no built-in options UI yet.
 - The source tree is organized by extension surface and layer to keep future popup/background additions straightforward.

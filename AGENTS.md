@@ -1,6 +1,6 @@
-# About KOT Extension
+# About SOT
 
-KOT Extension is a Firefox-first WebExtension scaffold for augmenting KING OF TIME's admin monthly working page.
+SOT is a Firefox-first WebExtension for augmenting KING OF TIME's admin monthly working page.
 
 The current runtime flow is:
 

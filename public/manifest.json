@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "KOT Extension",
-  "description": "Overlay helpers for the KING OF TIME monthly working page.",
+  "name": "SOT (SERVANT OF TIME)",
+  "description": "Unofficial extension overlay for the KING OF TIME timecard",
   "version": "0.0.1",
   "browser_specific_settings": {
     "gecko": {
-      "id": "kot-extension@example.local"
+      "id": "sot-extension@example.local"
     }
   },
   "host_permissions": ["https://s2.ta.kingoftime.jp/admin/*"],
