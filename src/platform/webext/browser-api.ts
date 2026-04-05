@@ -30,8 +30,8 @@ export async function getStorageValues<T extends StoragePayload>(
   defaults: T,
 ): Promise<T> {
   const api = getBrowserApi();
-
   const result = await api.storage.local.get(defaults);
+
   return result as T;
 }
 

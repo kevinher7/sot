@@ -12,13 +12,13 @@
   "content_scripts": [
     {
       "matches": ["https://s2.ta.kingoftime.jp/admin/*"],
-      "js": ["content.js"],
-      "css": ["content.css"],
+      "js": ["content/index.js"],
+      "css": ["content/index.css"],
       "run_at": "document_idle"
     }
   ],
   "options_ui": {
-    "page": "options.html",
+    "page": "options/index.html",
     "open_in_tab": true
   },
   "permissions": ["storage"]

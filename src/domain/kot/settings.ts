@@ -7,3 +7,12 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
   targetHost: "s2.ta.kingoftime.jp",
   targetPageId: "/working/monthly_individual_working_list",
 };
+
+export function normalizeSettings(
+  settings: Partial<ExtensionSettings> | undefined,
+): ExtensionSettings {
+  return {
+    ...DEFAULT_SETTINGS,
+    ...settings,
+  };
+}

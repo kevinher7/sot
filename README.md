@@ -12,6 +12,27 @@ and only mounts its placeholder overlay when the page query includes:
 
 - `page_id=/working/monthly_individual_working_list`
 
+## Project structure
+
+```text
+public/
+  manifest.json
+  icons/
+
+src/
+  entrypoints/
+    content/
+    options/
+  domain/
+    kot/
+  platform/
+    webext/
+```
+
+- `entrypoints/` contains extension surfaces referenced by the manifest or extension HTML.
+- `domain/kot/` contains KOT-specific types and pure page/settings logic.
+- `platform/webext/` contains browser API and storage adapters.
+
 ## Scripts
 
 - `npm install`
@@ -34,4 +55,4 @@ and only mounts its placeholder overlay when the page query includes:
 - Tailwind CSS is integrated through the official Vite plugin.
 - No feature logic is implemented yet.
 - The options page is intentionally a placeholder for future settings UI.
-- The project is organized to stay portable to Chromium later, but only Firefox/Zen loading has been validated in the scaffold design.
+- The source tree is organized by extension surface and layer to keep future popup/background additions straightforward.
