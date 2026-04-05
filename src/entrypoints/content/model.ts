@@ -9,7 +9,7 @@ import type {
 } from "./overlay";
 
 const TODAY_MONTH_FORMATTER = new Intl.DateTimeFormat("ja-JP", {
-  month: "numeric",
+  month: "2-digit",
 });
 
 const TODAY_DAY_FORMATTER = new Intl.DateTimeFormat("ja-JP", {
@@ -45,6 +45,12 @@ function formatTodayLabel(now: Date): string {
   const day = TODAY_DAY_FORMATTER.format(now);
 
   return `TODAY ${month}${day}`;
+}
+
+function formatMonthLabel(now: Date): string {
+  const month = TODAY_MONTH_FORMATTER.format(now);
+
+  return `MONTH ${month}`;
 }
 
 function formatHoursAndMinutes(totalMinutes: number): string {
@@ -133,6 +139,7 @@ export function createOverlayViewModel(
 ): OverlayViewModel {
   return {
     monthlyBank: createMonthlyBankMetric(result.monthBankMinutes),
+    monthLabel: formatMonthLabel(now),
     monthlyProgress: createProgressMetric("TOTAL", result.monthProgressPercent),
     todayBreakLeft: createTodayBreakMetric(result, settings),
     todayLabel: formatTodayLabel(now),

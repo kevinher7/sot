@@ -20,6 +20,7 @@ export type OverlayProgressMetric = {
 
 export type OverlayViewModel = {
   monthlyBank: OverlayDurationMetric;
+  monthLabel: string;
   monthlyProgress: OverlayProgressMetric;
   todayBreakLeft: OverlayDurationMetric;
   todayLabel: string;
@@ -174,7 +175,7 @@ function createMonthSection(
     createProgressCard(doc, model.monthlyProgress),
   );
 
-  section.append(createSectionLabel(doc, "Month"), grid);
+  section.append(createSectionLabel(doc, model.monthLabel), grid);
   return section;
 }
 
