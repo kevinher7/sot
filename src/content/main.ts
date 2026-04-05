@@ -10,9 +10,29 @@ function isMonthlyIndividualWorkingListPage(url: URL): boolean {
   );
 }
 
+function positionRoot(root: HTMLDivElement): void {
+  const pageTitle = document.querySelector<HTMLHeadingElement>(
+    "h1.htBlock-pageTitleSticky",
+  );
+
+  if (!pageTitle) {
+    root.style.position = "fixed";
+    root.style.top = "16px";
+    root.style.right = "16px";
+    return;
+  }
+
+  const rect = pageTitle.getBoundingClientRect();
+
+  root.style.position = "fixed";
+  root.style.top = `${rect.bottom + 16}px`;
+  root.style.right = "16px";
+}
+
 function ensureRoot(): HTMLDivElement {
   const existing = document.getElementById(ROOT_ID);
   if (existing instanceof HTMLDivElement) {
+    positionRoot(existing);
     return existing;
   }
 
@@ -26,6 +46,7 @@ function ensureRoot(): HTMLDivElement {
   `;
 
   document.body.append(root);
+  positionRoot(root);
   return root;
 }
 
@@ -34,6 +55,13 @@ function bootstrap(): void {
   if (!isMonthlyIndividualWorkingListPage(currentUrl)) {
     return;
   }
+
+  window.addEventListener("resize", () => {
+    const root = document.getElementById(ROOT_ID);
+    if (root instanceof HTMLDivElement) {
+      positionRoot(root);
+    }
+  });
 
   if (document.body) {
     ensureRoot();
