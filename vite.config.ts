@@ -4,29 +4,45 @@ import { dirname, join } from "node:path";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig, type Plugin } from "vite";
 
+async function moveHtmlEntry(entryName: string): Promise<void> {
+  const distDir = join(process.cwd(), "dist");
+  const generatedHtml = join(
+    distDir,
+    `src/entrypoints/${entryName}/index.html`,
+  );
+  const finalHtml = join(distDir, `${entryName}/index.html`);
+  const generatedContent = await readFile(generatedHtml, "utf8").catch(
+    () => undefined,
+  );
+
+  if (!generatedContent) {
+    return;
+  }
+
+  await mkdir(dirname(finalHtml), { recursive: true });
+  await rename(generatedHtml, finalHtml);
+
+  const updatedHtml = generatedContent
+    .replaceAll(`../../../${entryName}/index.js`, "./index.js")
+    .replaceAll("../../../assets/", "../assets/");
+
+  await writeFile(finalHtml, updatedHtml);
+}
+
 function organizeExtensionOutput(): Plugin {
   return {
     name: "organize-extension-output",
     apply: "build",
     async closeBundle() {
       const distDir = join(process.cwd(), "dist");
-      const generatedOptionsHtml = join(
-        distDir,
-        "src/entrypoints/options/index.html",
-      );
-      const finalOptionsHtml = join(distDir, "options/index.html");
       const candidateCssFiles = [
         join(distDir, "assets/index.css"),
         join(distDir, "assets/index2.css"),
+        join(distDir, "assets/index3.css"),
       ];
       const finalContentCss = join(distDir, "content/index.css");
 
-      await mkdir(dirname(finalOptionsHtml), { recursive: true });
-      await rename(generatedOptionsHtml, finalOptionsHtml);
-      const updatedOptionsHtml = (await readFile(finalOptionsHtml, "utf8"))
-        .replaceAll("../../../options/index.js", "./index.js")
-        .replaceAll("../../../assets/", "../assets/");
-      await writeFile(finalOptionsHtml, updatedOptionsHtml);
+      await moveHtmlEntry("options");
 
       for (const candidatePath of candidateCssFiles) {
         const css = await readFile(candidatePath, "utf8").catch(() => "");

@@ -1,45 +1,32 @@
-import { calculateMonthlyRequiredHours } from "../../domain/kot/monthly-required-hours";
 import {
   ROOT_ID,
   ensureOverlayRoot,
   renderOverlayError,
-  renderOverlayLoading,
   renderOverlayResult,
+  type OverlayViewModel,
 } from "./overlay";
-import { readMonthlyWorkSchedule } from "./page-reader";
 
-const SETTINGS_KEY = "settings";
-const DEFAULT_STANDARD_WORKDAY_HOURS = 8;
-
-type ContentFeatureSettings = {
-  standardWorkdayHours: number;
-};
-
-async function getContentFeatureSettings(): Promise<ContentFeatureSettings> {
-  const runtime = globalThis as typeof globalThis & {
-    browser?: typeof browser;
-    chrome?: typeof browser;
-  };
-
-  const api = runtime.browser ?? runtime.chrome;
-  if (!api) {
-    return {
-      standardWorkdayHours: DEFAULT_STANDARD_WORKDAY_HOURS,
-    };
-  }
-
-  const stored = (await api.storage.local.get({
-    [SETTINGS_KEY]: {
-      standardWorkdayHours: DEFAULT_STANDARD_WORKDAY_HOURS,
-    },
-  })) as {
-    [SETTINGS_KEY]?: Partial<ContentFeatureSettings>;
-  };
-
+function getPlaceholderOverlayModel(): OverlayViewModel {
   return {
-    standardWorkdayHours:
-      stored[SETTINGS_KEY]?.standardWorkdayHours ??
-      DEFAULT_STANDARD_WORKDAY_HOURS,
+    todayWorkLeft: {
+      value: "--:--",
+      unit: "h",
+      tone: "negative",
+    },
+    todayBreakLeft: {
+      value: "--",
+      unit: "m",
+      tone: "positive",
+    },
+    monthlyBank: {
+      value: "--",
+      unit: "h",
+      tone: "positive",
+    },
+    monthlyProgress: {
+      label: "Total",
+      value: 0,
+    },
   };
 }
 
@@ -83,59 +70,35 @@ export async function startMonthlyRequiredHoursFeature(
   win: Window = window,
   doc: Document = document,
 ): Promise<void> {
-  const root = ensureOverlayRoot(doc);
-  renderOverlayLoading(root, doc, "Loading monthly work schedule...");
-
   try {
-    const settings = await getContentFeatureSettings();
-    let lastSignature: string | null = null;
+    const root = ensureOverlayRoot(doc);
+    const model = getPlaceholderOverlayModel();
     let refreshScheduled = false;
 
-    const refresh = () => {
+    const refresh = (): void => {
       refreshScheduled = false;
-
-      const snapshot = readMonthlyWorkSchedule(doc);
-      if (!snapshot) {
-        renderOverlayLoading(root, doc, "Waiting for monthly table...");
-        lastSignature = null;
-        return;
-      }
-
-      if (snapshot.signature === lastSignature) {
-        return;
-      }
-
-      lastSignature = snapshot.signature;
-      renderOverlayResult(
-        root,
-        doc,
-        calculateMonthlyRequiredHours(
-          snapshot.dayKinds,
-          settings.standardWorkdayHours,
-        ),
-      );
+      renderOverlayResult(root, doc, model);
     };
 
-    const scheduleRefresh = () => {
+    const scheduleRefresh = (): void => {
       if (refreshScheduled) {
         return;
       }
 
       refreshScheduled = true;
-      win.requestAnimationFrame(() => {
-        refresh();
-      });
+      win.requestAnimationFrame(refresh);
     };
 
     observeDocumentChanges(doc, scheduleRefresh);
     refresh();
   } catch (error) {
+    const root = ensureOverlayRoot(doc);
     renderOverlayError(
       root,
       doc,
       error instanceof Error
         ? error.message
-        : "Failed to calculate monthly required hours.",
+        : "Failed to render extension overlay.",
     );
   }
 }

@@ -1,36 +1,224 @@
-import type { MonthlyRequiredHoursResult } from "../../domain/kot/monthly-required-hours";
 import { positionOverlayRoot } from "./position";
 
 export const ROOT_ID = "kot-extension-root";
 
-function createLine<K extends keyof HTMLElementTagNameMap>(
+export type OverlayMetricTone = "positive" | "negative" | "neutral";
+
+export type OverlayDurationMetric = {
+  tone: OverlayMetricTone;
+  unit: "h" | "m";
+  value: string;
+};
+
+export type OverlayProgressMetric = {
+  label: string;
+  value: number;
+};
+
+export type OverlayViewModel = {
+  monthlyBank: OverlayDurationMetric;
+  monthlyProgress: OverlayProgressMetric;
+  todayBreakLeft: OverlayDurationMetric;
+  todayWorkLeft: OverlayDurationMetric;
+};
+
+const METRIC_TONE_CLASS_NAME: Record<OverlayMetricTone, string> = {
+  negative: "kot-extension-metric-value--negative",
+  neutral: "kot-extension-metric-value--neutral",
+  positive: "kot-extension-metric-value--positive",
+};
+
+function createElement<K extends keyof HTMLElementTagNameMap>(
   doc: Document,
   tagName: K,
-  text: string,
+  className?: string,
+  textContent?: string,
 ): HTMLElementTagNameMap[K] {
   const element = doc.createElement(tagName);
-  element.textContent = text;
+
+  if (className) {
+    element.className = className;
+  }
+
+  if (textContent) {
+    element.textContent = textContent;
+  }
+
   return element;
 }
 
-function createValueRow(
+function createSectionLabel(doc: Document, text: string): HTMLDivElement {
+  const wrapper = createElement(doc, "div", "kot-extension-section-label-wrap");
+  const label = createElement(doc, "span", "kot-extension-section-label", text);
+
+  wrapper.append(label);
+  return wrapper;
+}
+
+function createDurationMetricCard(
   doc: Document,
-  label: string,
-  value: string,
+  labelText: string,
+  metric: OverlayDurationMetric,
 ): HTMLDivElement {
-  const row = doc.createElement("div");
-  row.className = "kot-extension-row";
+  const card = createElement(doc, "div", "kot-extension-metric-card");
+  const label = createElement(
+    doc,
+    "span",
+    "kot-extension-metric-label",
+    labelText,
+  );
+  const valueGroup = createElement(
+    doc,
+    "div",
+    `kot-extension-metric-value ${METRIC_TONE_CLASS_NAME[metric.tone]}`,
+  );
+  const value = createElement(
+    doc,
+    "span",
+    "kot-extension-metric-value-text",
+    metric.value,
+  );
+  const unit = createElement(
+    doc,
+    "span",
+    "kot-extension-metric-unit",
+    metric.unit,
+  );
 
-  const labelElement = doc.createElement("span");
-  labelElement.className = "kot-extension-label";
-  labelElement.textContent = label;
+  card.dataset.tone = metric.tone;
+  valueGroup.append(value, unit);
+  card.append(label, valueGroup);
+  return card;
+}
 
-  const valueElement = doc.createElement("strong");
-  valueElement.className = "kot-extension-value";
-  valueElement.textContent = value;
+function createProgressCard(
+  doc: Document,
+  metric: OverlayProgressMetric,
+): HTMLDivElement {
+  const card = createElement(doc, "div", "kot-extension-progress-card");
+  const label = createElement(
+    doc,
+    "span",
+    "kot-extension-metric-label",
+    metric.label,
+  );
+  const rail = createElement(doc, "div", "kot-extension-progress-rail");
+  const fill = createElement(doc, "div", "kot-extension-progress-fill");
+  const safeValue = Math.max(0, Math.min(100, metric.value));
 
-  row.append(labelElement, valueElement);
-  return row;
+  fill.style.width = `${safeValue}%`;
+  rail.append(fill);
+  card.append(label, rail);
+
+  return card;
+}
+
+function createHeader(doc: Document): HTMLElement {
+  const header = createElement(doc, "header", "kot-extension-header");
+  const headingGroup = createElement(doc, "div", "kot-extension-header-group");
+  const statusDot = createElement(doc, "div", "kot-extension-status-dot");
+  const title = createElement(
+    doc,
+    "span",
+    "kot-extension-title",
+    "KOT Extension",
+  );
+  const icon = createElement(doc, "span", "kot-extension-icon", "◷");
+
+  headingGroup.append(statusDot, title);
+  header.append(headingGroup, icon);
+
+  return header;
+}
+
+function createTodaySection(
+  doc: Document,
+  model: OverlayViewModel,
+): HTMLElement {
+  const section = createElement(doc, "section", "kot-extension-section");
+  const metrics = createElement(doc, "div", "kot-extension-metric-stack");
+
+  metrics.append(
+    createDurationMetricCard(doc, "Work left", model.todayWorkLeft),
+    createDurationMetricCard(doc, "Break left", model.todayBreakLeft),
+  );
+
+  section.append(createSectionLabel(doc, "Today"), metrics);
+  return section;
+}
+
+function createMonthSection(
+  doc: Document,
+  model: OverlayViewModel,
+): HTMLElement {
+  const section = createElement(
+    doc,
+    "section",
+    "kot-extension-section kot-extension-section--month",
+  );
+  const grid = createElement(doc, "div", "kot-extension-month-grid");
+
+  grid.append(
+    createDurationMetricCard(doc, "Bank", model.monthlyBank),
+    createProgressCard(doc, model.monthlyProgress),
+  );
+
+  section.append(createSectionLabel(doc, "Month"), grid);
+  return section;
+}
+
+function createWipPanel(doc: Document): HTMLElement {
+  const panel = createElement(doc, "section", "kot-extension-wip-panel", "WIP");
+  panel.hidden = true;
+  return panel;
+}
+
+function createCtaSection(doc: Document, onToggle: () => void): HTMLDivElement {
+  const wrapper = createElement(doc, "div", "kot-extension-cta-wrap");
+  const button = createElement(doc, "button", "kot-extension-cta-button");
+  const label = createElement(
+    doc,
+    "span",
+    "kot-extension-cta-label",
+    "View month breakdown",
+  );
+  const icon = createElement(doc, "span", "kot-extension-cta-icon", "▾");
+
+  button.type = "button";
+  button.addEventListener("click", () => {
+    icon.classList.toggle("is-expanded");
+    onToggle();
+  });
+
+  button.append(label, icon);
+  wrapper.append(button);
+
+  return wrapper;
+}
+
+function createOverlayCard(
+  doc: Document,
+  model: OverlayViewModel,
+): HTMLDivElement {
+  const shell = createElement(doc, "div", "kot-extension-shell");
+  const divider = createElement(doc, "div", "kot-extension-divider");
+  const content = createElement(doc, "main", "kot-extension-content");
+  const accent = createElement(doc, "div", "kot-extension-accent");
+  const wipPanel = createWipPanel(doc);
+
+  const toggleWipPanel = (): void => {
+    wipPanel.hidden = !wipPanel.hidden;
+  };
+
+  content.append(
+    createTodaySection(doc, model),
+    createMonthSection(doc, model),
+    createCtaSection(doc, toggleWipPanel),
+    wipPanel,
+  );
+
+  shell.append(createHeader(doc), divider, content, accent);
+  return shell;
 }
 
 function renderOverlayChildren(
@@ -50,10 +238,23 @@ export function renderOverlayLoading(
   renderOverlayChildren(
     root,
     [
-      createLine(doc, "strong", "KOT Extension"),
-      createLine(doc, "div", message),
+      createElement(
+        doc,
+        "div",
+        "kot-extension-shell kot-extension-shell--status",
+      ),
     ],
     "loading",
+  );
+
+  const shell = root.firstElementChild;
+  if (!(shell instanceof HTMLDivElement)) {
+    return;
+  }
+
+  shell.append(
+    createElement(doc, "strong", "kot-extension-status-title", "KOT Extension"),
+    createElement(doc, "div", "kot-extension-status-copy", message),
   );
 }
 
@@ -65,29 +266,38 @@ export function renderOverlayError(
   renderOverlayChildren(
     root,
     [
-      createLine(doc, "strong", "KOT Extension"),
-      createLine(doc, "div", "Unable to calculate required hours."),
-      createLine(doc, "div", message),
+      createElement(
+        doc,
+        "div",
+        "kot-extension-shell kot-extension-shell--status",
+      ),
     ],
     "error",
+  );
+
+  const shell = root.firstElementChild;
+  if (!(shell instanceof HTMLDivElement)) {
+    return;
+  }
+
+  shell.append(
+    createElement(doc, "strong", "kot-extension-status-title", "KOT Extension"),
+    createElement(
+      doc,
+      "div",
+      "kot-extension-status-copy",
+      "Unable to load extension summary.",
+    ),
+    createElement(doc, "div", "kot-extension-status-copy", message),
   );
 }
 
 export function renderOverlayResult(
   root: HTMLDivElement,
   doc: Document,
-  result: MonthlyRequiredHoursResult,
+  model: OverlayViewModel,
 ): void {
-  renderOverlayChildren(
-    root,
-    [
-      createLine(doc, "strong", "KOT Extension"),
-      createValueRow(doc, "Workdays", String(result.workdayCount)),
-      createValueRow(doc, "Off days", String(result.offdayCount)),
-      createValueRow(doc, "Required hours", `${result.requiredHours}h`),
-    ],
-    "ready",
-  );
+  renderOverlayChildren(root, [createOverlayCard(doc, model)], "ready");
 }
 
 export function ensureOverlayRoot(doc: Document = document): HTMLDivElement {

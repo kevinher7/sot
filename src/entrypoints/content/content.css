@@ -1,10 +1,7 @@
 #kot-extension-root {
   z-index: 2147483647;
-  min-width: 240px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: rgba(20, 24, 38, 0.92);
-  color: #f4f7fb;
+  width: 220px;
+  color: #191c1e;
   font-family:
     Inter,
     system-ui,
@@ -12,39 +9,297 @@
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
-  font-size: 14px;
   line-height: 1.4;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
 }
 
-#kot-extension-root[data-state="loading"] {
-  opacity: 0.78;
-}
-
+#kot-extension-root[data-state="loading"],
 #kot-extension-root[data-state="error"] {
-  border: 1px solid rgba(248, 113, 113, 0.4);
+  width: 240px;
 }
 
-#kot-extension-root strong:first-child {
+#kot-extension-root * {
+  box-sizing: border-box;
+}
+
+.kot-extension-shell {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 28px rgba(25, 28, 30, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.kot-extension-shell::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(40, 167, 69, 0.2), transparent 70%);
+  filter: blur(14px);
+  opacity: 0.6;
+}
+
+.kot-extension-shell--status {
+  padding: 12px 14px;
+}
+
+.kot-extension-status-title {
   display: block;
   margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #3e4a3c;
 }
 
-.kot-extension-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+.kot-extension-status-copy {
+  font-size: 13px;
+  color: #3e4a3c;
 }
 
-.kot-extension-row + .kot-extension-row {
+.kot-extension-status-copy + .kot-extension-status-copy {
   margin-top: 4px;
 }
 
-.kot-extension-label {
-  color: rgba(244, 247, 251, 0.76);
+#kot-extension-root[data-state="loading"] .kot-extension-shell {
+  opacity: 0.8;
 }
 
-.kot-extension-value {
-  font-weight: 600;
+#kot-extension-root[data-state="error"] .kot-extension-shell {
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.kot-extension-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.kot-extension-header-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kot-extension-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #28a745;
+}
+
+.kot-extension-title {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #3e4a3c;
+}
+
+.kot-extension-icon {
+  font-size: 18px;
+  line-height: 1;
+  color: #94a3b8;
+}
+
+.kot-extension-divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(148, 163, 184, 0.24);
+}
+
+.kot-extension-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+}
+
+.kot-extension-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.kot-extension-section--month {
+  padding-top: 8px;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.kot-extension-section-label-wrap {
+  padding: 0 2px;
+}
+
+.kot-extension-section-label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(110, 123, 107, 0.85);
+}
+
+.kot-extension-metric-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.kot-extension-month-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.kot-extension-metric-card,
+.kot-extension-progress-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 4px;
+  background: #ffffff;
+}
+
+.kot-extension-progress-card {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 6px;
+}
+
+.kot-extension-metric-card[data-tone="negative"] {
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.kot-extension-metric-card[data-tone="positive"] {
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.kot-extension-metric-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #3e4a3c;
+}
+
+.kot-extension-metric-value {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.kot-extension-metric-value--negative {
+  color: #dc2626;
+}
+
+.kot-extension-metric-value--neutral {
+  color: #64748b;
+}
+
+.kot-extension-metric-value--positive {
+  color: #059669;
+}
+
+.kot-extension-metric-value-text {
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.kot-extension-metric-unit {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.kot-extension-progress-rail {
+  width: 100%;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.kot-extension-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #10b981;
+  transition: width 0.2s ease;
+}
+
+.kot-extension-cta-wrap {
+  margin-top: 2px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.kot-extension-cta-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 4px 0;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.kot-extension-cta-button:hover {
+  background: rgba(226, 232, 240, 0.45);
+}
+
+.kot-extension-cta-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #16a34a;
+}
+
+.kot-extension-cta-icon {
+  font-size: 14px;
+  line-height: 1;
+  color: #16a34a;
+  transition: transform 0.2s ease;
+}
+
+.kot-extension-cta-icon.is-expanded {
+  transform: rotate(180deg);
+}
+
+.kot-extension-wip-panel {
+  padding: 16px 12px;
+  border: 1px dashed rgba(148, 163, 184, 0.45);
+  border-radius: 4px;
+  background: #f8fafc;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-align: center;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.kot-extension-accent {
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(40, 167, 69, 0.3),
+    transparent
+  );
 }
