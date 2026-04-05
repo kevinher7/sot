@@ -1,11 +1,13 @@
 import { ensureOverlayRoot, repositionOverlayRoot } from "./overlay";
+import { startMonthlyRequiredHoursFeature } from "./feature";
 
-function mountOverlay(doc: Document): void {
+async function mountOverlay(doc: Document, win: Window): Promise<void> {
   if (!doc.body) {
     return;
   }
 
   ensureOverlayRoot(doc);
+  await startMonthlyRequiredHoursFeature(win, doc);
 }
 
 export function bootstrapContentScript(
@@ -13,7 +15,7 @@ export function bootstrapContentScript(
   doc: Document = document,
 ): void {
   const render = () => {
-    mountOverlay(doc);
+    void mountOverlay(doc, win);
   };
 
   if (doc.readyState === "loading") {

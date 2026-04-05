@@ -17,6 +17,34 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
 }
 
-#kot-extension-root[data-state="placeholder"] {
-  opacity: 0.72;
+#kot-extension-root[data-state="loading"] {
+  opacity: 0.78;
+}
+
+#kot-extension-root[data-state="error"] {
+  border: 1px solid rgba(248, 113, 113, 0.4);
+}
+
+#kot-extension-root strong:first-child {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.kot-extension-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.kot-extension-row + .kot-extension-row {
+  margin-top: 4px;
+}
+
+.kot-extension-label {
+  color: rgba(244, 247, 251, 0.76);
+}
+
+.kot-extension-value {
+  font-weight: 600;
 }
