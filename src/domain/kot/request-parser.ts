@@ -1,3 +1,4 @@
+import { parseKotIsoDate } from "./date";
 import type {
   KotRequestCacheEntry,
   KotRequestStatus,
@@ -6,24 +7,16 @@ import type {
   KotTimeCorrectionRequest,
 } from "./request-data";
 
-const DATE_INPUT_CANDIDATES = [
-  'input[name="working_date"]',
-  'input[name="target_date"]',
-  'input[name="date"]',
-  'input[name*="working_date"]',
-  'input[name*="target_date"]',
-] as const;
-
-const EMPLOYEE_INPUT_CANDIDATES = [
-  'input[name="employee_id"]',
-  'input[name*="employee_id"]',
-] as const;
-const REQUEST_ID_INPUT_SELECTOR = 'input[name="request_id"]';
-const REQUESTED_CONTENT_SELECTOR =
-  'td[data-ht-sort-index="EMPLOYEE_REQUEST_LIST_REQUESTED_CONTENT"]';
-const TARGET_DATE_SELECTOR =
-  'td[data-ht-sort-index="EMPLOYEE_REQUEST_LIST_TARGET_DATE"]';
-const STATUS_SELECTOR = 'td[data-ht-sort-index="EMPLOYEE_REQUEST_LIST_STATUS"]';
+export type KotRequestListRow = {
+  dateFieldValues: readonly string[];
+  employeeFieldValues: readonly string[];
+  linkEmployeeIds: readonly string[];
+  requestId: string | null;
+  requestedContentText: string;
+  rowText: string;
+  statusText: string;
+  targetDateText: string;
+};
 
 const CLOCK_IN_PATTERNS = [
   /(?:出勤|出社|始業)[^0-9]{0,20}(\d{1,2}:\d{2})/u,
@@ -112,99 +105,6 @@ function parseClockMinuteListByPatterns(
   return minutes.length > 0 ? minutes : undefined;
 }
 
-function parseIsoDate(value: string): string | null {
-  const normalized = value.trim();
-
-  if (/^\d{8}$/u.test(normalized)) {
-    return `${normalized.slice(0, 4)}-${normalized.slice(4, 6)}-${normalized.slice(6, 8)}`;
-  }
-
-  const match = normalized.match(/(\d{4})[/-](\d{1,2})[/-](\d{1,2})/u);
-
-  if (!match) {
-    return null;
-  }
-
-  return `${match[1]}-${match[2].padStart(2, "0")}-${match[3].padStart(2, "0")}`;
-}
-
-function parseIsoDateFromElement(element: Element): string | null {
-  for (const selector of DATE_INPUT_CANDIDATES) {
-    const input = element.querySelector<HTMLInputElement>(selector);
-    const isoDate = parseIsoDate(input?.value ?? "");
-
-    if (isoDate !== null) {
-      return isoDate;
-    }
-  }
-
-  return parseIsoDate(normalizeText(element.textContent ?? ""));
-}
-
-function parseIsoDateFromTargetDateCell(
-  row: HTMLTableRowElement,
-): string | null {
-  const targetDateCell =
-    row.querySelector<HTMLTableCellElement>(TARGET_DATE_SELECTOR);
-
-  if (targetDateCell === null) {
-    return null;
-  }
-
-  return parseIsoDate(normalizeText(targetDateCell.textContent ?? ""));
-}
-
-function parseRequestedContentText(row: HTMLTableRowElement): string {
-  const requestedContentCell = row.querySelector<HTMLTableCellElement>(
-    REQUESTED_CONTENT_SELECTOR,
-  );
-
-  return normalizeText(requestedContentCell?.textContent ?? "");
-}
-
-function parseStatusText(row: HTMLTableRowElement): string {
-  const statusCell = row.querySelector<HTMLTableCellElement>(STATUS_SELECTOR);
-
-  if (statusCell !== null) {
-    return normalizeText(statusCell.textContent ?? "");
-  }
-
-  return normalizeText(row.textContent ?? "");
-}
-
-function parseRequestId(row: HTMLTableRowElement): string | null {
-  const requestId =
-    row.querySelector<HTMLInputElement>(REQUEST_ID_INPUT_SELECTOR)?.value ?? "";
-
-  return requestId.trim() === "" ? null : requestId.trim();
-}
-
-function parseEmployeeIdFromElement(element: Element): string | null {
-  for (const selector of EMPLOYEE_INPUT_CANDIDATES) {
-    const input = element.querySelector<HTMLInputElement>(selector);
-    const employeeId = (input?.value ?? "").trim();
-
-    if (employeeId !== "") {
-      return employeeId;
-    }
-  }
-
-  for (const link of element.querySelectorAll<HTMLAnchorElement>("a[href]")) {
-    try {
-      const url = new URL(link.href, window.location.origin);
-      const employeeId = url.searchParams.get("employee_id")?.trim() ?? "";
-
-      if (employeeId !== "") {
-        return employeeId;
-      }
-    } catch {
-      continue;
-    }
-  }
-
-  return null;
-}
-
 function parseStatus(text: string): KotRequestStatus {
   if (PENDING_PATTERNS.some((pattern) => pattern.test(text))) {
     return "pending";
@@ -266,22 +166,54 @@ function createCacheKey(
   return `${employeeId}:${isoDate}:${status}:${compactText}`;
 }
 
+function parseRowIsoDate(row: KotRequestListRow): string | null {
+  const targetDate = parseKotIsoDate(row.targetDateText);
+
+  if (targetDate !== null) {
+    return targetDate;
+  }
+
+  for (const value of row.dateFieldValues) {
+    const isoDate = parseKotIsoDate(value);
+
+    if (isoDate !== null) {
+      return isoDate;
+    }
+  }
+
+  return parseKotIsoDate(row.rowText);
+}
+
+function parseEmployeeId(
+  row: KotRequestListRow,
+  fallbackEmployeeId: string,
+): string {
+  for (const value of [...row.employeeFieldValues, ...row.linkEmployeeIds]) {
+    const trimmed = value.trim();
+
+    if (trimmed !== "") {
+      return trimmed;
+    }
+  }
+
+  return fallbackEmployeeId;
+}
+
 function parseRequestRow(
-  row: HTMLTableRowElement,
+  row: KotRequestListRow,
   context: KotRequestSyncPayload,
   syncedAt: number,
 ): KotTimeCorrectionRequest | null {
-  const requestedContentText = parseRequestedContentText(row);
-  const statusText = parseStatusText(row);
-  const rowText = normalizeText(row.textContent ?? "");
+  const requestedContentText = normalizeText(row.requestedContentText);
+  const statusText = normalizeText(row.statusText);
+  const rowText = normalizeText(row.rowText);
   const text = requestedContentText === "" ? rowText : requestedContentText;
 
   if (text === "" || !isSupportedTimeCorrectionText(text)) {
     return null;
   }
 
-  const isoDate =
-    parseIsoDateFromTargetDateCell(row) ?? parseIsoDateFromElement(row);
+  const isoDate = parseRowIsoDate(row);
 
   if (
     isoDate === null ||
@@ -298,12 +230,11 @@ function parseRequestRow(
     return null;
   }
 
-  const employeeId = parseEmployeeIdFromElement(row) ?? context.employeeId;
+  const employeeId = parseEmployeeId(row, context.employeeId);
   const status = parseStatus(statusText);
-  const requestId = parseRequestId(row);
 
   return {
-    cacheKey: createCacheKey(employeeId, isoDate, status, text, requestId),
+    cacheKey: createCacheKey(employeeId, isoDate, status, text, row.requestId),
     employeeId,
     isoDate,
     label: rowText,
@@ -334,13 +265,12 @@ function createSignature(
     .join(";");
 }
 
-export function parseRequestListHtml(
-  html: string,
+export function parseRequestListRows(
+  rows: readonly KotRequestListRow[],
   context: KotRequestSyncPayload,
   syncedAt: number,
 ): KotRequestCacheEntry {
-  const doc = new DOMParser().parseFromString(html, "text/html");
-  const requests = Array.from(doc.querySelectorAll<HTMLTableRowElement>("tr"))
+  const requests = rows
     .map((row) => parseRequestRow(row, context, syncedAt))
     .filter((request): request is KotTimeCorrectionRequest => request !== null)
     .sort((left, right) => {

@@ -1,92 +1,20 @@
 import { calculateOverlayMetrics } from "../../domain/kot/overlay-calculations";
-import type { KotRequestCacheEntry } from "../../domain/kot/request-data";
 import { getNow, getDelayUntilNextMinute } from "../../platform/time/clock";
 import { getSettings } from "../../platform/webext/storage";
-import {
-  ROOT_ID,
-  ensureOverlayRoot,
-  renderOverlayError,
-  renderOverlayResult,
-} from "./overlay";
 import { createOverlayViewModel } from "./model";
+import { ensureOverlayRoot } from "./overlay-root";
+import { renderOverlayError, renderOverlayResult } from "./overlay-renderer";
 import { readMonthlyPageSnapshot } from "./page-reader";
-import { createKotRequestContext, getKotRequestData } from "./request-context";
-
-type RefreshReason = "dom" | "minute";
-
-type RefreshCache = {
-  pageSignature: string | null;
-  requestContextKey: string | null;
-  requestSignature: string | null;
-  requestSnapshot: KotRequestCacheEntry | null;
-  settingsSignature: string | null;
-};
-
-function isOverlayMutationTarget(node: Node): boolean {
-  if (node instanceof HTMLElement) {
-    return node.id === ROOT_ID || node.closest(`#${ROOT_ID}`) !== null;
-  }
-
-  return node.parentElement?.closest(`#${ROOT_ID}`) !== null;
-}
-
-function observeDocumentChanges(
-  doc: Document,
-  onChange: () => void,
-): MutationObserver | null {
-  if (!doc.body) {
-    return null;
-  }
-
-  const observer = new MutationObserver((records) => {
-    const hasNonOverlayMutation = records.some(
-      (record) => !isOverlayMutationTarget(record.target),
-    );
-
-    if (hasNonOverlayMutation) {
-      onChange();
-    }
-  });
-
-  observer.observe(doc.body, {
-    subtree: true,
-    childList: true,
-    attributes: true,
-    attributeFilter: ["class", "value"],
-  });
-
-  return observer;
-}
-
-function createSettingsSignature(
-  settings: Awaited<ReturnType<typeof getSettings>>,
-): string {
-  return JSON.stringify({
-    standardBreakMinutes: settings.standardBreakMinutes,
-    standardWorkdayHours: settings.standardWorkdayHours,
-  });
-}
-
-function shouldSyncRequestData(
-  reason: RefreshReason,
-  nextContextKey: string | null,
-  cache: RefreshCache,
-  pageSignature: string,
-): boolean {
-  if (nextContextKey === null) {
-    return false;
-  }
-
-  if (cache.requestContextKey !== nextContextKey) {
-    return true;
-  }
-
-  if (cache.requestSnapshot === null) {
-    return cache.pageSignature !== pageSignature;
-  }
-
-  return reason === "dom" && cache.pageSignature !== pageSignature;
-}
+import { createKotRequestContext } from "./request-context";
+import { getKotRequestData } from "./request-sync";
+import { observeDocumentChanges } from "./runtime-dom";
+import {
+  clearRequestCache,
+  createRefreshCache,
+  createSettingsSignature,
+  shouldSyncRequestData,
+  type RefreshReason,
+} from "./runtime-state";
 
 export async function startMonthlyRequiredHoursRuntime(
   win: Window = window,
@@ -96,13 +24,7 @@ export async function startMonthlyRequiredHoursRuntime(
   let nextMinuteTimerId: number | null = null;
   let refreshInFlight = false;
   let queuedReason: RefreshReason | null = null;
-  const cache: RefreshCache = {
-    pageSignature: null,
-    requestContextKey: null,
-    requestSignature: null,
-    requestSnapshot: null,
-    settingsSignature: null,
-  };
+  const cache = createRefreshCache();
 
   try {
     const root = ensureOverlayRoot(doc);
@@ -112,8 +34,7 @@ export async function startMonthlyRequiredHoursRuntime(
         win.clearTimeout(nextMinuteTimerId);
       }
 
-      const now = getNow();
-      const delay = getDelayUntilNextMinute(now);
+      const delay = getDelayUntilNextMinute(getNow());
 
       nextMinuteTimerId = win.setTimeout(() => {
         void queueRefresh("minute");
@@ -132,9 +53,7 @@ export async function startMonthlyRequiredHoursRuntime(
           "Monthly timecard data is not available on this page.",
         );
         cache.pageSignature = null;
-        cache.requestContextKey = null;
-        cache.requestSignature = null;
-        cache.requestSnapshot = null;
+        clearRequestCache(cache);
         cache.settingsSignature = null;
         scheduleNextMinuteRefresh();
         return;
@@ -149,9 +68,7 @@ export async function startMonthlyRequiredHoursRuntime(
       const settingsSignature = createSettingsSignature(settings);
 
       if (requestContext === null) {
-        cache.requestContextKey = null;
-        cache.requestSignature = null;
-        cache.requestSnapshot = null;
+        clearRequestCache(cache);
       }
 
       if (
@@ -238,6 +155,7 @@ export async function startMonthlyRequiredHoursRuntime(
     observeDocumentChanges(doc, () => {
       scheduleRefresh("dom");
     });
+
     await queueRefresh("minute");
   } catch (error) {
     if (nextMinuteTimerId !== null) {

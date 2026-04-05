@@ -7,7 +7,7 @@ import type {
   OverlayDurationMetric,
   OverlayProgressMetric,
   OverlayViewModel,
-} from "./overlay";
+} from "./overlay-types";
 
 const TODAY_MONTH_FORMATTER = new Intl.DateTimeFormat("ja-JP", {
   month: "2-digit",
@@ -41,11 +41,13 @@ function createProgressMetric(
   label: string,
   actualPercent: number,
   estimatedPercent: number,
+  tone: OverlayProgressMetric["tone"],
 ): OverlayProgressMetric {
   return {
     actualPercent,
     estimatedPercent,
     label,
+    tone,
   };
 }
 
@@ -183,6 +185,7 @@ export function createOverlayViewModel(
       "TOTAL",
       result.monthActualProgressPercent,
       result.monthEstimatedProgressPercent,
+      result.progressTone,
     ),
     todayBreakLeft: createTodayBreakMetric(result, settings),
     todayLabel: formatTodayLabel(now),
