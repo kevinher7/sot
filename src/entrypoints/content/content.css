@@ -132,6 +132,9 @@
 }
 
 .kot-extension-section-label-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 0 2px;
 }
 
@@ -141,6 +144,32 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: rgba(110, 123, 107, 0.85);
+}
+
+.kot-extension-section-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 1px 7px 1px 6px;
+  border: 1px solid rgba(239, 68, 68, 0.22);
+  border-radius: 999px;
+  background: rgba(254, 226, 226, 0.85);
+  color: #b91c1c;
+  font-variant-numeric: tabular-nums;
+}
+
+.kot-extension-section-badge-icon {
+  font-size: 10px;
+  line-height: 1;
+}
+
+.kot-extension-section-badge-count {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1;
 }
 
 .kot-extension-metric-stack {

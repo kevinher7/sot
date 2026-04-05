@@ -12,6 +12,7 @@ const ACTION_CELL_MONTH_SELECTOR = 'input[name="month"]';
 const ACTION_CELL_DAY_SELECTOR = 'input[name="day"]';
 const DATE_CELL_SELECTOR =
   'td[data-ht-identity-cell="specific-sidemenu_date"][data-ht-sort-index="WORK_DAY"]';
+const DATE_CELL_ERROR_ICON_SELECTOR = 'img[alt="エラー"]';
 const WORK_DAY_TYPE_SELECTOR = 'td[data-ht-sort-index="WORK_DAY_TYPE"]';
 const CLOCK_IN_SELECTOR = 'td[data-ht-sort-index="START_TIMERECORD"]';
 const CLOCK_OUT_SELECTOR = 'td[data-ht-sort-index="END_TIMERECORD"]';
@@ -124,6 +125,13 @@ function toDayKind(
   return "workday";
 }
 
+function hasExplicitRowError(dateCell: HTMLTableCellElement): boolean {
+  return (
+    dateCell.title.includes("エラー") ||
+    dateCell.querySelector(DATE_CELL_ERROR_ICON_SELECTOR) !== null
+  );
+}
+
 function readRowSnapshot(
   row: HTMLTableRowElement,
   now: Date,
@@ -180,6 +188,7 @@ function readRowSnapshot(
     clockOutMinutes,
     day: identity.day,
     dayKind: toDayKind(dateCell, workDayTypeText),
+    hasError: hasExplicitRowError(dateCell),
     hasClockIn: clockInMinutes !== null,
     hasClockOut: clockOutMinutes !== null,
     isoDate: identity.isoDate,
@@ -193,6 +202,7 @@ function createSnapshotSignature(rows: readonly KotDayRowSnapshot[]): string {
       [
         row.isoDate,
         row.dayKind,
+        row.hasError ? "error" : "ok",
         row.clockInMinutes ?? "-",
         row.clockOutMinutes ?? "-",
         row.breakStartMinutes.join(","),

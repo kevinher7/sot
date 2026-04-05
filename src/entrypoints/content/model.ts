@@ -3,6 +3,7 @@ import type {
   OverlayCalculationSettings,
 } from "../../domain/kot/overlay-calculations";
 import type {
+  OverlayBadge,
   OverlayDurationMetric,
   OverlayProgressMetric,
   OverlayViewModel,
@@ -41,6 +42,17 @@ function createProgressMetric(
   return {
     label,
     value,
+  };
+}
+
+function createMonthErrorBadge(errorDayCount: number): OverlayBadge | null {
+  if (errorDayCount <= 0) {
+    return null;
+  }
+
+  return {
+    countText: errorDayCount.toString(),
+    iconText: "⚠",
   };
 }
 
@@ -142,6 +154,7 @@ export function createOverlayViewModel(
   settings: OverlayCalculationSettings,
 ): OverlayViewModel {
   return {
+    monthErrorBadge: createMonthErrorBadge(result.errorDayCount),
     monthlyBank: createMonthlyBankMetric(result.monthBankMinutes),
     monthLabel: formatMonthLabel(now),
     monthlyProgress: createProgressMetric("TOTAL", result.monthProgressPercent),

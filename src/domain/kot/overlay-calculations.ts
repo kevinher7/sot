@@ -10,6 +10,7 @@ export type KotDayRowSnapshot = {
   clockOutMinutes: number | null;
   day: number;
   dayKind: KotDayKind;
+  hasError: boolean;
   hasClockIn: boolean;
   hasClockOut: boolean;
   isoDate: string;
@@ -40,6 +41,7 @@ export type TodayStatus = "in-progress" | "rest-day" | "not-started";
 
 export type OverlayCalculationResult = {
   actualWorkedMinutesSoFar: number;
+  errorDayCount: number;
   monthBankMinutes: number;
   monthProgressPercent: number;
   requiredWorkedMinutesSoFar: number;
@@ -128,6 +130,12 @@ export function calculateMonthProgressPercent(
   return (actualWorkedMinutesSoFar / requiredWorkedMinutesSoFar) * 100;
 }
 
+export function calculateErrorDayCount(
+  pageSnapshot: KotMonthlyPageSnapshot,
+): number {
+  return pageSnapshot.rows.filter((row) => row.hasError).length;
+}
+
 export function calculateOverlayMetrics(
   input: OverlayCalculationInput,
 ): OverlayCalculationResult {
@@ -144,6 +152,7 @@ export function calculateOverlayMetrics(
 
   return {
     actualWorkedMinutesSoFar: input.pageSnapshot.actualWorkedMinutesSoFar,
+    errorDayCount: calculateErrorDayCount(input.pageSnapshot),
     monthBankMinutes: calculateMonthBankMinutes(
       input.pageSnapshot.actualWorkedMinutesSoFar,
       requiredWorkedMinutesSoFar,

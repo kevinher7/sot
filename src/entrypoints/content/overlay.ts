@@ -18,7 +18,13 @@ export type OverlayProgressMetric = {
   value: number;
 };
 
+export type OverlayBadge = {
+  countText: string;
+  iconText: string;
+};
+
 export type OverlayViewModel = {
+  monthErrorBadge: OverlayBadge | null;
   monthlyBank: OverlayDurationMetric;
   monthLabel: string;
   monthlyProgress: OverlayProgressMetric;
@@ -52,11 +58,39 @@ function createElement<K extends keyof HTMLElementTagNameMap>(
   return element;
 }
 
-function createSectionLabel(doc: Document, text: string): HTMLDivElement {
+function createSectionLabel(
+  doc: Document,
+  text: string,
+  badge: OverlayBadge | null = null,
+): HTMLDivElement {
   const wrapper = createElement(doc, "div", "kot-extension-section-label-wrap");
   const label = createElement(doc, "span", "kot-extension-section-label", text);
 
   wrapper.append(label);
+
+  if (badge !== null) {
+    const badgeElement = createElement(
+      doc,
+      "span",
+      "kot-extension-section-badge",
+    );
+    const iconElement = createElement(
+      doc,
+      "span",
+      "kot-extension-section-badge-icon",
+      badge.iconText,
+    );
+    const countElement = createElement(
+      doc,
+      "span",
+      "kot-extension-section-badge-count",
+      badge.countText,
+    );
+
+    badgeElement.append(iconElement, countElement);
+    wrapper.append(badgeElement);
+  }
+
   return wrapper;
 }
 
@@ -175,7 +209,10 @@ function createMonthSection(
     createProgressCard(doc, model.monthlyProgress),
   );
 
-  section.append(createSectionLabel(doc, model.monthLabel), grid);
+  section.append(
+    createSectionLabel(doc, model.monthLabel, model.monthErrorBadge),
+    grid,
+  );
   return section;
 }
 
