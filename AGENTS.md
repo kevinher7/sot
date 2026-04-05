@@ -91,6 +91,7 @@ npm run build
 
 # Testing and Verification
 
+- Do not plan, propose, or write automated tests for this project right now unless the user explicitly asks for them
 - Minimum verification for code changes:
   - `npm run typecheck`
   - `npm run build`
