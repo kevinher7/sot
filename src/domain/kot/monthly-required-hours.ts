@@ -1,9 +1,9 @@
-export type KotDayKind = "workday" | "offday";
+import type { KotDayKind } from "./overlay-calculations";
 
 export type MonthlyRequiredHoursResult = {
-  workdayCount: number;
   offdayCount: number;
   requiredHours: number;
+  workdayCount: number;
 };
 
 export function calculateMonthlyRequiredHours(
@@ -16,8 +16,8 @@ export function calculateMonthlyRequiredHours(
   const offdayCount = dayKinds.length - workdayCount;
 
   return {
-    workdayCount,
     offdayCount,
     requiredHours: workdayCount * standardWorkdayHours,
+    workdayCount,
   };
 }

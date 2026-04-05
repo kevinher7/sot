@@ -1,4 +1,8 @@
 import type {
+  OverlayCalculationResult,
+  OverlayCalculationSettings,
+} from "../../domain/kot/overlay-calculations";
+import type {
   OverlayDurationMetric,
   OverlayProgressMetric,
   OverlayViewModel,
@@ -14,13 +18,13 @@ const TODAY_DAY_FORMATTER = new Intl.DateTimeFormat("ja-JP", {
 
 function createDurationMetric(
   value: string,
-  unit: "h" | "m",
+  unit: OverlayDurationMetric["unit"],
   tone: OverlayDurationMetric["tone"],
 ): OverlayDurationMetric {
   return {
-    value,
-    unit,
     tone,
+    unit,
+    value,
   };
 }
 
@@ -41,12 +45,95 @@ function formatTodayLabel(now: Date): string {
   return `TODAY ${month}${day}`;
 }
 
-export function createOverlayViewModel(now: Date): OverlayViewModel {
+function formatHoursAndMinutes(totalMinutes: number): string {
+  const absoluteMinutes = Math.abs(totalMinutes);
+  const hours = Math.floor(absoluteMinutes / 60)
+    .toString()
+    .padStart(2, "0");
+  const minutes = (absoluteMinutes % 60).toString().padStart(2, "0");
+
+  return `${hours}:${minutes}`;
+}
+
+function formatSignedHoursAndMinutes(totalMinutes: number): string {
+  const prefix = totalMinutes < 0 ? "-" : "+";
+  return `${prefix}${formatHoursAndMinutes(totalMinutes)}`;
+}
+
+function formatMinutes(totalMinutes: number): string {
+  return totalMinutes.toString();
+}
+
+function createTodayWorkMetric(
+  result: OverlayCalculationResult,
+  settings: OverlayCalculationSettings,
+): OverlayDurationMetric {
+  if (result.todayStatus === "rest-day") {
+    return createDurationMetric("REST DAY", "", "neutral");
+  }
+
+  const remainingMinutes =
+    result.todayStatus === "not-started"
+      ? settings.standardWorkdayHours * 60
+      : result.todayWorkLeftMinutes;
+
+  return createDurationMetric(
+    formatHoursAndMinutes(remainingMinutes),
+    "h",
+    result.todayStatus === "not-started" ? "neutral" : "negative",
+  );
+}
+
+function createTodayBreakMetric(
+  result: OverlayCalculationResult,
+  settings: OverlayCalculationSettings,
+): OverlayDurationMetric {
+  if (result.todayStatus === "rest-day") {
+    return createDurationMetric("--", "m", "neutral");
+  }
+
+  const remainingMinutes =
+    result.todayStatus === "not-started"
+      ? settings.standardBreakMinutes
+      : result.todayBreakLeftMinutes;
+
+  return createDurationMetric(
+    formatMinutes(remainingMinutes),
+    "m",
+    result.todayStatus === "not-started" ? "neutral" : "positive",
+  );
+}
+
+function createMonthlyBankMetric(
+  monthBankMinutes: number,
+): OverlayDurationMetric {
+  const tone: OverlayDurationMetric["tone"] =
+    monthBankMinutes > 0
+      ? "positive"
+      : monthBankMinutes < 0
+        ? "negative"
+        : "neutral";
+
+  return createDurationMetric(
+    formatSignedHoursAndMinutes(monthBankMinutes),
+    "h",
+    tone,
+  );
+}
+
+export function createOverlayViewModel(
+  now: Date,
+  result: OverlayCalculationResult,
+  settings: OverlayCalculationSettings,
+): OverlayViewModel {
   return {
+    monthlyBank: createMonthlyBankMetric(result.monthBankMinutes),
+    monthlyProgress: createProgressMetric(
+      `${formatHoursAndMinutes(result.actualWorkedMinutesSoFar)} / ${formatHoursAndMinutes(result.requiredWorkedMinutesSoFar)}`,
+      result.monthProgressPercent,
+    ),
+    todayBreakLeft: createTodayBreakMetric(result, settings),
     todayLabel: formatTodayLabel(now),
-    todayWorkLeft: createDurationMetric("--:--", "h", "negative"),
-    todayBreakLeft: createDurationMetric("--", "m", "positive"),
-    monthlyBank: createDurationMetric("--", "h", "positive"),
-    monthlyProgress: createProgressMetric("Total", 0),
+    todayWorkLeft: createTodayWorkMetric(result, settings),
   };
 }

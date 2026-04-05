@@ -1,7 +1,7 @@
-export interface ExtensionSettings {
+export type ExtensionSettings = {
   monthlyTargetHours: number;
-  standardWorkdayHours: number;
   standardBreakMinutes: number;
+  standardWorkdayHours: number;
   targetHost: string;
   targetPageId: string;
-}
+};

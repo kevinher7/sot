@@ -6,7 +6,7 @@ export type OverlayMetricTone = "positive" | "negative" | "neutral";
 
 export type OverlayDurationMetric = {
   tone: OverlayMetricTone;
-  unit: "h" | "m";
+  unit: "" | "h" | "m";
   value: string;
 };
 
@@ -79,15 +79,20 @@ function createDurationMetricCard(
     "kot-extension-metric-value-text",
     metric.value,
   );
-  const unit = createElement(
-    doc,
-    "span",
-    "kot-extension-metric-unit",
-    metric.unit,
-  );
-
   card.dataset.tone = metric.tone;
-  valueGroup.append(value, unit);
+
+  valueGroup.append(value);
+
+  if (metric.unit !== "") {
+    const unit = createElement(
+      doc,
+      "span",
+      "kot-extension-metric-unit",
+      metric.unit,
+    );
+
+    valueGroup.append(unit);
+  }
   card.append(label, valueGroup);
   return card;
 }
