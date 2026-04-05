@@ -151,7 +151,7 @@
 
 .kot-extension-month-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
   gap: 8px;
 }
 
@@ -183,7 +183,12 @@
   border-color: rgba(16, 185, 129, 0.3);
 }
 
+.kot-extension-metric-card[data-tone="neutral"] {
+  background: #f3f4f6;
+}
+
 .kot-extension-metric-label {
+  min-width: 0;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -193,8 +198,10 @@
 
 .kot-extension-metric-value {
   display: flex;
+  flex-shrink: 0;
   align-items: baseline;
   gap: 2px;
+  white-space: nowrap;
 }
 
 .kot-extension-metric-value--negative {
@@ -215,8 +222,14 @@
   font-variant-numeric: tabular-nums;
 }
 
+.kot-extension-metric-value[data-appearance="rest-day"],
+.kot-extension-metric-value-text[data-appearance="rest-day"] {
+  color: #94a3b8;
+}
+
 .kot-extension-metric-value-text[data-appearance="rest-day"] {
   font-size: 11px;
+  font-weight: 800;
   letter-spacing: 0.04em;
 }
 
