@@ -1,6 +1,6 @@
-import { normalizeSettings } from "../../domain/kot/settings";
-import type { KotRequestCacheEntry } from "../../domain/kot/request-data";
-import type { ExtensionSettings } from "../../domain/kot/types";
+import { normalizeSettings } from "@/domain/kot/settings";
+import type { KotRequestCacheEntry } from "@/domain/kot/request-data";
+import type { ExtensionSettings } from "@/domain/kot/types";
 import { getStorageValues, setStorageValues } from "./browser-api";
 
 const SETTINGS_KEY = "settings";
@@ -48,6 +48,7 @@ export async function getCachedRequestEntry(
   month: number,
 ): Promise<KotRequestCacheEntry | null> {
   const store = await getRequestCacheStore();
+
   return store[createRequestCacheEntryKey(employeeId, year, month)] ?? null;
 }
 

@@ -1,4 +1,7 @@
 {
   "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["firefox-webext-browser", "node"]
+  },
   "include": ["src/**/*.ts", "vite.config.ts"]
 }

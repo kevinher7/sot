@@ -1,16 +1,13 @@
-import {
-  createIsoDateFromParts,
-  createIsoDateKey,
-} from "../../domain/kot/date";
+import { createIsoDateFromParts, createIsoDateKey } from "@/domain/kot/date";
 import type {
   KotDayKind,
   KotDayRowSnapshot,
-} from "../../domain/kot/monthly-page-types";
+} from "@/domain/kot/monthly-page-types";
 import {
   parseClockTextMinuteList,
   parseClockTextMinutes,
-} from "../../domain/kot/time-text";
-import { deriveWorkedMinutes } from "../../domain/kot/worked-minutes";
+} from "@/domain/kot/time-text";
+import { deriveWorkedMinutes } from "@/domain/kot/worked-minutes";
 
 const ACTION_CELL_WORKING_DATE_SELECTOR = 'input[name="working_date"]';
 const ACTION_CELL_YEAR_SELECTOR = 'input[name="year"]';

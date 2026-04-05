@@ -1,4 +1,4 @@
-import type { OverlayMetricTone } from "../../domain/kot/overlay-calculations";
+import type { OverlayMetricTone } from "@/domain/kot/overlay-calculations";
 
 export type OverlayDurationMetricAppearance = "default" | "rest-day";
 

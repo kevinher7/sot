@@ -1,4 +1,4 @@
-import type { OverlayMetricTone } from "../../domain/kot/overlay-calculations";
+import type { OverlayMetricTone } from "@/domain/kot/overlay-calculations";
 import type {
   OverlayBadge,
   OverlayDurationMetric,
@@ -92,6 +92,7 @@ function createDurationMetricCard(
     "kot-extension-metric-value-text",
     metric.value,
   );
+
   card.dataset.tone = metric.cardTone;
   valueGroup.dataset.appearance = metric.appearance;
   value.dataset.appearance = metric.appearance;
@@ -110,6 +111,7 @@ function createDurationMetricCard(
   }
 
   card.append(label, valueGroup);
+
   return card;
 }
 
@@ -192,6 +194,7 @@ function createTodaySection(
   );
 
   section.append(createSectionLabel(doc, model.todayLabel), metrics);
+
   return section;
 }
 
@@ -215,12 +218,15 @@ function createMonthSection(
     createSectionLabel(doc, model.monthLabel, model.monthErrorBadges),
     grid,
   );
+
   return section;
 }
 
 function createWipPanel(doc: Document): HTMLElement {
   const panel = createElement(doc, "section", "kot-extension-wip-panel", "WIP");
+
   panel.hidden = true;
+
   return panel;
 }
 
@@ -269,6 +275,7 @@ function createOverlayCard(
   );
 
   shell.append(createHeader(doc), divider, content, accent);
+
   return shell;
 }
 
@@ -299,6 +306,7 @@ export function renderOverlayLoading(
   );
 
   const shell = root.firstElementChild;
+
   if (!(shell instanceof HTMLDivElement)) {
     return;
   }
@@ -332,6 +340,7 @@ export function renderOverlayError(
   );
 
   const shell = root.firstElementChild;
+
   if (!(shell instanceof HTMLDivElement)) {
     return;
   }

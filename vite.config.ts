@@ -1,9 +1,17 @@
 import tailwindcss from "@tailwindcss/vite";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
+
+const srcDir = fileURLToPath(new URL("./src", import.meta.url));
 
 export default defineConfig({
   base: "./",
   plugins: [tailwindcss()],
+  resolve: {
+    alias: {
+      "@": srcDir,
+    },
+  },
   build: {
     emptyOutDir: true,
     outDir: "dist",

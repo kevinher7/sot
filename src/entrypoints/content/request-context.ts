@@ -1,5 +1,5 @@
-import type { KotMonthlyPageSnapshot } from "../../domain/kot/monthly-page-types";
-import type { KotRequestSyncPayload } from "../../domain/kot/request-data";
+import type { KotMonthlyPageSnapshot } from "@/domain/kot/monthly-page-types";
+import type { KotRequestSyncPayload } from "@/domain/kot/request-data";
 
 const EMPLOYEE_ID_SELECTORS = [
   'input[name="employee_id"]',

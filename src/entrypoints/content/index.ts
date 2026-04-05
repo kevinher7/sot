@@ -1,4 +1,4 @@
-import { isMonthlyIndividualWorkingListPage } from "../../domain/kot/page";
+import { isMonthlyIndividualWorkingListPage } from "@/domain/kot/page";
 import { bootstrapContentScript } from "./bootstrap";
 import "./content.css";
 

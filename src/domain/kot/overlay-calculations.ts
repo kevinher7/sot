@@ -61,6 +61,7 @@ function createRequestMap(
     }
 
     const existing = grouped.get(request.isoDate) ?? [];
+
     existing.push(request.timePatch);
     grouped.set(request.isoDate, existing);
   });

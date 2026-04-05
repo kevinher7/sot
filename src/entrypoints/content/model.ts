@@ -1,7 +1,7 @@
 import type {
   OverlayCalculationResult,
   OverlayCalculationSettings,
-} from "../../domain/kot/overlay-calculations";
+} from "@/domain/kot/overlay-calculations";
 import type {
   OverlayBadge,
   OverlayDurationMetric,
@@ -76,6 +76,7 @@ function formatHoursAndMinutes(totalMinutes: number): string {
 
 function formatSignedHoursAndMinutes(totalMinutes: number): string {
   const prefix = totalMinutes < 0 ? "-" : "+";
+
   return `${prefix}${formatHoursAndMinutes(totalMinutes)}`;
 }
 

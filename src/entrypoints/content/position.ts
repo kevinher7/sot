@@ -18,9 +18,11 @@ export function positionOverlayRoot(
 
   if (!pageTitle) {
     applyFixedPosition(root, "16px");
+
     return;
   }
 
   const rect = pageTitle.getBoundingClientRect();
+
   applyFixedPosition(root, `${rect.bottom + 16}px`);
 }

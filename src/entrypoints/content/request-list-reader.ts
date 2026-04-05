@@ -1,4 +1,4 @@
-import type { KotRequestListRow } from "../../domain/kot/request-parser";
+import type { KotRequestListRow } from "@/domain/kot/request-parser";
 
 const DATE_INPUT_CANDIDATES = [
   'input[name="working_date"]',

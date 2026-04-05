@@ -1,5 +1,7 @@
 import js from "@eslint/js";
+import stylistic from "@stylistic/eslint-plugin";
 import eslintConfigPrettier from "eslint-config-prettier";
+import importPlugin from "eslint-plugin-import";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
@@ -16,6 +18,9 @@ export default tseslint.config(
       js.configs.recommended,
       ...tseslint.configs.recommendedTypeChecked,
     ],
+    plugins: {
+      import: importPlugin,
+    },
     languageOptions: {
       ecmaVersion: "latest",
       globals: {
@@ -45,6 +50,7 @@ export default tseslint.config(
         },
       ],
       "@typescript-eslint/no-explicit-any": "error",
+      "import/no-relative-parent-imports": "error",
       "no-restricted-syntax": [
         "error",
         {
@@ -56,10 +62,7 @@ export default tseslint.config(
   },
   {
     files: rootTypeScriptFiles,
-    extends: [
-      js.configs.recommended,
-      ...tseslint.configs.recommendedTypeChecked,
-    ],
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],
     languageOptions: {
       ecmaVersion: "latest",
       globals: globals.node,
@@ -70,4 +73,24 @@ export default tseslint.config(
     },
   },
   eslintConfigPrettier,
+  {
+    files: srcTypeScriptFiles,
+    plugins: {
+      "@stylistic": stylistic,
+    },
+    rules: {
+      "@stylistic/padding-line-between-statements": [
+        "error",
+        { blankLine: "always", prev: "*", next: "return" },
+        { blankLine: "always", prev: "*", next: "block-like" },
+        { blankLine: "always", prev: ["const", "let", "var"], next: "*" },
+        {
+          blankLine: "any",
+          prev: ["const", "let", "var"],
+          next: ["const", "let", "var"],
+        },
+        { blankLine: "always", prev: "*", next: "multiline-return" },
+      ],
+    },
+  },
 );

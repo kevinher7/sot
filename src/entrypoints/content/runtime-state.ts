@@ -1,5 +1,5 @@
-import type { KotRequestCacheEntry } from "../../domain/kot/request-data";
-import type { getSettings } from "../../platform/webext/storage";
+import type { KotRequestCacheEntry } from "@/domain/kot/request-data";
+import type { getSettings } from "@/platform/webext/storage";
 
 export type RefreshReason = "dom" | "minute";
 

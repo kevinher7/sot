@@ -1,8 +1,8 @@
-import { createIsoDateKey } from "../../domain/kot/date";
+import { createIsoDateKey } from "@/domain/kot/date";
 import type {
   KotDayRowSnapshot,
   KotMonthlyPageSnapshot,
-} from "../../domain/kot/monthly-page-types";
+} from "@/domain/kot/monthly-page-types";
 import { readMonthlyPageRowSnapshot } from "./monthly-page-row-reader";
 
 const ROW_SELECTOR = "tr";

@@ -1,9 +1,9 @@
-import type { KotRequestCacheEntry } from "../../domain/kot/request-data";
-import { parseRequestListRows } from "../../domain/kot/request-parser";
+import type { KotRequestCacheEntry } from "@/domain/kot/request-data";
+import { parseRequestListRows } from "@/domain/kot/request-parser";
 import {
   getCachedRequestEntry,
   setCachedRequestEntry,
-} from "../../platform/webext/storage";
+} from "@/platform/webext/storage";
 import type { KotRequestContext } from "./request-context";
 import { readRequestListRowsFromHtml } from "./request-list-reader";
 

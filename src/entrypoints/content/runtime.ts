@@ -1,6 +1,6 @@
-import { calculateOverlayMetrics } from "../../domain/kot/overlay-calculations";
-import { getNow, getDelayUntilNextMinute } from "../../platform/time/clock";
-import { getSettings } from "../../platform/webext/storage";
+import { calculateOverlayMetrics } from "@/domain/kot/overlay-calculations";
+import { getNow, getDelayUntilNextMinute } from "@/platform/time/clock";
+import { getSettings } from "@/platform/webext/storage";
 import { createOverlayViewModel } from "./model";
 import { ensureOverlayRoot } from "./overlay-root";
 import { renderOverlayError, renderOverlayResult } from "./overlay-renderer";
@@ -56,6 +56,7 @@ export async function startMonthlyRequiredHoursRuntime(
         clearRequestCache(cache);
         cache.settingsSignature = null;
         scheduleNextMinuteRefresh();
+
         return;
       }
 
@@ -96,6 +97,7 @@ export async function startMonthlyRequiredHoursRuntime(
 
       if (shouldSkipRender) {
         scheduleNextMinuteRefresh();
+
         return;
       }
 
@@ -119,6 +121,7 @@ export async function startMonthlyRequiredHoursRuntime(
       if (refreshInFlight) {
         queuedReason =
           queuedReason === "minute" || reason === "minute" ? "minute" : "dom";
+
         return;
       }
 
@@ -131,6 +134,7 @@ export async function startMonthlyRequiredHoursRuntime(
 
         if (queuedReason !== null) {
           const nextReason = queuedReason;
+
           queuedReason = null;
           await queueRefresh(nextReason);
         }
@@ -141,6 +145,7 @@ export async function startMonthlyRequiredHoursRuntime(
       if (refreshScheduled) {
         queuedReason =
           queuedReason === "minute" || reason === "minute" ? "minute" : "dom";
+
         return;
       }
 
@@ -163,6 +168,7 @@ export async function startMonthlyRequiredHoursRuntime(
     }
 
     const root = ensureOverlayRoot(doc);
+
     renderOverlayError(
       root,
       doc,
