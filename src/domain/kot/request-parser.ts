@@ -18,44 +18,27 @@ export type KotRequestListRow = {
   targetDateText: string;
 };
 
-const CLOCK_IN_PATTERNS = [
-  /(?:出勤|出社|始業)[^0-9]{0,20}(\d{1,2}:\d{2})/u,
-  /(\d{1,2}:\d{2})[^()\n]{0,20}\((?:出勤|出社|始業)\)/u,
-] as const;
-const CLOCK_OUT_PATTERNS = [
-  /(?:退勤|退社|終業)[^0-9]{0,20}(\d{1,2}:\d{2})/u,
-  /(\d{1,2}:\d{2})[^()\n]{0,20}\((?:退勤|退社|終業)\)/u,
-] as const;
-const BREAK_START_PATTERNS = [
-  /(?:休憩開始|外出開始)[^0-9]{0,20}(\d{1,2}:\d{2})/gu,
-  /(\d{1,2}:\d{2})[^()\n]{0,20}\((?:休始|休憩開始|外出開始)\)/gu,
-] as const;
-const BREAK_END_PATTERNS = [
-  /(?:休憩終了|外出終了)[^0-9]{0,20}(\d{1,2}:\d{2})/gu,
-  /(\d{1,2}:\d{2})[^()\n]{0,20}\((?:休終|休憩終了|外出終了)\)/gu,
-] as const;
-const SUPPORTED_TYPE_PATTERNS = [
-  /打刻/u,
-  /出勤/u,
-  /退勤/u,
-  /出社/u,
-  /退社/u,
-  /始業/u,
-  /終業/u,
-  /休憩/u,
-  /休始/u,
-  /休終/u,
-] as const;
-const PENDING_PATTERNS = [
-  /申請中/u,
-  /承認待ち/u,
-  /未承認/u,
-  /処理待ち/u,
-  /対応中/u,
-] as const;
-const APPROVED_PATTERNS = [/承認済/u, /承認完了/u] as const;
-const REJECTED_PATTERNS = [/却下/u, /棄却/u] as const;
-const CANCELLED_PATTERNS = [/取消/u, /キャンセル/u] as const;
+const CLOCK_IN_REQUEST_LABEL = "出勤";
+const CLOCK_OUT_REQUEST_LABEL = "退勤";
+const BREAK_START_REQUEST_LABEL = "休始";
+const BREAK_END_REQUEST_LABEL = "休終";
+const REQUEST_TIME_LABEL_PATTERN = [
+  CLOCK_IN_REQUEST_LABEL,
+  CLOCK_OUT_REQUEST_LABEL,
+  BREAK_START_REQUEST_LABEL,
+  BREAK_END_REQUEST_LABEL,
+].join("|");
+
+const REQUEST_ENTRY_PATTERN = new RegExp(
+  `(\\d{1,2}:\\d{2})\\s*\\((${REQUEST_TIME_LABEL_PATTERN})\\)`,
+  "u",
+);
+const REQUEST_ENTRY_PATTERN_GLOBAL = new RegExp(
+  `(\\d{1,2}:\\d{2})\\s*\\((${REQUEST_TIME_LABEL_PATTERN})\\)`,
+  "gu",
+);
+const PENDING_PATTERNS = [/対応中/u] as const;
+const APPROVED_PATTERNS = [/承認済/u] as const;
 
 function normalizeText(value: string): string {
   return value.replace(/\s+/gu, " ").trim();
@@ -71,40 +54,6 @@ function parseClockMinutes(value: string): number | undefined {
   return Number.parseInt(match[1], 10) * 60 + Number.parseInt(match[2], 10);
 }
 
-function parseClockMinutesByPatterns(
-  text: string,
-  patterns: readonly RegExp[],
-): number | undefined {
-  for (const pattern of patterns) {
-    const match = text.match(pattern);
-
-    if (match?.[1]) {
-      return parseClockMinutes(match[1]);
-    }
-  }
-
-  return undefined;
-}
-
-function parseClockMinuteListByPatterns(
-  text: string,
-  patterns: readonly RegExp[],
-): number[] | undefined {
-  const minutes: number[] = [];
-
-  for (const pattern of patterns) {
-    for (const match of text.matchAll(pattern)) {
-      const minuteValue = parseClockMinutes(match[1] ?? "");
-
-      if (minuteValue !== undefined) {
-        minutes.push(minuteValue);
-      }
-    }
-  }
-
-  return minutes.length > 0 ? minutes : undefined;
-}
-
 function parseStatus(text: string): KotRequestStatus {
   if (PENDING_PATTERNS.some((pattern) => pattern.test(text))) {
     return "pending";
@@ -114,19 +63,11 @@ function parseStatus(text: string): KotRequestStatus {
     return "approved";
   }
 
-  if (REJECTED_PATTERNS.some((pattern) => pattern.test(text))) {
-    return "rejected";
-  }
-
-  if (CANCELLED_PATTERNS.some((pattern) => pattern.test(text))) {
-    return "cancelled";
-  }
-
   return "unknown";
 }
 
 function isSupportedTimeCorrectionText(text: string): boolean {
-  return SUPPORTED_TYPE_PATTERNS.some((pattern) => pattern.test(text));
+  return REQUEST_ENTRY_PATTERN.test(text);
 }
 
 function hasTimePatch(timePatch: KotRequestTimePatch): boolean {
@@ -139,15 +80,43 @@ function hasTimePatch(timePatch: KotRequestTimePatch): boolean {
 }
 
 function createTimePatch(text: string): KotRequestTimePatch {
-  return {
-    breakEndMinutes: parseClockMinuteListByPatterns(text, BREAK_END_PATTERNS),
-    breakStartMinutes: parseClockMinuteListByPatterns(
-      text,
-      BREAK_START_PATTERNS,
-    ),
-    clockInMinutes: parseClockMinutesByPatterns(text, CLOCK_IN_PATTERNS),
-    clockOutMinutes: parseClockMinutesByPatterns(text, CLOCK_OUT_PATTERNS),
-  };
+  const timePatch: KotRequestTimePatch = {};
+
+  for (const match of text.matchAll(REQUEST_ENTRY_PATTERN_GLOBAL)) {
+    const minutes = parseClockMinutes(match[1] ?? "");
+    const requestTimeLabel = match[2];
+
+    if (minutes === undefined) {
+      continue;
+    }
+
+    if (requestTimeLabel === CLOCK_IN_REQUEST_LABEL) {
+      timePatch.clockInMinutes = minutes;
+      continue;
+    }
+
+    if (requestTimeLabel === CLOCK_OUT_REQUEST_LABEL) {
+      timePatch.clockOutMinutes = minutes;
+      continue;
+    }
+
+    if (requestTimeLabel === BREAK_START_REQUEST_LABEL) {
+      timePatch.breakStartMinutes = [
+        ...(timePatch.breakStartMinutes ?? []),
+        minutes,
+      ];
+      continue;
+    }
+
+    if (requestTimeLabel === BREAK_END_REQUEST_LABEL) {
+      timePatch.breakEndMinutes = [
+        ...(timePatch.breakEndMinutes ?? []),
+        minutes,
+      ];
+    }
+  }
+
+  return timePatch;
 }
 
 function createCacheKey(
