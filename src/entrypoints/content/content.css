@@ -153,11 +153,21 @@
   gap: 4px;
   min-width: 0;
   padding: 1px 7px 1px 6px;
-  border: 1px solid rgba(239, 68, 68, 0.22);
+  border: 1px solid transparent;
   border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+}
+
+.kot-extension-section-badge[data-tone="error"] {
+  border-color: rgba(239, 68, 68, 0.25);
   background: rgba(254, 226, 226, 0.85);
   color: #b91c1c;
-  font-variant-numeric: tabular-nums;
+}
+
+.kot-extension-section-badge[data-tone="warning"] {
+  border-color: rgba(245, 158, 11, 0.45);
+  background: rgba(250, 204, 21, 0.2);
+  color: #92400e;
 }
 
 .kot-extension-section-badge-icon {
@@ -212,6 +222,11 @@
   border-color: rgba(16, 185, 129, 0.3);
 }
 
+.kot-extension-metric-card[data-tone="warning"] {
+  border-color: rgba(245, 158, 11, 0.4);
+  background: rgba(255, 251, 235, 0.9);
+}
+
 .kot-extension-metric-card[data-tone="neutral"] {
   background: #f3f4f6;
 }
@@ -243,6 +258,10 @@
 
 .kot-extension-metric-value--positive {
   color: #059669;
+}
+
+.kot-extension-metric-value--warning {
+  color: #d97706;
 }
 
 .kot-extension-metric-value-text {
@@ -280,6 +299,23 @@
   border-radius: 999px;
   background: #10b981;
   transition: width 0.2s ease;
+}
+
+.kot-extension-progress-card[data-tone="warning"] {
+  border-color: rgba(245, 158, 11, 0.4);
+  background: rgba(255, 251, 235, 0.9);
+}
+
+.kot-extension-progress-fill[data-tone="negative"] {
+  background: #dc2626;
+}
+
+.kot-extension-progress-fill[data-tone="neutral"] {
+  background: #64748b;
+}
+
+.kot-extension-progress-fill[data-tone="warning"] {
+  background: #f59e0b;
 }
 
 .kot-extension-cta-wrap {

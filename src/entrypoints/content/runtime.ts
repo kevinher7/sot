@@ -1,4 +1,5 @@
 import { calculateOverlayMetrics } from "../../domain/kot/overlay-calculations";
+import type { KotRequestCacheEntry } from "../../domain/kot/request-data";
 import { getNow, getDelayUntilNextMinute } from "../../platform/time/clock";
 import { getSettings } from "../../platform/webext/storage";
 import {
@@ -9,11 +10,15 @@ import {
 } from "./overlay";
 import { createOverlayViewModel } from "./model";
 import { readMonthlyPageSnapshot } from "./page-reader";
+import { createKotRequestContext, getKotRequestData } from "./request-context";
 
 type RefreshReason = "dom" | "minute";
 
 type RefreshCache = {
   pageSignature: string | null;
+  requestContextKey: string | null;
+  requestSignature: string | null;
+  requestSnapshot: KotRequestCacheEntry | null;
   settingsSignature: string | null;
 };
 
@@ -62,6 +67,27 @@ function createSettingsSignature(
   });
 }
 
+function shouldSyncRequestData(
+  reason: RefreshReason,
+  nextContextKey: string | null,
+  cache: RefreshCache,
+  pageSignature: string,
+): boolean {
+  if (nextContextKey === null) {
+    return false;
+  }
+
+  if (cache.requestContextKey !== nextContextKey) {
+    return true;
+  }
+
+  if (cache.requestSnapshot === null) {
+    return cache.pageSignature !== pageSignature;
+  }
+
+  return reason === "dom" && cache.pageSignature !== pageSignature;
+}
+
 export async function startMonthlyRequiredHoursRuntime(
   win: Window = window,
   doc: Document = document,
@@ -72,6 +98,9 @@ export async function startMonthlyRequiredHoursRuntime(
   let queuedReason: RefreshReason | null = null;
   const cache: RefreshCache = {
     pageSignature: null,
+    requestContextKey: null,
+    requestSignature: null,
+    requestSnapshot: null,
     settingsSignature: null,
   };
 
@@ -103,16 +132,50 @@ export async function startMonthlyRequiredHoursRuntime(
           "Monthly timecard data is not available on this page.",
         );
         cache.pageSignature = null;
+        cache.requestContextKey = null;
+        cache.requestSignature = null;
+        cache.requestSnapshot = null;
         cache.settingsSignature = null;
         scheduleNextMinuteRefresh();
         return;
       }
 
+      const currentUrl = new URL(win.location.href);
+      const requestContext = createKotRequestContext(
+        pageSnapshot,
+        currentUrl,
+        doc,
+      );
       const settingsSignature = createSettingsSignature(settings);
+
+      if (requestContext === null) {
+        cache.requestContextKey = null;
+        cache.requestSignature = null;
+        cache.requestSnapshot = null;
+      }
+
+      if (
+        shouldSyncRequestData(
+          reason,
+          requestContext?.key ?? null,
+          cache,
+          pageSnapshot.signature,
+        )
+      ) {
+        cache.requestSnapshot =
+          requestContext === null
+            ? null
+            : await getKotRequestData(requestContext);
+        cache.requestContextKey = requestContext?.key ?? null;
+        cache.requestSignature = cache.requestSnapshot?.signature ?? null;
+      }
+
       const shouldSkipRender =
         reason === "dom" &&
         cache.pageSignature === pageSnapshot.signature &&
-        cache.settingsSignature === settingsSignature;
+        cache.settingsSignature === settingsSignature &&
+        cache.requestContextKey === (requestContext?.key ?? null) &&
+        cache.requestSignature === (cache.requestSnapshot?.signature ?? null);
 
       if (shouldSkipRender) {
         scheduleNextMinuteRefresh();
@@ -122,12 +185,15 @@ export async function startMonthlyRequiredHoursRuntime(
       const result = calculateOverlayMetrics({
         now,
         pageSnapshot,
+        requestCacheEntry: cache.requestSnapshot,
         settings,
       });
       const model = createOverlayViewModel(now, result, settings);
 
       renderOverlayResult(root, doc, model);
       cache.pageSignature = pageSnapshot.signature;
+      cache.requestContextKey = requestContext?.key ?? null;
+      cache.requestSignature = cache.requestSnapshot?.signature ?? null;
       cache.settingsSignature = settingsSignature;
       scheduleNextMinuteRefresh();
     };

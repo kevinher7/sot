@@ -32,3 +32,10 @@ export async function setStorageValues(values: StoragePayload): Promise<void> {
   const api = getBrowserApi();
   await api.storage.local.set(values);
 }
+
+export async function sendRuntimeMessage<TResponse>(
+  message: unknown,
+): Promise<TResponse> {
+  const api = getBrowserApi();
+  return (await api.runtime.sendMessage(message)) as TResponse;
+}

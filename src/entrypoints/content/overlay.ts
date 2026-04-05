@@ -1,8 +1,7 @@
+import type { OverlayMetricTone } from "../../domain/kot/overlay-calculations";
 import { positionOverlayRoot } from "./position";
 
 export const ROOT_ID = "kot-extension-root";
-
-export type OverlayMetricTone = "positive" | "negative" | "neutral";
 
 export type OverlayDurationMetricAppearance = "default" | "rest-day";
 
@@ -15,16 +14,20 @@ export type OverlayDurationMetric = {
 
 export type OverlayProgressMetric = {
   label: string;
+  tone: OverlayMetricTone;
   value: number;
 };
+
+export type OverlayBadgeTone = "error" | "warning";
 
 export type OverlayBadge = {
   countText: string;
   iconText: string;
+  tone: OverlayBadgeTone;
 };
 
 export type OverlayViewModel = {
-  monthErrorBadge: OverlayBadge | null;
+  monthErrorBadges: readonly OverlayBadge[];
   monthlyBank: OverlayDurationMetric;
   monthLabel: string;
   monthlyProgress: OverlayProgressMetric;
@@ -37,6 +40,7 @@ const METRIC_TONE_CLASS_NAME: Record<OverlayMetricTone, string> = {
   negative: "kot-extension-metric-value--negative",
   neutral: "kot-extension-metric-value--neutral",
   positive: "kot-extension-metric-value--positive",
+  warning: "kot-extension-metric-value--warning",
 };
 
 function createElement<K extends keyof HTMLElementTagNameMap>(
@@ -61,14 +65,14 @@ function createElement<K extends keyof HTMLElementTagNameMap>(
 function createSectionLabel(
   doc: Document,
   text: string,
-  badge: OverlayBadge | null = null,
+  badges: readonly OverlayBadge[] = [],
 ): HTMLDivElement {
   const wrapper = createElement(doc, "div", "kot-extension-section-label-wrap");
   const label = createElement(doc, "span", "kot-extension-section-label", text);
 
   wrapper.append(label);
 
-  if (badge !== null) {
+  badges.forEach((badge) => {
     const badgeElement = createElement(
       doc,
       "span",
@@ -87,9 +91,10 @@ function createSectionLabel(
       badge.countText,
     );
 
+    badgeElement.dataset.tone = badge.tone;
     badgeElement.append(iconElement, countElement);
     wrapper.append(badgeElement);
-  }
+  });
 
   return wrapper;
 }
@@ -152,6 +157,8 @@ function createProgressCard(
   const fill = createElement(doc, "div", "kot-extension-progress-fill");
   const safeValue = Math.max(0, Math.min(100, metric.value));
 
+  card.dataset.tone = metric.tone;
+  fill.dataset.tone = metric.tone;
   fill.style.width = `${safeValue}%`;
   rail.append(fill);
   card.append(label, rail);
@@ -210,7 +217,7 @@ function createMonthSection(
   );
 
   section.append(
-    createSectionLabel(doc, model.monthLabel, model.monthErrorBadge),
+    createSectionLabel(doc, model.monthLabel, model.monthErrorBadges),
     grid,
   );
   return section;

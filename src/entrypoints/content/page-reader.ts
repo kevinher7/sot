@@ -13,6 +13,7 @@ const ACTION_CELL_DAY_SELECTOR = 'input[name="day"]';
 const DATE_CELL_SELECTOR =
   'td[data-ht-identity-cell="specific-sidemenu_date"][data-ht-sort-index="WORK_DAY"]';
 const DATE_CELL_ERROR_ICON_SELECTOR = 'img[alt="エラー"]';
+const REQUEST_MARKER_SELECTOR = ".specific-requested";
 const WORK_DAY_TYPE_SELECTOR = 'td[data-ht-sort-index="WORK_DAY_TYPE"]';
 const CLOCK_IN_SELECTOR = 'td[data-ht-sort-index="START_TIMERECORD"]';
 const CLOCK_OUT_SELECTOR = 'td[data-ht-sort-index="END_TIMERECORD"]';
@@ -132,6 +133,22 @@ function hasExplicitRowError(dateCell: HTMLTableCellElement): boolean {
   );
 }
 
+function hasExplicitRowRequestMarker(row: HTMLTableRowElement): boolean {
+  if (row.querySelector(REQUEST_MARKER_SELECTOR) !== null) {
+    return true;
+  }
+
+  return row.textContent?.includes("[申]") ?? false;
+}
+
+function createDateKey(date: Date): string {
+  const year = date.getFullYear().toString().padStart(4, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
 function readRowSnapshot(
   row: HTMLTableRowElement,
   now: Date,
@@ -189,6 +206,7 @@ function readRowSnapshot(
     day: identity.day,
     dayKind: toDayKind(dateCell, workDayTypeText),
     hasError: hasExplicitRowError(dateCell),
+    hasRequestMarker: hasExplicitRowRequestMarker(row),
     hasClockIn: clockInMinutes !== null,
     hasClockOut: clockOutMinutes !== null,
     isoDate: identity.isoDate,
@@ -203,6 +221,7 @@ function createSnapshotSignature(rows: readonly KotDayRowSnapshot[]): string {
         row.isoDate,
         row.dayKind,
         row.hasError ? "error" : "ok",
+        row.hasRequestMarker ? "req" : "clean",
         row.clockInMinutes ?? "-",
         row.clockOutMinutes ?? "-",
         row.breakStartMinutes.join(","),
@@ -210,14 +229,6 @@ function createSnapshotSignature(rows: readonly KotDayRowSnapshot[]): string {
       ].join("|"),
     )
     .join(";");
-}
-
-function createDateKey(date: Date): string {
-  const year = date.getFullYear().toString().padStart(4, "0");
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const day = date.getDate().toString().padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
 }
 
 export function readMonthlyPageSnapshot(

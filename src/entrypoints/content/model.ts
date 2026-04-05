@@ -38,21 +38,12 @@ function createDurationMetric(
 function createProgressMetric(
   label: string,
   value: number,
+  tone: OverlayProgressMetric["tone"],
 ): OverlayProgressMetric {
   return {
     label,
+    tone,
     value,
-  };
-}
-
-function createMonthErrorBadge(errorDayCount: number): OverlayBadge | null {
-  if (errorDayCount <= 0) {
-    return null;
-  }
-
-  return {
-    countText: errorDayCount.toString(),
-    iconText: "⚠",
   };
 }
 
@@ -131,21 +122,39 @@ function createTodayBreakMetric(
 }
 
 function createMonthlyBankMetric(
-  monthBankMinutes: number,
+  result: OverlayCalculationResult,
 ): OverlayDurationMetric {
-  const tone: OverlayDurationMetric["tone"] =
-    monthBankMinutes > 0
-      ? "positive"
-      : monthBankMinutes < 0
-        ? "negative"
-        : "neutral";
-
   return createDurationMetric(
     "default",
-    formatSignedHoursAndMinutes(monthBankMinutes),
+    formatSignedHoursAndMinutes(result.monthBankMinutes),
     "h",
-    tone,
+    result.bankTone,
   );
+}
+
+function createMonthErrorBadges(
+  errorDayCount: number,
+  warningDayCount: number,
+): OverlayBadge[] {
+  const badges: OverlayBadge[] = [];
+
+  if (errorDayCount > 0) {
+    badges.push({
+      countText: errorDayCount.toString(),
+      iconText: "⚠",
+      tone: "error",
+    });
+  }
+
+  if (warningDayCount > 0) {
+    badges.push({
+      countText: warningDayCount.toString(),
+      iconText: "⚠",
+      tone: "warning",
+    });
+  }
+
+  return badges;
 }
 
 export function createOverlayViewModel(
@@ -154,10 +163,17 @@ export function createOverlayViewModel(
   settings: OverlayCalculationSettings,
 ): OverlayViewModel {
   return {
-    monthErrorBadge: createMonthErrorBadge(result.errorDayCount),
-    monthlyBank: createMonthlyBankMetric(result.monthBankMinutes),
+    monthErrorBadges: createMonthErrorBadges(
+      result.errorDayCount,
+      result.warningDayCount,
+    ),
+    monthlyBank: createMonthlyBankMetric(result),
     monthLabel: formatMonthLabel(now),
-    monthlyProgress: createProgressMetric("TOTAL", result.monthProgressPercent),
+    monthlyProgress: createProgressMetric(
+      "TOTAL",
+      result.monthProgressPercent,
+      result.progressTone,
+    ),
     todayBreakLeft: createTodayBreakMetric(result, settings),
     todayLabel: formatTodayLabel(now),
     todayWorkLeft: createTodayWorkMetric(result, settings),
