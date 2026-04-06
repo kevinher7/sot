@@ -75,13 +75,13 @@ function formatHoursAndMinutes(totalMinutes: number): string {
 }
 
 function formatSignedHoursAndMinutes(totalMinutes: number): string {
+  if (totalMinutes === 0) {
+    return formatHoursAndMinutes(totalMinutes);
+  }
+
   const prefix = totalMinutes < 0 ? "-" : "+";
 
   return `${prefix}${formatHoursAndMinutes(totalMinutes)}`;
-}
-
-function formatMinutes(totalMinutes: number): string {
-  return totalMinutes.toString();
 }
 
 function createTodayWorkMetric(
@@ -94,14 +94,21 @@ function createTodayWorkMetric(
 
   const remainingMinutes =
     result.todayStatus === "not-started"
-      ? settings.standardWorkdayHours * 60
-      : result.todayWorkLeftMinutes;
+      ? -(settings.standardWorkdayHours * 60)
+      : result.todayWorkDiffMinutes;
+
+  const tone =
+    remainingMinutes < 0
+      ? "negative"
+      : remainingMinutes > 0
+        ? "positive"
+        : "neutral";
 
   return createDurationMetric(
     "default",
-    formatHoursAndMinutes(remainingMinutes),
+    formatSignedHoursAndMinutes(remainingMinutes),
     "h",
-    result.todayStatus === "not-started" ? "neutral" : "negative",
+    tone,
   );
 }
 
@@ -115,14 +122,21 @@ function createTodayBreakMetric(
 
   const remainingMinutes =
     result.todayStatus === "not-started"
-      ? settings.standardBreakMinutes
-      : result.todayBreakLeftMinutes;
+      ? -settings.standardBreakMinutes
+      : result.todayBreakDiffMinutes;
+
+  const tone =
+    remainingMinutes < 0
+      ? "negative"
+      : remainingMinutes > 0
+        ? "positive"
+        : "neutral";
 
   return createDurationMetric(
     "default",
-    formatMinutes(remainingMinutes),
-    "m",
-    result.todayStatus === "not-started" ? "neutral" : "positive",
+    formatSignedHoursAndMinutes(remainingMinutes),
+    "h",
+    tone,
     result.todayErrorCount > 0 ? "error" : undefined,
   );
 }

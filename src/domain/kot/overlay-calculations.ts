@@ -41,12 +41,12 @@ export type OverlayCalculationResult = {
   monthEstimatedProgressPercent: number;
   progressTone: OverlayMetricTone;
   requiredWorkedMinutesSoFar: number;
-  todayBreakLeftMinutes: number;
+  todayBreakDiffMinutes: number;
   todayBreakMinutes: number;
   todayErrorCount: number;
   todayStatus: TodayStatus;
   todayWorkedMinutes: number;
-  todayWorkLeftMinutes: number;
+  todayWorkDiffMinutes: number;
   todayWarningCount: number;
   warningDayCount: number;
 };
@@ -265,18 +265,18 @@ export function calculateTodayStatus(
   return "in-progress";
 }
 
-export function calculateTodayWorkLeftMinutes(
+export function calculateTodayWorkDiffMinutes(
   todayWorkedMinutes: number,
   settings: OverlayCalculationSettings,
 ): number {
-  return Math.max(settings.standardWorkdayHours * 60 - todayWorkedMinutes, 0);
+  return todayWorkedMinutes - settings.standardWorkdayHours * 60;
 }
 
-export function calculateTodayBreakLeftMinutes(
+export function calculateTodayBreakDiffMinutes(
   todayBreakMinutes: number,
   settings: OverlayCalculationSettings,
 ): number {
-  return Math.max(settings.standardBreakMinutes - todayBreakMinutes, 0);
+  return todayBreakMinutes - settings.standardBreakMinutes;
 }
 
 export function calculateMonthBankMinutes(
@@ -401,7 +401,7 @@ export function calculateOverlayMetrics(
     ),
     progressTone: bankTone,
     requiredWorkedMinutesSoFar,
-    todayBreakLeftMinutes: calculateTodayBreakLeftMinutes(
+    todayBreakDiffMinutes: calculateTodayBreakDiffMinutes(
       todayBreakMinutes,
       input.settings,
     ),
@@ -409,7 +409,7 @@ export function calculateOverlayMetrics(
     todayErrorCount: input.pageSnapshot.todayRow?.errorCount ?? 0,
     todayStatus: calculateTodayStatus(input.pageSnapshot),
     todayWorkedMinutes,
-    todayWorkLeftMinutes: calculateTodayWorkLeftMinutes(
+    todayWorkDiffMinutes: calculateTodayWorkDiffMinutes(
       todayWorkedMinutes,
       input.settings,
     ),
