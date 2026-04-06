@@ -81,7 +81,7 @@ function formatSignedHoursAndMinutes(totalMinutes: number): string {
 
   const prefix = totalMinutes < 0 ? "-" : "+";
 
-  return `${prefix}${formatHoursAndMinutes(totalMinutes)}`;
+  return `${prefix} ${formatHoursAndMinutes(totalMinutes)}`;
 }
 
 function createTodayWorkMetric(
