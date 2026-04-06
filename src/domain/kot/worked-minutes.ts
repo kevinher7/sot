@@ -9,6 +9,7 @@ export type DeriveWorkedMinutesInput = {
 
 export type DerivedWorkedMinutes = {
   breakMinutes: number;
+  hasBreakSequenceError: boolean;
   workedMinutes: number;
 };
 
@@ -25,35 +26,90 @@ function deriveBreakMinutes(
   breakEndMinutes: readonly number[],
   nowMinutes: number,
   treatIncompleteAsOngoing: boolean,
-): number | null {
+): { breakMinutes: number; hasBreakSequenceError: boolean } | null {
   if (breakEndMinutes.length > breakStartMinutes.length) {
     return null;
   }
 
   let totalBreakMinutes = 0;
+  let hasBreakSequenceError = false;
+  let startIndex = 0;
+  let endIndex = 0;
+  let activeBreakStartMinute: number | null = null;
 
-  for (const [index, breakStartMinute] of breakStartMinutes.entries()) {
-    const breakEndMinute = breakEndMinutes[index];
+  while (
+    startIndex < breakStartMinutes.length ||
+    activeBreakStartMinute !== null
+  ) {
+    if (activeBreakStartMinute === null) {
+      const breakStartMinute = breakStartMinutes[startIndex];
 
-    if (breakEndMinute === undefined) {
+      if (breakStartMinute === undefined) {
+        break;
+      }
+
+      activeBreakStartMinute = breakStartMinute;
+      startIndex += 1;
+      continue;
+    }
+
+    const nextBreakStartMinute = breakStartMinutes[startIndex];
+    const nextBreakEndMinute = breakEndMinutes[endIndex];
+
+    if (nextBreakEndMinute === undefined) {
+      if (nextBreakStartMinute !== undefined) {
+        hasBreakSequenceError = true;
+        startIndex += 1;
+        continue;
+      }
+
       if (!treatIncompleteAsOngoing) {
         return null;
       }
 
       totalBreakMinutes += Math.max(
-        normalizeEndMinutes(breakStartMinute, nowMinutes) - breakStartMinute,
+        normalizeEndMinutes(activeBreakStartMinute, nowMinutes) -
+          activeBreakStartMinute,
         0,
       );
+      activeBreakStartMinute = null;
       continue;
     }
 
+    if (nextBreakStartMinute !== undefined) {
+      const normalizedBreakStartMinute = normalizeEndMinutes(
+        activeBreakStartMinute,
+        nextBreakStartMinute,
+      );
+      const normalizedBreakEndMinute = normalizeEndMinutes(
+        activeBreakStartMinute,
+        nextBreakEndMinute,
+      );
+
+      if (normalizedBreakStartMinute < normalizedBreakEndMinute) {
+        hasBreakSequenceError = true;
+        startIndex += 1;
+        continue;
+      }
+    }
+
     totalBreakMinutes += Math.max(
-      normalizeEndMinutes(breakStartMinute, breakEndMinute) - breakStartMinute,
+      normalizeEndMinutes(activeBreakStartMinute, nextBreakEndMinute) -
+        activeBreakStartMinute,
       0,
     );
+    activeBreakStartMinute = null;
+    endIndex += 1;
   }
 
-  return totalBreakMinutes;
+  if (endIndex < breakEndMinutes.length) {
+    return null;
+  }
+
+  return {
+    breakMinutes: totalBreakMinutes,
+    hasBreakSequenceError,
+  };
 }
 
 export function deriveWorkedMinutes(
@@ -71,14 +127,14 @@ export function deriveWorkedMinutes(
     return null;
   }
 
-  const breakMinutes = deriveBreakMinutes(
+  const breakOutcome = deriveBreakMinutes(
     input.breakStartMinutes,
     input.breakEndMinutes,
     input.nowMinutes,
     input.treatIncompleteAsOngoing,
   );
 
-  if (breakMinutes === null) {
+  if (breakOutcome === null) {
     return null;
   }
 
@@ -89,7 +145,8 @@ export function deriveWorkedMinutes(
   );
 
   return {
-    breakMinutes,
-    workedMinutes: Math.max(workedSpanMinutes - breakMinutes, 0),
+    breakMinutes: breakOutcome.breakMinutes,
+    hasBreakSequenceError: breakOutcome.hasBreakSequenceError,
+    workedMinutes: Math.max(workedSpanMinutes - breakOutcome.breakMinutes, 0),
   };
 }

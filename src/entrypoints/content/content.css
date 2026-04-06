@@ -218,6 +218,11 @@
   border-color: rgba(239, 68, 68, 0.3);
 }
 
+.kot-extension-metric-card[data-tone="error"] {
+  border-color: rgba(220, 38, 38, 0.45);
+  background: rgba(254, 242, 242, 0.95);
+}
+
 .kot-extension-metric-card[data-tone="positive"] {
   border-color: rgba(16, 185, 129, 0.3);
 }
@@ -313,6 +318,10 @@
 }
 
 .kot-extension-progress-fill--actual[data-tone="negative"] {
+  background: #dc2626;
+}
+
+.kot-extension-progress-fill--actual[data-tone="error"] {
   background: #dc2626;
 }
 

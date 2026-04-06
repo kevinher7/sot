@@ -170,6 +170,7 @@ export function readMonthlyPageRowSnapshot(
 
   return {
     breakEndMinutes,
+    hasBreakSequenceError: derivedWorkedMinutes?.hasBreakSequenceError ?? false,
     breakMinutes: derivedWorkedMinutes?.breakMinutes ?? 0,
     breakStartMinutes,
     clockInMinutes,

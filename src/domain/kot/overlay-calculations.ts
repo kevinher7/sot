@@ -8,7 +8,12 @@ import type { KotRequestCacheEntry, KotRequestTimePatch } from "./request-data";
 import type { ExtensionSettings } from "./types";
 import { deriveWorkedMinutes } from "./worked-minutes";
 
-export type OverlayMetricTone = "positive" | "negative" | "neutral" | "warning";
+export type OverlayMetricTone =
+  | "positive"
+  | "negative"
+  | "neutral"
+  | "warning"
+  | "error";
 
 export type OverlayCalculationSettings = Pick<
   ExtensionSettings,
@@ -37,6 +42,7 @@ export type OverlayCalculationResult = {
   progressTone: OverlayMetricTone;
   requiredWorkedMinutesSoFar: number;
   todayBreakLeftMinutes: number;
+  todayBreakHasSequenceError: boolean;
   todayBreakMinutes: number;
   todayStatus: TodayStatus;
   todayWorkedMinutes: number;
@@ -398,6 +404,8 @@ export function calculateOverlayMetrics(
       todayBreakMinutes,
       input.settings,
     ),
+    todayBreakHasSequenceError:
+      input.pageSnapshot.todayRow?.hasBreakSequenceError ?? false,
     todayBreakMinutes,
     todayStatus: calculateTodayStatus(input.pageSnapshot),
     todayWorkedMinutes,

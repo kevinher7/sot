@@ -7,6 +7,7 @@ import type {
 } from "./overlay-types";
 
 const METRIC_TONE_CLASS_NAME: Record<OverlayMetricTone, string> = {
+  error: "kot-extension-metric-value--negative",
   negative: "kot-extension-metric-value--negative",
   neutral: "kot-extension-metric-value--neutral",
   positive: "kot-extension-metric-value--positive",

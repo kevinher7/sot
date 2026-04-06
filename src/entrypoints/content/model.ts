@@ -123,6 +123,7 @@ function createTodayBreakMetric(
     formatMinutes(remainingMinutes),
     "m",
     result.todayStatus === "not-started" ? "neutral" : "positive",
+    result.todayBreakHasSequenceError ? "error" : undefined,
   );
 }
 
