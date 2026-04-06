@@ -30,6 +30,7 @@ export type OverlayViewModel = {
   monthlyBank: OverlayDurationMetric;
   monthLabel: string;
   monthlyProgress: OverlayProgressMetric;
+  todayErrorBadges: readonly OverlayBadge[];
   todayBreakLeft: OverlayDurationMetric;
   todayLabel: string;
   todayWorkLeft: OverlayDurationMetric;

@@ -3,18 +3,19 @@ export type KotDayResolution = "normal" | "warning" | "error";
 
 export type KotDayRowSnapshot = {
   breakEndMinutes: readonly number[];
-  hasBreakSequenceError: boolean;
   breakMinutes: number;
   breakStartMinutes: readonly number[];
   clockInMinutes: number | null;
   clockOutMinutes: number | null;
   day: number;
   dayKind: KotDayKind;
+  errorCount: number;
   hasError: boolean;
   hasRequestMarker: boolean;
   hasClockIn: boolean;
   hasClockOut: boolean;
   isoDate: string;
+  warningCount: number;
   workedMinutes: number;
 };
 

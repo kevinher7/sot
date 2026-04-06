@@ -14,12 +14,13 @@ function createSnapshotSignature(rows: readonly KotDayRowSnapshot[]): string {
         row.isoDate,
         row.dayKind,
         row.hasError ? "error" : "ok",
-        row.hasBreakSequenceError ? "break-seq-error" : "break-seq-ok",
+        row.errorCount,
         row.hasRequestMarker ? "req" : "clean",
         row.clockInMinutes ?? "-",
         row.clockOutMinutes ?? "-",
         row.breakStartMinutes.join(","),
         row.breakEndMinutes.join(","),
+        row.warningCount,
       ].join("|"),
     )
     .join(";");

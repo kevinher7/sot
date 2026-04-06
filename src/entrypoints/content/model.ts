@@ -123,7 +123,7 @@ function createTodayBreakMetric(
     formatMinutes(remainingMinutes),
     "m",
     result.todayStatus === "not-started" ? "neutral" : "positive",
-    result.todayBreakHasSequenceError ? "error" : undefined,
+    result.todayErrorCount > 0 ? "error" : undefined,
   );
 }
 
@@ -171,6 +171,13 @@ function createMonthErrorBadges(
   return badges;
 }
 
+function createTodayErrorBadges(
+  errorCount: number,
+  warningCount: number,
+): OverlayBadge[] {
+  return createMonthErrorBadges(errorCount, warningCount);
+}
+
 export function createOverlayViewModel(
   now: Date,
   result: OverlayCalculationResult,
@@ -188,6 +195,10 @@ export function createOverlayViewModel(
       result.monthActualProgressPercent,
       result.monthEstimatedProgressPercent,
       result.progressTone,
+    ),
+    todayErrorBadges: createTodayErrorBadges(
+      result.todayErrorCount,
+      result.todayWarningCount,
     ),
     todayBreakLeft: createTodayBreakMetric(result, settings),
     todayLabel: formatTodayLabel(now),

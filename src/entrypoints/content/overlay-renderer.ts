@@ -194,7 +194,10 @@ function createTodaySection(
     createDurationMetricCard(doc, "Break left", model.todayBreakLeft),
   );
 
-  section.append(createSectionLabel(doc, model.todayLabel), metrics);
+  section.append(
+    createSectionLabel(doc, model.todayLabel, model.todayErrorBadges),
+    metrics,
+  );
 
   return section;
 }

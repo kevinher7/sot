@@ -42,11 +42,12 @@ export type OverlayCalculationResult = {
   progressTone: OverlayMetricTone;
   requiredWorkedMinutesSoFar: number;
   todayBreakLeftMinutes: number;
-  todayBreakHasSequenceError: boolean;
   todayBreakMinutes: number;
+  todayErrorCount: number;
   todayStatus: TodayStatus;
   todayWorkedMinutes: number;
   todayWorkLeftMinutes: number;
+  todayWarningCount: number;
   warningDayCount: number;
 };
 
@@ -404,15 +405,15 @@ export function calculateOverlayMetrics(
       todayBreakMinutes,
       input.settings,
     ),
-    todayBreakHasSequenceError:
-      input.pageSnapshot.todayRow?.hasBreakSequenceError ?? false,
     todayBreakMinutes,
+    todayErrorCount: input.pageSnapshot.todayRow?.errorCount ?? 0,
     todayStatus: calculateTodayStatus(input.pageSnapshot),
     todayWorkedMinutes,
     todayWorkLeftMinutes: calculateTodayWorkLeftMinutes(
       todayWorkedMinutes,
       input.settings,
     ),
+    todayWarningCount: input.pageSnapshot.todayRow?.warningCount ?? 0,
     warningDayCount,
   };
 }

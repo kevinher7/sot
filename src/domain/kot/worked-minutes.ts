@@ -9,7 +9,8 @@ export type DeriveWorkedMinutesInput = {
 
 export type DerivedWorkedMinutes = {
   breakMinutes: number;
-  hasBreakSequenceError: boolean;
+  errorCount: number;
+  warningCount: number;
   workedMinutes: number;
 };
 
@@ -26,13 +27,13 @@ function deriveBreakMinutes(
   breakEndMinutes: readonly number[],
   nowMinutes: number,
   treatIncompleteAsOngoing: boolean,
-): { breakMinutes: number; hasBreakSequenceError: boolean } | null {
+): { breakMinutes: number; errorCount: number } | null {
   if (breakEndMinutes.length > breakStartMinutes.length) {
     return null;
   }
 
   let totalBreakMinutes = 0;
-  let hasBreakSequenceError = false;
+  let errorCount = 0;
   let startIndex = 0;
   let endIndex = 0;
   let activeBreakStartMinute: number | null = null;
@@ -58,7 +59,7 @@ function deriveBreakMinutes(
 
     if (nextBreakEndMinute === undefined) {
       if (nextBreakStartMinute !== undefined) {
-        hasBreakSequenceError = true;
+        errorCount += 1;
         startIndex += 1;
         continue;
       }
@@ -87,7 +88,7 @@ function deriveBreakMinutes(
       );
 
       if (normalizedBreakStartMinute < normalizedBreakEndMinute) {
-        hasBreakSequenceError = true;
+        errorCount += 1;
         startIndex += 1;
         continue;
       }
@@ -108,7 +109,7 @@ function deriveBreakMinutes(
 
   return {
     breakMinutes: totalBreakMinutes,
-    hasBreakSequenceError,
+    errorCount,
   };
 }
 
@@ -146,7 +147,8 @@ export function deriveWorkedMinutes(
 
   return {
     breakMinutes: breakOutcome.breakMinutes,
-    hasBreakSequenceError: breakOutcome.hasBreakSequenceError,
+    errorCount: breakOutcome.errorCount,
+    warningCount: 0,
     workedMinutes: Math.max(workedSpanMinutes - breakOutcome.breakMinutes, 0),
   };
 }

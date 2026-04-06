@@ -170,18 +170,19 @@ export function readMonthlyPageRowSnapshot(
 
   return {
     breakEndMinutes,
-    hasBreakSequenceError: derivedWorkedMinutes?.hasBreakSequenceError ?? false,
     breakMinutes: derivedWorkedMinutes?.breakMinutes ?? 0,
     breakStartMinutes,
     clockInMinutes,
     clockOutMinutes,
     day: identity.day,
     dayKind: toDayKind(dateCell, workDayTypeText),
+    errorCount: derivedWorkedMinutes?.errorCount ?? 0,
     hasClockIn: clockInMinutes !== null,
     hasClockOut: clockOutMinutes !== null,
     hasError: hasExplicitRowError(dateCell),
     hasRequestMarker: hasExplicitRowRequestMarker(row),
     isoDate: identity.isoDate,
+    warningCount: derivedWorkedMinutes?.warningCount ?? 0,
     workedMinutes: derivedWorkedMinutes?.workedMinutes ?? 0,
   };
 }
