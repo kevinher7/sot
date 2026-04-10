@@ -5,6 +5,12 @@ export type KotRequestStatus =
   | "cancelled"
   | "unknown";
 
+export type KotRequestTimeLabel =
+  | "clockIn"
+  | "clockOut"
+  | "breakStart"
+  | "breakEnd";
+
 export type KotRequestTimePatch = {
   breakEndMinutes?: readonly number[];
   breakStartMinutes?: readonly number[];
@@ -12,13 +18,24 @@ export type KotRequestTimePatch = {
   clockOutMinutes?: number;
 };
 
+export type KotRequestOperation =
+  | {
+      timePatch: KotRequestTimePatch;
+      type: "patch";
+    }
+  | {
+      label: KotRequestTimeLabel;
+      minutes: number;
+      type: "delete";
+    };
+
 export type KotTimeCorrectionRequest = {
   cacheKey: string;
   employeeId: string;
   isoDate: string;
   label: string;
+  operation: KotRequestOperation;
   status: KotRequestStatus;
-  timePatch: KotRequestTimePatch;
   updatedAt: number;
 };
 

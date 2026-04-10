@@ -12,11 +12,16 @@ const EMPLOYEE_INPUT_CANDIDATES = [
   'input[name*="employee_id"]',
 ] as const;
 const REQUEST_ID_INPUT_SELECTOR = 'input[name="request_id"]';
+const ORIGINAL_CONTENT_SELECTOR =
+  'td[data-ht-sort-index="EMPLOYEE_REQUEST_LIST_ORIGINAL_CONTENT"]';
 const REQUESTED_CONTENT_SELECTOR =
   'td[data-ht-sort-index="EMPLOYEE_REQUEST_LIST_REQUESTED_CONTENT"]';
 const TARGET_DATE_SELECTOR =
   'td[data-ht-sort-index="EMPLOYEE_REQUEST_LIST_TARGET_DATE"]';
-const STATUS_SELECTOR = 'td[data-ht-sort-index="EMPLOYEE_REQUEST_LIST_STATUS"]';
+const STATUS_SELECTORS = [
+  'td[data-ht-sort-index="EMPLOYEE_REQUEST_LIST_STATUS"]',
+  'td[data-ht-sort-index="EMPLOYEE_REQUEST_LIST_APPROVE_STATUS"]',
+] as const;
 
 function normalizeText(value: string): string {
   return value.replace(/\s+/gu, " ").trim();
@@ -54,6 +59,9 @@ function readLinkEmployeeIds(row: HTMLTableRowElement): string[] {
 }
 
 function readRequestListRow(row: HTMLTableRowElement): KotRequestListRow {
+  const originalContentText =
+    row.querySelector<HTMLTableCellElement>(ORIGINAL_CONTENT_SELECTOR)
+      ?.textContent ?? "";
   const requestedContentText =
     row.querySelector<HTMLTableCellElement>(REQUESTED_CONTENT_SELECTOR)
       ?.textContent ?? "";
@@ -61,7 +69,10 @@ function readRequestListRow(row: HTMLTableRowElement): KotRequestListRow {
     row.querySelector<HTMLTableCellElement>(TARGET_DATE_SELECTOR)
       ?.textContent ?? "";
   const statusText =
-    row.querySelector<HTMLTableCellElement>(STATUS_SELECTOR)?.textContent ??
+    STATUS_SELECTORS.map(
+      (selector) =>
+        row.querySelector<HTMLTableCellElement>(selector)?.textContent ?? "",
+    ).find((value) => normalizeText(value) !== "") ??
     row.textContent ??
     "";
   const requestId =
@@ -73,6 +84,7 @@ function readRequestListRow(row: HTMLTableRowElement): KotRequestListRow {
     dateFieldValues: readInputValues(row, DATE_INPUT_CANDIDATES),
     employeeFieldValues: readInputValues(row, EMPLOYEE_INPUT_CANDIDATES),
     linkEmployeeIds: readLinkEmployeeIds(row),
+    originalContentText: normalizeText(originalContentText),
     requestId,
     requestedContentText: normalizeText(requestedContentText),
     rowText: normalizeText(row.textContent ?? ""),

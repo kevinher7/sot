@@ -4,7 +4,11 @@ import type {
   KotDayRowSnapshot,
   KotMonthlyPageSnapshot,
 } from "./monthly-page-types";
-import type { KotRequestCacheEntry, KotRequestTimePatch } from "./request-data";
+import type {
+  KotRequestCacheEntry,
+  KotRequestOperation,
+  KotTimeCorrectionRequest,
+} from "./request-data";
 import type { ExtensionSettings } from "./types";
 import { deriveWorkedMinutes } from "./worked-minutes";
 
@@ -59,8 +63,8 @@ type DayEstimateOutcome = {
 
 function createRequestMap(
   requestCacheEntry: KotRequestCacheEntry | null,
-): ReadonlyMap<string, readonly KotRequestTimePatch[]> {
-  const grouped = new Map<string, KotRequestTimePatch[]>();
+): ReadonlyMap<string, readonly KotTimeCorrectionRequest[]> {
+  const grouped = new Map<string, KotTimeCorrectionRequest[]>();
 
   requestCacheEntry?.requests.forEach((request) => {
     if (request.status !== "pending") {
@@ -69,94 +73,195 @@ function createRequestMap(
 
     const existing = grouped.get(request.isoDate) ?? [];
 
-    existing.push(request.timePatch);
+    existing.push(request);
     grouped.set(request.isoDate, existing);
   });
 
   return grouped;
 }
 
-function areMinuteListsEqual(
-  left: readonly number[] | undefined,
-  right: readonly number[] | undefined,
-): boolean {
-  if (left === undefined || right === undefined) {
-    return left === right;
+type SimulatedDayRow = {
+  breakEndMinutes: number[];
+  breakStartMinutes: number[];
+  clockInMinutes: number | null;
+  clockOutMinutes: number | null;
+};
+
+type RequestFieldKey = "clockIn" | "clockOut" | "breakStart" | "breakEnd";
+
+function createSimulatedDayRow(row: KotDayRowSnapshot): SimulatedDayRow {
+  return {
+    breakEndMinutes: [...row.breakEndMinutes],
+    breakStartMinutes: [...row.breakStartMinutes],
+    clockInMinutes: row.clockInMinutes,
+    clockOutMinutes: row.clockOutMinutes,
+  };
+}
+
+function createCompatibilityKey(
+  operation: KotRequestOperation,
+  field: RequestFieldKey,
+): string {
+  if (operation.type === "delete") {
+    return `delete:${operation.minutes}`;
   }
 
-  if (left.length !== right.length) {
+  if (field === "clockIn") {
+    return `patch:${operation.timePatch.clockInMinutes ?? "-"}`;
+  }
+
+  if (field === "clockOut") {
+    return `patch:${operation.timePatch.clockOutMinutes ?? "-"}`;
+  }
+
+  if (field === "breakStart") {
+    return `patch:${operation.timePatch.breakStartMinutes?.join(",") ?? "-"}`;
+  }
+
+  return `patch:${operation.timePatch.breakEndMinutes?.join(",") ?? "-"}`;
+}
+
+function markFieldOperation(
+  fieldStates: Map<RequestFieldKey, string>,
+  operation: KotRequestOperation,
+  field: RequestFieldKey,
+): boolean {
+  const nextKey = createCompatibilityKey(operation, field);
+  const currentKey = fieldStates.get(field);
+
+  if (currentKey === undefined) {
+    fieldStates.set(field, nextKey);
+
+    return true;
+  }
+
+  if (currentKey === nextKey) {
+    return true;
+  }
+
+  if (
+    (field === "breakStart" || field === "breakEnd") &&
+    currentKey.startsWith("delete:") &&
+    nextKey.startsWith("delete:")
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function removeMinute(list: number[], minutes: number): boolean {
+  const index = list.indexOf(minutes);
+
+  if (index < 0) {
     return false;
   }
 
-  return left.every((value, index) => value === right[index]);
+  list.splice(index, 1);
+
+  return true;
 }
 
-function mergeTimePatches(
-  patches: readonly KotRequestTimePatch[],
-): KotRequestTimePatch | null {
-  let clockInMinutes: number | undefined;
-  let clockOutMinutes: number | undefined;
-  let breakStartMinutes: readonly number[] | undefined;
-  let breakEndMinutes: readonly number[] | undefined;
-
-  for (const patch of patches) {
-    if (patch.clockInMinutes !== undefined) {
-      if (
-        clockInMinutes !== undefined &&
-        clockInMinutes !== patch.clockInMinutes
-      ) {
-        return null;
-      }
-
-      clockInMinutes = patch.clockInMinutes;
+function applyDeleteOperation(
+  row: SimulatedDayRow,
+  operation: Extract<KotRequestOperation, { type: "delete" }>,
+): boolean {
+  if (operation.label === "clockIn") {
+    if (row.clockInMinutes !== operation.minutes) {
+      return false;
     }
 
-    if (patch.clockOutMinutes !== undefined) {
-      if (
-        clockOutMinutes !== undefined &&
-        clockOutMinutes !== patch.clockOutMinutes
-      ) {
-        return null;
-      }
+    row.clockInMinutes = null;
 
-      clockOutMinutes = patch.clockOutMinutes;
-    }
-
-    if (patch.breakStartMinutes !== undefined) {
-      if (
-        breakStartMinutes !== undefined &&
-        !areMinuteListsEqual(breakStartMinutes, patch.breakStartMinutes)
-      ) {
-        return null;
-      }
-
-      breakStartMinutes = patch.breakStartMinutes;
-    }
-
-    if (patch.breakEndMinutes !== undefined) {
-      if (
-        breakEndMinutes !== undefined &&
-        !areMinuteListsEqual(breakEndMinutes, patch.breakEndMinutes)
-      ) {
-        return null;
-      }
-
-      breakEndMinutes = patch.breakEndMinutes;
-    }
+    return true;
   }
 
-  return {
-    breakEndMinutes,
-    breakStartMinutes,
-    clockInMinutes,
-    clockOutMinutes,
-  };
+  if (operation.label === "clockOut") {
+    if (row.clockOutMinutes !== operation.minutes) {
+      return false;
+    }
+
+    row.clockOutMinutes = null;
+
+    return true;
+  }
+
+  if (operation.label === "breakStart") {
+    return removeMinute(row.breakStartMinutes, operation.minutes);
+  }
+
+  return removeMinute(row.breakEndMinutes, operation.minutes);
+}
+
+function applyPatchOperation(
+  row: SimulatedDayRow,
+  operation: Extract<KotRequestOperation, { type: "patch" }>,
+): void {
+  if (operation.timePatch.clockInMinutes !== undefined) {
+    row.clockInMinutes = operation.timePatch.clockInMinutes;
+  }
+
+  if (operation.timePatch.clockOutMinutes !== undefined) {
+    row.clockOutMinutes = operation.timePatch.clockOutMinutes;
+  }
+
+  if (operation.timePatch.breakStartMinutes !== undefined) {
+    row.breakStartMinutes = [...operation.timePatch.breakStartMinutes];
+  }
+
+  if (operation.timePatch.breakEndMinutes !== undefined) {
+    row.breakEndMinutes = [...operation.timePatch.breakEndMinutes];
+  }
+}
+
+function applyRequestOperation(
+  row: SimulatedDayRow,
+  fieldStates: Map<RequestFieldKey, string>,
+  operation: KotRequestOperation,
+): boolean {
+  if (operation.type === "delete") {
+    if (!markFieldOperation(fieldStates, operation, operation.label)) {
+      return false;
+    }
+
+    return applyDeleteOperation(row, operation);
+  }
+
+  const affectedFields: RequestFieldKey[] = [];
+
+  if (operation.timePatch.clockInMinutes !== undefined) {
+    affectedFields.push("clockIn");
+  }
+
+  if (operation.timePatch.clockOutMinutes !== undefined) {
+    affectedFields.push("clockOut");
+  }
+
+  if (operation.timePatch.breakStartMinutes !== undefined) {
+    affectedFields.push("breakStart");
+  }
+
+  if (operation.timePatch.breakEndMinutes !== undefined) {
+    affectedFields.push("breakEnd");
+  }
+
+  if (
+    !affectedFields.every((field) =>
+      markFieldOperation(fieldStates, operation, field),
+    )
+  ) {
+    return false;
+  }
+
+  applyPatchOperation(row, operation);
+
+  return true;
 }
 
 function resolveDayEstimate(
   row: KotDayRowSnapshot,
   now: Date,
-  patches: readonly KotRequestTimePatch[] | undefined,
+  requests: readonly KotTimeCorrectionRequest[] | undefined,
 ): DayEstimateOutcome {
   if (!row.hasError) {
     return {
@@ -166,7 +271,7 @@ function resolveDayEstimate(
     };
   }
 
-  if (patches === undefined || patches.length === 0) {
+  if (requests === undefined || requests.length === 0) {
     return {
       effectiveWorkedMinutes: row.workedMinutes,
       resolution: "error",
@@ -174,21 +279,24 @@ function resolveDayEstimate(
     };
   }
 
-  const mergedPatch = mergeTimePatches(patches);
+  const simulatedRow = createSimulatedDayRow(row);
+  const fieldStates = new Map<RequestFieldKey, string>();
 
-  if (mergedPatch === null) {
-    return {
-      effectiveWorkedMinutes: row.workedMinutes,
-      resolution: "error",
-      usesEstimate: false,
-    };
+  for (const request of requests) {
+    if (!applyRequestOperation(simulatedRow, fieldStates, request.operation)) {
+      return {
+        effectiveWorkedMinutes: row.workedMinutes,
+        resolution: "error",
+        usesEstimate: false,
+      };
+    }
   }
 
   const derived = deriveWorkedMinutes({
-    breakEndMinutes: mergedPatch.breakEndMinutes ?? row.breakEndMinutes,
-    breakStartMinutes: mergedPatch.breakStartMinutes ?? row.breakStartMinutes,
-    clockInMinutes: mergedPatch.clockInMinutes ?? row.clockInMinutes,
-    clockOutMinutes: mergedPatch.clockOutMinutes ?? row.clockOutMinutes,
+    breakEndMinutes: simulatedRow.breakEndMinutes,
+    breakStartMinutes: simulatedRow.breakStartMinutes,
+    clockInMinutes: simulatedRow.clockInMinutes,
+    clockOutMinutes: simulatedRow.clockOutMinutes,
     nowMinutes: now.getHours() * 60 + now.getMinutes(),
     treatIncompleteAsOngoing: row.isoDate === createIsoDateKey(now),
   });

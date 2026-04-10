@@ -1,8 +1,10 @@
 import { parseKotIsoDate } from "./date";
 import type {
   KotRequestCacheEntry,
+  KotRequestOperation,
   KotRequestStatus,
   KotRequestSyncPayload,
+  KotRequestTimeLabel,
   KotRequestTimePatch,
   KotTimeCorrectionRequest,
 } from "./request-data";
@@ -11,6 +13,7 @@ export type KotRequestListRow = {
   dateFieldValues: readonly string[];
   employeeFieldValues: readonly string[];
   linkEmployeeIds: readonly string[];
+  originalContentText: string;
   requestId: string | null;
   requestedContentText: string;
   rowText: string;
@@ -37,6 +40,7 @@ const REQUEST_ENTRY_PATTERN_GLOBAL = new RegExp(
   `(\\d{1,2}:\\d{2})\\s*\\((${REQUEST_TIME_LABEL_PATTERN})\\)`,
   "gu",
 );
+const DELETE_REQUEST_PATTERN = /^削除$/u;
 const PENDING_PATTERNS = [/対応中/u] as const;
 const APPROVED_PATTERNS = [/承認済/u] as const;
 
@@ -119,6 +123,78 @@ function createTimePatch(text: string): KotRequestTimePatch {
   return timePatch;
 }
 
+function toRequestTimeLabel(value: string): KotRequestTimeLabel | null {
+  if (value === CLOCK_IN_REQUEST_LABEL) {
+    return "clockIn";
+  }
+
+  if (value === CLOCK_OUT_REQUEST_LABEL) {
+    return "clockOut";
+  }
+
+  if (value === BREAK_START_REQUEST_LABEL) {
+    return "breakStart";
+  }
+
+  if (value === BREAK_END_REQUEST_LABEL) {
+    return "breakEnd";
+  }
+
+  return null;
+}
+
+function createDeleteOperation(text: string): KotRequestOperation | null {
+  const matches = Array.from(text.matchAll(REQUEST_ENTRY_PATTERN_GLOBAL));
+
+  if (matches.length !== 1) {
+    return null;
+  }
+
+  const match = matches[0];
+  const minutes = parseClockMinutes(match[1] ?? "");
+  const label = toRequestTimeLabel(match[2] ?? "");
+
+  if (minutes === undefined || label === null) {
+    return null;
+  }
+
+  return {
+    label,
+    minutes,
+    type: "delete",
+  };
+}
+
+function createRequestOperation(
+  row: KotRequestListRow,
+): KotRequestOperation | null {
+  const requestedContentText = normalizeText(row.requestedContentText);
+
+  if (DELETE_REQUEST_PATTERN.test(requestedContentText)) {
+    return createDeleteOperation(normalizeText(row.originalContentText));
+  }
+
+  const text =
+    requestedContentText === ""
+      ? normalizeText(row.rowText)
+      : requestedContentText;
+
+  if (!isSupportedTimeCorrectionText(text)) {
+    return null;
+  }
+
+  const timePatch = createTimePatch(text);
+
+  if (!hasTimePatch(timePatch)) {
+    return null;
+  }
+
+  return {
+    timePatch,
+    type: "patch",
+  };
+}
+
 function createCacheKey(
   employeeId: string,
   isoDate: string,
@@ -176,9 +252,10 @@ function parseRequestRow(
   const requestedContentText = normalizeText(row.requestedContentText);
   const statusText = normalizeText(row.statusText);
   const rowText = normalizeText(row.rowText);
-  const text = requestedContentText === "" ? rowText : requestedContentText;
+  const cacheText =
+    requestedContentText === "" ? rowText : requestedContentText;
 
-  if (text === "" || !isSupportedTimeCorrectionText(text)) {
+  if (cacheText === "") {
     return null;
   }
 
@@ -193,9 +270,9 @@ function parseRequestRow(
     return null;
   }
 
-  const timePatch = createTimePatch(text);
+  const operation = createRequestOperation(row);
 
-  if (!hasTimePatch(timePatch)) {
+  if (operation === null) {
     return null;
   }
 
@@ -203,14 +280,37 @@ function parseRequestRow(
   const status = parseStatus(statusText);
 
   return {
-    cacheKey: createCacheKey(employeeId, isoDate, status, text, row.requestId),
+    cacheKey: createCacheKey(
+      employeeId,
+      isoDate,
+      status,
+      cacheText,
+      row.requestId,
+    ),
     employeeId,
     isoDate,
     label: rowText,
+    operation,
     status,
-    timePatch,
     updatedAt: syncedAt,
   };
+}
+
+function createOperationSignature(operation: KotRequestOperation): string {
+  if (operation.type === "delete") {
+    return ["delete", operation.label, operation.minutes].join("|");
+  }
+
+  const breakStart = operation.timePatch.breakStartMinutes?.join(",") ?? "-";
+  const breakEnd = operation.timePatch.breakEndMinutes?.join(",") ?? "-";
+
+  return [
+    "patch",
+    operation.timePatch.clockInMinutes ?? "-",
+    operation.timePatch.clockOutMinutes ?? "-",
+    breakStart,
+    breakEnd,
+  ].join("|");
 }
 
 function createSignature(
@@ -218,17 +318,11 @@ function createSignature(
 ): string {
   return requests
     .map((request) => {
-      const breakStart = request.timePatch.breakStartMinutes?.join(",") ?? "-";
-      const breakEnd = request.timePatch.breakEndMinutes?.join(",") ?? "-";
-
       return [
         request.cacheKey,
         request.isoDate,
         request.status,
-        request.timePatch.clockInMinutes ?? "-",
-        request.timePatch.clockOutMinutes ?? "-",
-        breakStart,
-        breakEnd,
+        createOperationSignature(request.operation),
       ].join("|");
     })
     .join(";");
