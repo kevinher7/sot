@@ -1,4 +1,4 @@
-import { createIsoDateFromParts, createIsoDateKey } from "@/domain/kot/date";
+import { createIsoDateFromParts } from "@/domain/kot/date";
 import type {
   KotDayKind,
   KotDayRowSnapshot,
@@ -7,7 +7,6 @@ import {
   parseClockTextMinuteList,
   parseClockTextMinutes,
 } from "@/domain/kot/time-text";
-import { deriveWorkedMinutes } from "@/domain/kot/worked-minutes";
 
 const ACTION_CELL_WORKING_DATE_SELECTOR = 'input[name="working_date"]';
 const ACTION_CELL_YEAR_SELECTOR = 'input[name="year"]';
@@ -122,7 +121,6 @@ function hasExplicitRowRequestMarker(row: HTMLTableRowElement): boolean {
 
 export function readMonthlyPageRowSnapshot(
   row: HTMLTableRowElement,
-  now: Date,
 ): KotDayRowSnapshot | null {
   const dateCell = row.querySelector<HTMLTableCellElement>(DATE_CELL_SELECTOR);
 
@@ -159,30 +157,18 @@ export function readMonthlyPageRowSnapshot(
       row.querySelector<HTMLTableCellElement>(BREAK_END_SELECTOR),
     ),
   );
-  const derivedWorkedMinutes = deriveWorkedMinutes({
-    breakEndMinutes,
-    breakStartMinutes,
-    clockInMinutes,
-    clockOutMinutes,
-    nowMinutes: now.getHours() * 60 + now.getMinutes(),
-    treatIncompleteAsOngoing: identity.isoDate === createIsoDateKey(now),
-  });
 
   return {
     breakEndMinutes,
-    breakMinutes: derivedWorkedMinutes?.breakMinutes ?? 0,
     breakStartMinutes,
     clockInMinutes,
     clockOutMinutes,
     day: identity.day,
     dayKind: toDayKind(dateCell, workDayTypeText),
-    errorCount: derivedWorkedMinutes?.errorCount ?? 0,
     hasClockIn: clockInMinutes !== null,
     hasClockOut: clockOutMinutes !== null,
     hasError: hasExplicitRowError(dateCell),
     hasRequestMarker: hasExplicitRowRequestMarker(row),
     isoDate: identity.isoDate,
-    warningCount: derivedWorkedMinutes?.warningCount ?? 0,
-    workedMinutes: derivedWorkedMinutes?.workedMinutes ?? 0,
   };
 }

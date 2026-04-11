@@ -1,16 +1,8 @@
 import { createIsoDateKey } from "./date";
-import type {
-  KotDayResolution,
-  KotDayRowSnapshot,
-  KotMonthlyPageSnapshot,
-} from "./monthly-page-types";
-import type {
-  KotRequestCacheEntry,
-  KotRequestOperation,
-  KotTimeCorrectionRequest,
-} from "./request-data";
+import type { KotMonthlyPageSnapshot } from "./monthly-page-types";
+import type { KotRequestCacheEntry } from "./request-data";
 import type { ExtensionSettings } from "./types";
-import { deriveWorkedMinutes } from "./worked-minutes";
+import { resolveKotMonth } from "./work-time/month-resolution";
 
 export type OverlayMetricTone =
   | "positive"
@@ -55,267 +47,6 @@ export type OverlayCalculationResult = {
   warningDayCount: number;
 };
 
-type DayEstimateOutcome = {
-  effectiveWorkedMinutes: number;
-  resolution: KotDayResolution;
-  usesEstimate: boolean;
-};
-
-function createRequestMap(
-  requestCacheEntry: KotRequestCacheEntry | null,
-): ReadonlyMap<string, readonly KotTimeCorrectionRequest[]> {
-  const grouped = new Map<string, KotTimeCorrectionRequest[]>();
-
-  requestCacheEntry?.requests.forEach((request) => {
-    if (request.status !== "pending") {
-      return;
-    }
-
-    const existing = grouped.get(request.isoDate) ?? [];
-
-    existing.push(request);
-    grouped.set(request.isoDate, existing);
-  });
-
-  return grouped;
-}
-
-type SimulatedDayRow = {
-  breakEndMinutes: number[];
-  breakStartMinutes: number[];
-  clockInMinutes: number | null;
-  clockOutMinutes: number | null;
-};
-
-type RequestFieldKey = "clockIn" | "clockOut" | "breakStart" | "breakEnd";
-
-function createSimulatedDayRow(row: KotDayRowSnapshot): SimulatedDayRow {
-  return {
-    breakEndMinutes: [...row.breakEndMinutes],
-    breakStartMinutes: [...row.breakStartMinutes],
-    clockInMinutes: row.clockInMinutes,
-    clockOutMinutes: row.clockOutMinutes,
-  };
-}
-
-function createCompatibilityKey(
-  operation: KotRequestOperation,
-  field: RequestFieldKey,
-): string {
-  if (operation.type === "delete") {
-    return `delete:${operation.minutes}`;
-  }
-
-  if (field === "clockIn") {
-    return `patch:${operation.timePatch.clockInMinutes ?? "-"}`;
-  }
-
-  if (field === "clockOut") {
-    return `patch:${operation.timePatch.clockOutMinutes ?? "-"}`;
-  }
-
-  if (field === "breakStart") {
-    return `patch:${operation.timePatch.breakStartMinutes?.join(",") ?? "-"}`;
-  }
-
-  return `patch:${operation.timePatch.breakEndMinutes?.join(",") ?? "-"}`;
-}
-
-function markFieldOperation(
-  fieldStates: Map<RequestFieldKey, string>,
-  operation: KotRequestOperation,
-  field: RequestFieldKey,
-): boolean {
-  const nextKey = createCompatibilityKey(operation, field);
-  const currentKey = fieldStates.get(field);
-
-  if (currentKey === undefined) {
-    fieldStates.set(field, nextKey);
-
-    return true;
-  }
-
-  if (currentKey === nextKey) {
-    return true;
-  }
-
-  if (
-    (field === "breakStart" || field === "breakEnd") &&
-    currentKey.startsWith("delete:") &&
-    nextKey.startsWith("delete:")
-  ) {
-    return true;
-  }
-
-  return false;
-}
-
-function removeMinute(list: number[], minutes: number): boolean {
-  const index = list.indexOf(minutes);
-
-  if (index < 0) {
-    return false;
-  }
-
-  list.splice(index, 1);
-
-  return true;
-}
-
-function applyDeleteOperation(
-  row: SimulatedDayRow,
-  operation: Extract<KotRequestOperation, { type: "delete" }>,
-): boolean {
-  if (operation.label === "clockIn") {
-    if (row.clockInMinutes !== operation.minutes) {
-      return false;
-    }
-
-    row.clockInMinutes = null;
-
-    return true;
-  }
-
-  if (operation.label === "clockOut") {
-    if (row.clockOutMinutes !== operation.minutes) {
-      return false;
-    }
-
-    row.clockOutMinutes = null;
-
-    return true;
-  }
-
-  if (operation.label === "breakStart") {
-    return removeMinute(row.breakStartMinutes, operation.minutes);
-  }
-
-  return removeMinute(row.breakEndMinutes, operation.minutes);
-}
-
-function applyPatchOperation(
-  row: SimulatedDayRow,
-  operation: Extract<KotRequestOperation, { type: "patch" }>,
-): void {
-  if (operation.timePatch.clockInMinutes !== undefined) {
-    row.clockInMinutes = operation.timePatch.clockInMinutes;
-  }
-
-  if (operation.timePatch.clockOutMinutes !== undefined) {
-    row.clockOutMinutes = operation.timePatch.clockOutMinutes;
-  }
-
-  if (operation.timePatch.breakStartMinutes !== undefined) {
-    row.breakStartMinutes = [...operation.timePatch.breakStartMinutes];
-  }
-
-  if (operation.timePatch.breakEndMinutes !== undefined) {
-    row.breakEndMinutes = [...operation.timePatch.breakEndMinutes];
-  }
-}
-
-function applyRequestOperation(
-  row: SimulatedDayRow,
-  fieldStates: Map<RequestFieldKey, string>,
-  operation: KotRequestOperation,
-): boolean {
-  if (operation.type === "delete") {
-    if (!markFieldOperation(fieldStates, operation, operation.label)) {
-      return false;
-    }
-
-    return applyDeleteOperation(row, operation);
-  }
-
-  const affectedFields: RequestFieldKey[] = [];
-
-  if (operation.timePatch.clockInMinutes !== undefined) {
-    affectedFields.push("clockIn");
-  }
-
-  if (operation.timePatch.clockOutMinutes !== undefined) {
-    affectedFields.push("clockOut");
-  }
-
-  if (operation.timePatch.breakStartMinutes !== undefined) {
-    affectedFields.push("breakStart");
-  }
-
-  if (operation.timePatch.breakEndMinutes !== undefined) {
-    affectedFields.push("breakEnd");
-  }
-
-  if (
-    !affectedFields.every((field) =>
-      markFieldOperation(fieldStates, operation, field),
-    )
-  ) {
-    return false;
-  }
-
-  applyPatchOperation(row, operation);
-
-  return true;
-}
-
-function resolveDayEstimate(
-  row: KotDayRowSnapshot,
-  now: Date,
-  requests: readonly KotTimeCorrectionRequest[] | undefined,
-): DayEstimateOutcome {
-  if (!row.hasError) {
-    return {
-      effectiveWorkedMinutes: row.workedMinutes,
-      resolution: "normal",
-      usesEstimate: false,
-    };
-  }
-
-  if (requests === undefined || requests.length === 0) {
-    return {
-      effectiveWorkedMinutes: row.workedMinutes,
-      resolution: "error",
-      usesEstimate: false,
-    };
-  }
-
-  const simulatedRow = createSimulatedDayRow(row);
-  const fieldStates = new Map<RequestFieldKey, string>();
-
-  for (const request of requests) {
-    if (!applyRequestOperation(simulatedRow, fieldStates, request.operation)) {
-      return {
-        effectiveWorkedMinutes: row.workedMinutes,
-        resolution: "error",
-        usesEstimate: false,
-      };
-    }
-  }
-
-  const derived = deriveWorkedMinutes({
-    breakEndMinutes: simulatedRow.breakEndMinutes,
-    breakStartMinutes: simulatedRow.breakStartMinutes,
-    clockInMinutes: simulatedRow.clockInMinutes,
-    clockOutMinutes: simulatedRow.clockOutMinutes,
-    nowMinutes: now.getHours() * 60 + now.getMinutes(),
-    treatIncompleteAsOngoing: row.isoDate === createIsoDateKey(now),
-  });
-
-  if (derived === null) {
-    return {
-      effectiveWorkedMinutes: row.workedMinutes,
-      resolution: "error",
-      usesEstimate: false,
-    };
-  }
-
-  return {
-    effectiveWorkedMinutes: derived.workedMinutes,
-    resolution: "warning",
-    usesEstimate: true,
-  };
-}
-
 export function calculateRequiredElapsedWorkdays(
   now: Date,
   pageSnapshot: KotMonthlyPageSnapshot,
@@ -346,15 +77,15 @@ function calculateRequiredWorkedMinutesInMonth(
 }
 
 export function calculateTodayWorkedMinutes(
-  pageSnapshot: KotMonthlyPageSnapshot,
+  resolvedMonth: ReturnType<typeof resolveKotMonth>,
 ): number {
-  return pageSnapshot.todayRow?.workedMinutes ?? 0;
+  return resolvedMonth.todayDay?.effective.workedMinutesDisplay ?? 0;
 }
 
 export function calculateTodayBreakMinutes(
-  pageSnapshot: KotMonthlyPageSnapshot,
+  resolvedMonth: ReturnType<typeof resolveKotMonth>,
 ): number {
-  return pageSnapshot.todayRow?.breakMinutes ?? 0;
+  return resolvedMonth.todayDay?.effective.breakMinutes ?? 0;
 }
 
 export function calculateTodayStatus(
@@ -432,6 +163,11 @@ function calculateBankTone(
 export function calculateOverlayMetrics(
   input: OverlayCalculationInput,
 ): OverlayCalculationResult {
+  const resolvedMonth = resolveKotMonth({
+    now: input.now,
+    pageSnapshot: input.pageSnapshot,
+    requestCacheEntry: input.requestCacheEntry,
+  });
   const elapsedWorkdays = calculateRequiredElapsedWorkdays(
     input.now,
     input.pageSnapshot,
@@ -444,67 +180,37 @@ export function calculateOverlayMetrics(
     input.pageSnapshot,
     input.settings,
   );
-  const todayWorkedMinutes = calculateTodayWorkedMinutes(input.pageSnapshot);
-  const todayBreakMinutes = calculateTodayBreakMinutes(input.pageSnapshot);
-  const todayDate = createIsoDateKey(input.now);
-  const requestMap = createRequestMap(input.requestCacheEntry);
-
-  let displayWorkedMinutesSoFar = 0;
-  let errorDayCount = 0;
-  let warningDayCount = 0;
-  let isUsingEstimate = false;
-
-  input.pageSnapshot.rows.forEach((row) => {
-    if (row.isoDate > todayDate) {
-      return;
-    }
-
-    const outcome = resolveDayEstimate(
-      row,
-      input.now,
-      requestMap.get(row.isoDate),
-    );
-
-    displayWorkedMinutesSoFar += outcome.effectiveWorkedMinutes;
-
-    if (outcome.resolution === "error") {
-      errorDayCount += 1;
-    }
-
-    if (outcome.resolution === "warning") {
-      warningDayCount += 1;
-      isUsingEstimate = true;
-    }
-  });
+  const todayWorkedMinutes = calculateTodayWorkedMinutes(resolvedMonth);
+  const todayBreakMinutes = calculateTodayBreakMinutes(resolvedMonth);
 
   const actualBankMinutes = calculateMonthBankMinutes(
-    input.pageSnapshot.actualWorkedMinutesSoFar,
+    resolvedMonth.actualWorkedMinutesSoFar,
     requiredWorkedMinutesSoFar,
   );
   const monthBankMinutes = calculateMonthBankMinutes(
-    displayWorkedMinutesSoFar,
+    resolvedMonth.displayWorkedMinutesSoFar,
     requiredWorkedMinutesSoFar,
   );
   const bankTone = calculateBankTone(
     monthBankMinutes,
-    errorDayCount,
-    isUsingEstimate,
+    resolvedMonth.errorDayCount,
+    resolvedMonth.isUsingEstimate,
   );
 
   return {
     actualBankMinutes,
-    actualWorkedMinutesSoFar: input.pageSnapshot.actualWorkedMinutesSoFar,
+    actualWorkedMinutesSoFar: resolvedMonth.actualWorkedMinutesSoFar,
     bankTone,
-    displayWorkedMinutesSoFar,
-    errorDayCount,
-    isUsingEstimate,
+    displayWorkedMinutesSoFar: resolvedMonth.displayWorkedMinutesSoFar,
+    errorDayCount: resolvedMonth.errorDayCount,
+    isUsingEstimate: resolvedMonth.isUsingEstimate,
     monthActualProgressPercent: calculateMonthProgressPercent(
-      input.pageSnapshot.actualWorkedMinutesSoFar,
+      resolvedMonth.actualWorkedMinutesSoFar,
       requiredWorkedMinutesInMonth,
     ),
     monthBankMinutes,
     monthEstimatedProgressPercent: calculateMonthProgressPercent(
-      displayWorkedMinutesSoFar,
+      resolvedMonth.displayWorkedMinutesSoFar,
       requiredWorkedMinutesInMonth,
     ),
     progressTone: bankTone,
@@ -514,14 +220,14 @@ export function calculateOverlayMetrics(
       input.settings,
     ),
     todayBreakMinutes,
-    todayErrorCount: input.pageSnapshot.todayRow?.errorCount ?? 0,
+    todayErrorCount: resolvedMonth.todayDay?.effective.errorCount ?? 0,
     todayStatus: calculateTodayStatus(input.pageSnapshot),
     todayWorkedMinutes,
     todayWorkDiffMinutes: calculateTodayWorkDiffMinutes(
       todayWorkedMinutes,
       input.settings,
     ),
-    todayWarningCount: input.pageSnapshot.todayRow?.warningCount ?? 0,
-    warningDayCount,
+    todayWarningCount: resolvedMonth.todayDay?.effective.warningCount ?? 0,
+    warningDayCount: resolvedMonth.warningDayCount,
   };
 }

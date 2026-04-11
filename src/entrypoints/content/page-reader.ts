@@ -14,13 +14,11 @@ function createSnapshotSignature(rows: readonly KotDayRowSnapshot[]): string {
         row.isoDate,
         row.dayKind,
         row.hasError ? "error" : "ok",
-        row.errorCount,
         row.hasRequestMarker ? "req" : "clean",
         row.clockInMinutes ?? "-",
         row.clockOutMinutes ?? "-",
         row.breakStartMinutes.join(","),
         row.breakEndMinutes.join(","),
-        row.warningCount,
       ].join("|"),
     )
     .join(";");
@@ -33,7 +31,7 @@ export function readMonthlyPageSnapshot(
   const rows = Array.from(
     doc.querySelectorAll<HTMLTableRowElement>(ROW_SELECTOR),
   )
-    .map((row) => readMonthlyPageRowSnapshot(row, now))
+    .map((row) => readMonthlyPageRowSnapshot(row))
     .filter((row): row is KotDayRowSnapshot => row !== null)
     .sort((left, right) => left.isoDate.localeCompare(right.isoDate));
 
@@ -43,16 +41,8 @@ export function readMonthlyPageSnapshot(
 
   const firstRow = rows[0];
   const todayDate = createIsoDateKey(now);
-  const actualWorkedMinutesSoFar = rows.reduce((total, row) => {
-    if (row.isoDate > todayDate) {
-      return total;
-    }
-
-    return total + row.workedMinutes;
-  }, 0);
 
   return {
-    actualWorkedMinutesSoFar,
     month: Number.parseInt(firstRow.isoDate.slice(5, 7), 10),
     rows,
     signature: createSnapshotSignature(rows),
