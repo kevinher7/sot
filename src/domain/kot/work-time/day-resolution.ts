@@ -1,11 +1,11 @@
-import type { KotDayRowSnapshot } from "../monthly-page-types";
-import { createIsoDateKey } from "../date";
-import { resolveKotBreaks } from "./break-resolution";
+import type { KotDayRowSnapshot } from "@/domain/kot/monthly-page-types";
+import { createIsoDateKey } from "@/domain/kot/date";
+import { resolveKotBreaks } from "@/domain/kot/work-time/break-resolution";
 import type {
   KotResolveDayContext,
   KotResolvedDay,
   KotResolvedDayIssueCode,
-} from "./types";
+} from "@/domain/kot/work-time/types";
 
 function createResolvedDay(params: {
   row: KotDayRowSnapshot;

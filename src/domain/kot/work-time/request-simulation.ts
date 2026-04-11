@@ -1,9 +1,9 @@
-import type { KotDayRowSnapshot } from "../monthly-page-types";
+import type { KotDayRowSnapshot } from "@/domain/kot/monthly-page-types";
 import type {
   KotRequestCacheEntry,
   KotRequestOperation,
   KotTimeCorrectionRequest,
-} from "../request-data";
+} from "@/domain/kot/request-data";
 
 type SimulatedDayRow = {
   breakEndMinutes: number[];

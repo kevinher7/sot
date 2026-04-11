@@ -51,6 +51,17 @@ export default tseslint.config(
       ],
       "@typescript-eslint/no-explicit-any": "error",
       "import/no-relative-parent-imports": "error",
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["./*", "../*", "!./*.css", "!../*.css"],
+              message: "Use absolute @/ imports for src modules.",
+            },
+          ],
+        },
+      ],
       "no-restricted-syntax": [
         "error",
         {

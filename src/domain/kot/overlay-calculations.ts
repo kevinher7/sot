@@ -1,8 +1,8 @@
-import { createIsoDateKey } from "./date";
-import type { KotMonthlyPageSnapshot } from "./monthly-page-types";
-import type { KotRequestCacheEntry } from "./request-data";
-import type { ExtensionSettings } from "./types";
-import { resolveKotMonth } from "./work-time/month-resolution";
+import { createIsoDateKey } from "@/domain/kot/date";
+import type { KotMonthlyPageSnapshot } from "@/domain/kot/monthly-page-types";
+import type { KotRequestCacheEntry } from "@/domain/kot/request-data";
+import type { ExtensionSettings } from "@/domain/kot/types";
+import { resolveKotMonth } from "@/domain/kot/work-time/month-resolution";
 
 export type OverlayMetricTone =
   | "positive"

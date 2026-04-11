@@ -4,7 +4,7 @@ import type {
   OverlayDurationMetric,
   OverlayProgressMetric,
   OverlayViewModel,
-} from "./overlay-types";
+} from "@/entrypoints/content/overlay-types";
 
 const METRIC_TONE_CLASS_NAME: Record<OverlayMetricTone, string> = {
   error: "kot-extension-metric-value--negative",

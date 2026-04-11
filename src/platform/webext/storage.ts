@@ -1,7 +1,10 @@
 import { normalizeSettings } from "@/domain/kot/settings";
 import type { KotRequestCacheEntry } from "@/domain/kot/request-data";
 import type { ExtensionSettings } from "@/domain/kot/types";
-import { getStorageValues, setStorageValues } from "./browser-api";
+import {
+  getStorageValues,
+  setStorageValues,
+} from "@/platform/webext/browser-api";
 
 const SETTINGS_KEY = "settings";
 const REQUEST_CACHE_KEY = "kot-request-cache";

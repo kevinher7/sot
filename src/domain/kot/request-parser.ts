@@ -1,4 +1,4 @@
-import { parseKotIsoDate } from "./date";
+import { parseKotIsoDate } from "@/domain/kot/date";
 import type {
   KotRequestCacheEntry,
   KotRequestOperation,
@@ -7,7 +7,7 @@ import type {
   KotRequestTimeLabel,
   KotRequestTimePatch,
   KotTimeCorrectionRequest,
-} from "./request-data";
+} from "@/domain/kot/request-data";
 
 export type KotRequestListRow = {
   dateFieldValues: readonly string[];

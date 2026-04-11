@@ -3,7 +3,7 @@ import type {
   KotDayRowSnapshot,
   KotMonthlyPageSnapshot,
 } from "@/domain/kot/monthly-page-types";
-import { readMonthlyPageRowSnapshot } from "./monthly-page-row-reader";
+import { readMonthlyPageRowSnapshot } from "@/entrypoints/content/monthly-page-row-reader";
 
 const ROW_SELECTOR = "tr";
 

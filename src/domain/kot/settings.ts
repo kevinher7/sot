@@ -1,4 +1,4 @@
-import type { ExtensionSettings } from "./types";
+import type { ExtensionSettings } from "@/domain/kot/types";
 
 export const DEFAULT_SETTINGS: ExtensionSettings = {
   standardBreakMinutes: 60,

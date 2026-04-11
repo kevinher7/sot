@@ -1,11 +1,14 @@
-import type { KotMonthlyPageSnapshot } from "../monthly-page-types";
-import type { KotRequestCacheEntry } from "../request-data";
+import type { KotMonthlyPageSnapshot } from "@/domain/kot/monthly-page-types";
+import type { KotRequestCacheEntry } from "@/domain/kot/request-data";
 import {
   applyKotRequestsToDayRow,
   createKotPendingRequestMap,
-} from "./request-simulation";
-import { createKotResolveDayContext, resolveKotDay } from "./day-resolution";
-import type { KotResolvedDay } from "./types";
+} from "@/domain/kot/work-time/request-simulation";
+import {
+  createKotResolveDayContext,
+  resolveKotDay,
+} from "@/domain/kot/work-time/day-resolution";
+import type { KotResolvedDay } from "@/domain/kot/work-time/types";
 
 export type KotResolvedMonthDay = {
   actual: KotResolvedDay;

@@ -2,15 +2,15 @@ export {
   ensureOverlayRoot,
   repositionOverlayRoot,
   ROOT_ID,
-} from "./overlay-root";
+} from "@/entrypoints/content/overlay-root";
 export {
   renderOverlayError,
   renderOverlayLoading,
   renderOverlayResult,
-} from "./overlay-renderer";
+} from "@/entrypoints/content/overlay-renderer";
 export type {
   OverlayBadge,
   OverlayDurationMetric,
   OverlayProgressMetric,
   OverlayViewModel,
-} from "./overlay-types";
+} from "@/entrypoints/content/overlay-types";

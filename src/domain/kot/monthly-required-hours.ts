@@ -1,4 +1,4 @@
-import type { KotDayKind } from "./monthly-page-types";
+import type { KotDayKind } from "@/domain/kot/monthly-page-types";
 
 export type MonthlyRequiredHoursResult = {
   offdayCount: number;

@@ -7,7 +7,7 @@ import type {
   OverlayDurationMetric,
   OverlayProgressMetric,
   OverlayViewModel,
-} from "./overlay-types";
+} from "@/entrypoints/content/overlay-types";
 
 const TODAY_MONTH_FORMATTER = new Intl.DateTimeFormat("ja-JP", {
   month: "2-digit",

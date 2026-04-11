@@ -1,4 +1,4 @@
-import type { KotResolvedDayIssueCode } from "./types";
+import type { KotResolvedDayIssueCode } from "@/domain/kot/work-time/types";
 
 export type KotResolvedBreaks = {
   breakMinutesDisplay: number;

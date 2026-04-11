@@ -1,20 +1,23 @@
 import { calculateOverlayMetrics } from "@/domain/kot/overlay-calculations";
 import { getNow, getDelayUntilNextMinute } from "@/platform/time/clock";
 import { getSettings } from "@/platform/webext/storage";
-import { createOverlayViewModel } from "./model";
-import { ensureOverlayRoot } from "./overlay-root";
-import { renderOverlayError, renderOverlayResult } from "./overlay-renderer";
-import { readMonthlyPageSnapshot } from "./page-reader";
-import { createKotRequestContext } from "./request-context";
-import { getKotRequestData } from "./request-sync";
-import { observeDocumentChanges } from "./runtime-dom";
+import { createOverlayViewModel } from "@/entrypoints/content/model";
+import { ensureOverlayRoot } from "@/entrypoints/content/overlay-root";
+import {
+  renderOverlayError,
+  renderOverlayResult,
+} from "@/entrypoints/content/overlay-renderer";
+import { readMonthlyPageSnapshot } from "@/entrypoints/content/page-reader";
+import { createKotRequestContext } from "@/entrypoints/content/request-context";
+import { getKotRequestData } from "@/entrypoints/content/request-sync";
+import { observeDocumentChanges } from "@/entrypoints/content/runtime-dom";
 import {
   clearRequestCache,
   createRefreshCache,
   createSettingsSignature,
   shouldSyncRequestData,
   type RefreshReason,
-} from "./runtime-state";
+} from "@/entrypoints/content/runtime-state";
 
 export async function startMonthlyRequiredHoursRuntime(
   win: Window = window,

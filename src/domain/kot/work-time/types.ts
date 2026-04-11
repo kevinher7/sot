@@ -1,4 +1,7 @@
-import type { KotDayKind, KotDayResolution } from "../monthly-page-types";
+import type {
+  KotDayKind,
+  KotDayResolution,
+} from "@/domain/kot/monthly-page-types";
 
 export type KotWorkedMinutesSource = "finalized" | "estimated";
 

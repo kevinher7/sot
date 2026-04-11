@@ -4,8 +4,8 @@ import {
   getCachedRequestEntry,
   setCachedRequestEntry,
 } from "@/platform/webext/storage";
-import type { KotRequestContext } from "./request-context";
-import { readRequestListRowsFromHtml } from "./request-list-reader";
+import type { KotRequestContext } from "@/entrypoints/content/request-context";
+import { readRequestListRowsFromHtml } from "@/entrypoints/content/request-list-reader";
 
 function createRequestListUrl(payload: KotRequestContext["payload"]): string {
   const url = new URL(payload.adminBaseUrl);
