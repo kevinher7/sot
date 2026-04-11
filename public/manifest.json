@@ -3,6 +3,10 @@
   "name": "SOT (SERVANT OF TIME)",
   "description": "Unofficial extension overlay for the KING OF TIME timecard",
   "version": "0.0.1",
+  "icons": {
+    "48": "icons/sot-48.png",
+    "96": "icons/sot-96.png"
+  },
   "browser_specific_settings": {
     "gecko": {
       "id": "sot-extension@example.local"
