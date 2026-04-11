@@ -48,13 +48,6 @@ When adding new extension surfaces, follow the same pattern:
 # Workflow
 
 - Keep manifest-facing paths aligned with Vite output paths
-- After a series of code changes, run:
-
-```bash
-npm run typecheck
-npm run build
-```
-
 - Load the built extension in Firefox/Zen from `dist/manifest.json`
 - If you change manifest entries, verify the referenced files actually exist in `dist/`
 - If you change the content script, verify the overlay still mounts only on the intended KOT page
@@ -79,32 +72,9 @@ npm run build
   - `content/index.css`
 - If future extension surfaces are added, update both Vite and the manifest together
 
-# Project Specifications
-
-- **Extension target**: Firefox / Zen first, Chromium portability kept in mind
-- **Manifest**: WebExtension Manifest V3
-- **Language**: TypeScript
-- **Build tool**: Vite
-- **Styling**: Tailwind CSS for extension UI, scoped CSS for content overlay where appropriate
-- **Storage**: `browser.storage.local`
-- **Target site**: KING OF TIME admin monthly working page
-
 # Testing and Verification
 
 - Do not plan, propose, or write automated tests for this project right now unless the user explicitly asks for them
 - Minimum verification for code changes:
   - `npm run typecheck`
   - `npm run build`
-- Minimum manual verification for UI/runtime changes:
-  - load `dist/manifest.json` in Firefox/Zen
-  - open the target KOT page
-  - confirm the overlay appears only on the supported page
-  - confirm runtime settings/defaults are read correctly by the content script
-- If changing settings behavior, verify both default values and stored values are handled correctly
-
-# Future Implementation Notes
-
-- Prefer extending the existing domain/platform split instead of adding cross-cutting utility files
-- If overlay behavior grows, continue splitting responsibilities by concern: page detection, mounting, positioning, rendering, and feature logic
-- If a future options or popup UI is added, separate data loading, actions, and view rendering rather than growing a single file
-- If Chromium support is added later, keep compatibility work isolated to platform adapters and manifest/build differences where possible
