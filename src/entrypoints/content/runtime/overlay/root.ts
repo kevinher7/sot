@@ -1,7 +1,7 @@
 import { positionOverlayRoot } from "@/entrypoints/content/runtime/overlay/position";
 import { renderOverlayLoading } from "@/entrypoints/content/runtime/overlay/renderer";
 
-export const ROOT_ID = "kot-extension-root";
+export const ROOT_ID = "sot-root";
 
 export function ensureOverlayRoot(doc: Document = document): HTMLDivElement {
   const existing = doc.getElementById(ROOT_ID);

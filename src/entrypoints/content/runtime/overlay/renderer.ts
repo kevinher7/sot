@@ -8,11 +8,11 @@ import type {
 } from "@/entrypoints/content/runtime/overlay/types";
 
 const METRIC_TONE_CLASS_NAME: Record<OverlayMetricTone, string> = {
-  error: "kot-extension-metric-value--negative",
-  negative: "kot-extension-metric-value--negative",
-  neutral: "kot-extension-metric-value--neutral",
-  positive: "kot-extension-metric-value--positive",
-  warning: "kot-extension-metric-value--warning",
+  error: "sot-metric-value--negative",
+  negative: "sot-metric-value--negative",
+  neutral: "sot-metric-value--neutral",
+  positive: "sot-metric-value--positive",
+  warning: "sot-metric-value--warning",
 };
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
@@ -53,7 +53,7 @@ function createSvgElement<K extends keyof SVGElementTagNameMap>(
 }
 
 function createHeaderIcon(doc: Document): HTMLSpanElement {
-  const wrapper = createElement(doc, "span", "kot-extension-icon");
+  const wrapper = createElement(doc, "span", "sot-icon");
   const svg = createSvgElement(doc, "svg", {
     viewBox: "0 0 1908.706 1908.706",
     "aria-hidden": "true",
@@ -147,27 +147,23 @@ function createSectionLabel(
   text: string,
   badges: readonly OverlayBadge[] = [],
 ): HTMLDivElement {
-  const wrapper = createElement(doc, "div", "kot-extension-section-label-wrap");
-  const label = createElement(doc, "span", "kot-extension-section-label", text);
+  const wrapper = createElement(doc, "div", "sot-section-label-wrap");
+  const label = createElement(doc, "span", "sot-section-label", text);
 
   wrapper.append(label);
 
   badges.forEach((badge) => {
-    const badgeElement = createElement(
-      doc,
-      "span",
-      "kot-extension-section-badge",
-    );
+    const badgeElement = createElement(doc, "span", "sot-section-badge");
     const iconElement = createElement(
       doc,
       "span",
-      "kot-extension-section-badge-icon",
+      "sot-section-badge-icon",
       badge.iconText,
     );
     const countElement = createElement(
       doc,
       "span",
-      "kot-extension-section-badge-count",
+      "sot-section-badge-count",
       badge.countText,
     );
 
@@ -184,22 +180,17 @@ function createDurationMetricCard(
   labelText: string,
   metric: OverlayDurationMetric,
 ): HTMLDivElement {
-  const card = createElement(doc, "div", "kot-extension-metric-card");
-  const label = createElement(
-    doc,
-    "span",
-    "kot-extension-metric-label",
-    labelText,
-  );
+  const card = createElement(doc, "div", "sot-metric-card");
+  const label = createElement(doc, "span", "sot-metric-label", labelText);
   const valueGroup = createElement(
     doc,
     "div",
-    `kot-extension-metric-value ${METRIC_TONE_CLASS_NAME[metric.tone]}`,
+    `sot-metric-value ${METRIC_TONE_CLASS_NAME[metric.tone]}`,
   );
   const value = createElement(
     doc,
     "span",
-    "kot-extension-metric-value-text",
+    "sot-metric-value-text",
     metric.value,
   );
 
@@ -210,12 +201,7 @@ function createDurationMetricCard(
   valueGroup.append(value);
 
   if (metric.unit !== "") {
-    const unit = createElement(
-      doc,
-      "span",
-      "kot-extension-metric-unit",
-      metric.unit,
-    );
+    const unit = createElement(doc, "span", "sot-metric-unit", metric.unit);
 
     valueGroup.append(unit);
   }
@@ -244,26 +230,21 @@ function createProgressCard(
   doc: Document,
   metric: OverlayProgressMetric,
 ): HTMLDivElement {
-  const card = createElement(doc, "div", "kot-extension-progress-card");
-  const label = createElement(
-    doc,
-    "span",
-    "kot-extension-metric-label",
-    metric.label,
-  );
-  const rail = createElement(doc, "div", "kot-extension-progress-rail");
+  const card = createElement(doc, "div", "sot-progress-card");
+  const label = createElement(doc, "span", "sot-metric-label", metric.label);
+  const rail = createElement(doc, "div", "sot-progress-rail");
 
   card.dataset.tone = metric.tone;
   rail.append(
     createProgressFill(
       doc,
-      "kot-extension-progress-fill kot-extension-progress-fill--estimated",
+      "sot-progress-fill sot-progress-fill--estimated",
       metric.estimatedPercent,
       metric.tone,
     ),
     createProgressFill(
       doc,
-      "kot-extension-progress-fill kot-extension-progress-fill--actual",
+      "sot-progress-fill sot-progress-fill--actual",
       metric.actualPercent,
       "positive",
     ),
@@ -277,12 +258,7 @@ function createHeaderBadgeElement(
   doc: Document,
   badge: OverlayHeaderBadge,
 ): HTMLSpanElement {
-  const element = createElement(
-    doc,
-    "span",
-    "kot-extension-header-badge",
-    badge.text,
-  );
+  const element = createElement(doc, "span", "sot-header-badge", badge.text);
 
   element.dataset.tone = badge.tone;
   element.ariaLabel = badge.ariaLabel;
@@ -292,12 +268,12 @@ function createHeaderBadgeElement(
 }
 
 function createHeader(doc: Document, model: OverlayViewModel): HTMLElement {
-  const header = createElement(doc, "header", "kot-extension-header");
-  const headingGroup = createElement(doc, "div", "kot-extension-header-group");
+  const header = createElement(doc, "header", "sot-header");
+  const headingGroup = createElement(doc, "div", "sot-header-group");
   const title = createElement(
     doc,
     "span",
-    "kot-extension-title",
+    "sot-title",
     "SOT (SERVANT OF TIME)",
   );
   const icon = createHeaderIcon(doc);
@@ -312,8 +288,8 @@ function createTodaySection(
   doc: Document,
   model: OverlayViewModel,
 ): HTMLElement {
-  const section = createElement(doc, "section", "kot-extension-section");
-  const metrics = createElement(doc, "div", "kot-extension-metric-stack");
+  const section = createElement(doc, "section", "sot-section");
+  const metrics = createElement(doc, "div", "sot-metric-stack");
 
   metrics.append(
     createDurationMetricCard(doc, "Work left", model.todayWorkLeft),
@@ -335,9 +311,9 @@ function createMonthSection(
   const section = createElement(
     doc,
     "section",
-    "kot-extension-section kot-extension-section--month",
+    "sot-section sot-section--month",
   );
-  const grid = createElement(doc, "div", "kot-extension-month-grid");
+  const grid = createElement(doc, "div", "sot-month-grid");
 
   grid.append(
     createDurationMetricCard(doc, "Bank", model.monthlyBank),
@@ -353,7 +329,7 @@ function createMonthSection(
 }
 
 function createWipPanel(doc: Document): HTMLElement {
-  const panel = createElement(doc, "section", "kot-extension-wip-panel", "WIP");
+  const panel = createElement(doc, "section", "sot-wip-panel", "WIP");
 
   panel.hidden = true;
 
@@ -361,15 +337,10 @@ function createWipPanel(doc: Document): HTMLElement {
 }
 
 function createCtaSection(doc: Document, onToggle: () => void): HTMLDivElement {
-  const wrapper = createElement(doc, "div", "kot-extension-cta-wrap");
-  const button = createElement(doc, "button", "kot-extension-cta-button");
-  const label = createElement(
-    doc,
-    "span",
-    "kot-extension-cta-label",
-    "Month breakdown",
-  );
-  const icon = createElement(doc, "span", "kot-extension-cta-icon", "▾");
+  const wrapper = createElement(doc, "div", "sot-cta-wrap");
+  const button = createElement(doc, "button", "sot-cta-button");
+  const label = createElement(doc, "span", "sot-cta-label", "Month breakdown");
+  const icon = createElement(doc, "span", "sot-cta-icon", "▾");
 
   button.type = "button";
   button.addEventListener("click", () => {
@@ -387,10 +358,10 @@ function createOverlayCard(
   doc: Document,
   model: OverlayViewModel,
 ): HTMLDivElement {
-  const shell = createElement(doc, "div", "kot-extension-shell");
-  const divider = createElement(doc, "div", "kot-extension-divider");
-  const content = createElement(doc, "main", "kot-extension-content");
-  const accent = createElement(doc, "div", "kot-extension-accent");
+  const shell = createElement(doc, "div", "sot-shell");
+  const divider = createElement(doc, "div", "sot-divider");
+  const content = createElement(doc, "main", "sot-content");
+  const accent = createElement(doc, "div", "sot-accent");
   const wipPanel = createWipPanel(doc);
 
   const toggleWipPanel = (): void => {
@@ -425,13 +396,7 @@ export function renderOverlayLoading(
 ): void {
   renderOverlayChildren(
     root,
-    [
-      createElement(
-        doc,
-        "div",
-        "kot-extension-shell kot-extension-shell--status",
-      ),
-    ],
+    [createElement(doc, "div", "sot-shell sot-shell--status")],
     "loading",
   );
 
@@ -442,13 +407,8 @@ export function renderOverlayLoading(
   }
 
   shell.append(
-    createElement(
-      doc,
-      "strong",
-      "kot-extension-status-title",
-      "SOT (SERVANT OF TIME)",
-    ),
-    createElement(doc, "div", "kot-extension-status-copy", message),
+    createElement(doc, "strong", "sot-status-title", "SOT (SERVANT OF TIME)"),
+    createElement(doc, "div", "sot-status-copy", message),
   );
 }
 
@@ -459,13 +419,7 @@ export function renderOverlayError(
 ): void {
   renderOverlayChildren(
     root,
-    [
-      createElement(
-        doc,
-        "div",
-        "kot-extension-shell kot-extension-shell--status",
-      ),
-    ],
+    [createElement(doc, "div", "sot-shell sot-shell--status")],
     "error",
   );
 
@@ -476,19 +430,14 @@ export function renderOverlayError(
   }
 
   shell.append(
-    createElement(
-      doc,
-      "strong",
-      "kot-extension-status-title",
-      "SOT (SERVANT OF TIME)",
-    ),
+    createElement(doc, "strong", "sot-status-title", "SOT (SERVANT OF TIME)"),
     createElement(
       doc,
       "div",
-      "kot-extension-status-copy",
+      "sot-status-copy",
       "Unable to load extension summary.",
     ),
-    createElement(doc, "div", "kot-extension-status-copy", message),
+    createElement(doc, "div", "sot-status-copy", message),
   );
 }
 
