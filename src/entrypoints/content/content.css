@@ -86,11 +86,48 @@
   gap: 8px;
 }
 
-.kot-extension-status-dot {
-  width: 6px;
-  height: 6px;
+.kot-extension-header-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border: 1px solid transparent;
   border-radius: 999px;
-  background: #28a745;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.kot-extension-header-badge[data-tone="not-started"] {
+  border-color: rgba(148, 163, 184, 0.35);
+  background: #f3f4f6;
+  color: #64748b;
+}
+
+.kot-extension-header-badge[data-tone="in-progress"] {
+  border-color: rgba(245, 158, 11, 0.35);
+  background: rgba(255, 237, 213, 0.95);
+  color: #d97706;
+}
+
+.kot-extension-header-badge[data-tone="break"] {
+  border-color: rgba(250, 204, 21, 0.45);
+  background: rgba(254, 249, 195, 0.95);
+  color: #a16207;
+}
+
+.kot-extension-header-badge[data-tone="rest-day"] {
+  border-color: rgba(148, 163, 184, 0.35);
+  background: #f3f4f6;
+  color: #64748b;
+}
+
+.kot-extension-header-badge[data-tone="finished"] {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(220, 252, 231, 0.95);
+  color: #059669;
 }
 
 .kot-extension-title {

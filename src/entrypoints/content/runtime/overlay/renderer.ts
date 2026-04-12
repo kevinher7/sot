@@ -2,6 +2,7 @@ import type { OverlayMetricTone } from "@/domain/kot/projection/overlay-metrics"
 import type {
   OverlayBadge,
   OverlayDurationMetric,
+  OverlayHeaderBadge,
   OverlayProgressMetric,
   OverlayViewModel,
 } from "@/entrypoints/content/runtime/overlay/types";
@@ -164,10 +165,27 @@ function createProgressCard(
   return card;
 }
 
-function createHeader(doc: Document): HTMLElement {
+function createHeaderBadgeElement(
+  doc: Document,
+  badge: OverlayHeaderBadge,
+): HTMLSpanElement {
+  const element = createElement(
+    doc,
+    "span",
+    "kot-extension-header-badge",
+    badge.text,
+  );
+
+  element.dataset.tone = badge.tone;
+  element.ariaLabel = badge.ariaLabel;
+  element.title = badge.title;
+
+  return element;
+}
+
+function createHeader(doc: Document, model: OverlayViewModel): HTMLElement {
   const header = createElement(doc, "header", "kot-extension-header");
   const headingGroup = createElement(doc, "div", "kot-extension-header-group");
-  const statusDot = createElement(doc, "div", "kot-extension-status-dot");
   const title = createElement(
     doc,
     "span",
@@ -176,7 +194,7 @@ function createHeader(doc: Document): HTMLElement {
   );
   const icon = createElement(doc, "span", "kot-extension-icon", "◷");
 
-  headingGroup.append(statusDot, title);
+  headingGroup.append(createHeaderBadgeElement(doc, model.headerBadge), title);
   header.append(headingGroup, icon);
 
   return header;
@@ -278,7 +296,7 @@ function createOverlayCard(
     wipPanel,
   );
 
-  shell.append(createHeader(doc), divider, content, accent);
+  shell.append(createHeader(doc, model), divider, content, accent);
 
   return shell;
 }

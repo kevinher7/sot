@@ -5,6 +5,7 @@ import type {
 import type {
   OverlayBadge,
   OverlayDurationMetric,
+  OverlayHeaderBadge,
   OverlayProgressMetric,
   OverlayViewModel,
 } from "@/entrypoints/content/runtime/overlay/types";
@@ -192,12 +193,60 @@ function createTodayErrorBadges(
   return createMonthErrorBadges(errorCount, warningCount);
 }
 
+function createHeaderBadge(
+  result: OverlayCalculationResult,
+): OverlayHeaderBadge {
+  if (result.todayBadgeStatus === "not-started") {
+    return {
+      ariaLabel: "Today status: not started",
+      text: "準",
+      title: "Not started",
+      tone: "not-started",
+    };
+  }
+
+  if (result.todayBadgeStatus === "in-progress") {
+    return {
+      ariaLabel: "Today status: in progress",
+      text: "W",
+      title: "In progress",
+      tone: "in-progress",
+    };
+  }
+
+  if (result.todayBadgeStatus === "break") {
+    return {
+      ariaLabel: "Today status: on break",
+      text: "B",
+      title: "On break",
+      tone: "break",
+    };
+  }
+
+  if (result.todayBadgeStatus === "finished") {
+    return {
+      ariaLabel: "Today status: finished",
+      text: "終",
+      title: "Finished",
+      tone: "finished",
+    };
+  }
+
+  return {
+    ariaLabel: "Today status: rest day",
+    text: "R",
+    title: "Rest day",
+    tone: "rest-day",
+  };
+}
+
 export function createOverlayViewModel(
   now: Date,
   result: OverlayCalculationResult,
   settings: OverlayCalculationSettings,
 ): OverlayViewModel {
   return {
+    headerBadge: createHeaderBadge(result),
     monthErrorBadges: createMonthErrorBadges(
       result.errorDayCount,
       result.warningDayCount,

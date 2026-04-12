@@ -1,4 +1,7 @@
-import type { OverlayMetricTone } from "@/domain/kot/projection/overlay-metrics";
+import type {
+  OverlayMetricTone,
+  TodayBadgeStatus,
+} from "@/domain/kot/projection/overlay-metrics";
 
 export type OverlayDurationMetricAppearance = "default" | "rest-day";
 
@@ -25,7 +28,15 @@ export type OverlayBadge = {
   tone: OverlayBadgeTone;
 };
 
+export type OverlayHeaderBadge = {
+  ariaLabel: string;
+  text: string;
+  title: string;
+  tone: TodayBadgeStatus;
+};
+
 export type OverlayViewModel = {
+  headerBadge: OverlayHeaderBadge;
   monthErrorBadges: readonly OverlayBadge[];
   monthlyBank: OverlayDurationMetric;
   monthLabel: string;
