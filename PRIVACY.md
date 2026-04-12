@@ -10,6 +10,11 @@ SOT (SERVANT OF TIME) is an unofficial browser extension for the KING OF TIME ad
 
 The extension reads only the KING OF TIME pages needed to provide its overlay functionality.
 
+For Firefox Add-ons disclosure purposes, SOT treats its current behavior as handling:
+
+- **Website content** from the supported KING OF TIME pages it reads
+- **Personally identifying information** because the parsed page/request data can include employee identifiers
+
 On the supported monthly working page, it may read:
 
 - the current page URL and query parameters needed to confirm the page is supported
@@ -45,6 +50,8 @@ It currently stores:
 The extension communicates only with KING OF TIME pages required for its functionality.
 
 At this time, it talks only to the `s2.ta.kingoftime.jp` KING OF TIME site used by the extension's supported page flow.
+
+This includes fetching the related request-list page in the user's existing signed-in session so the extension can parse request-aware time-correction data for the active monthly page.
 
 ## What the extension does not do
 

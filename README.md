@@ -51,7 +51,9 @@ SOT keeps its access intentionally narrow.
 
 - **Host access:** `https://s2.ta.kingoftime.jp/admin/*`
 - **Extension permission:** `storage`
-- **Data handling:** settings and request-cache data are stored locally in `browser.storage.local`
+- **Firefox AMO data disclosure:** `websiteContent`, `personallyIdentifyingInfo`
+- **Data handling:** settings and parsed request-cache data are stored locally in `browser.storage.local`
+- **Network scope:** only the signed-in KING OF TIME pages needed for the monthly page and related request-list lookup
 - **Third-party services:** none
 
 For full details, see [PRIVACY.md](./PRIVACY.md).
