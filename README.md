@@ -1,6 +1,26 @@
-# SOT (SERVANT OF TIME)
+<p align="center">
+  <img src="public/icons/sot.svg" alt="SOT logo" width="140" />
+</p>
 
-SOT (SERVANT OF TIME) is an unofficial Firefox-first WebExtension that adds a focused overlay to the KING OF TIME admin monthly working page.
+<h1 align="center">SOT</h1>
+<p align="center"><strong>SERVANT OF TIME</strong></p>
+<p align="center">An unofficial Firefox-first WebExtension that adds a focused overlay to the KING OF TIME admin monthly working page.</p>
+
+<p align="center">Made by <a href="https://github.com/kevinher7">@kevinher7</a> · Logo made by pimchot</p>
+
+<figure align="center">
+  <table align="center">
+    <tr>
+      <td align="center" valign="top">
+        <img src="docs/media/sot-in-the-wild.png" alt="SOT on the monthly working page" height="320" />
+      </td>
+      <td align="center" valign="top">
+        <img src="docs/media/sot-panel.png" alt="SOT overlay panel" height="320" />
+      </td>
+    </tr>
+  </table>
+  <figcaption><em>Left: SOT on the monthly working page. Right: the summary overlay panel.</em></figcaption>
+</figure>
 
 > Unofficial project. SOT is not affiliated with, endorsed by, or sponsored by Human Technologies or KING OF TIME.
 
@@ -15,12 +35,6 @@ Current v1 behavior:
 - accounts for request-related time corrections when available
 - stores extension settings locally in the browser
 - stays intentionally narrow in scope instead of running across the full KING OF TIME product
-
-<p align="center">
-  <img src="docs/media/sot-in-the-wild.png" alt="SOT on the KING OF TIME monthly working page" width="48%" />
-  <img src="docs/media/sot-panel.png" alt="SOT overlay panel" width="48%" />
-</p>
-<p align="center"><em>Left: SOT on the monthly working page. Right: the summary overlay panel.</em></p>
 
 ## Supported page scope
 
