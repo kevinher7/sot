@@ -94,10 +94,11 @@
   height: 18px;
   padding: 0;
   border: 1px solid transparent;
-  border-radius: 999px;
-  font-size: 10px;
+  border-radius: 4px;
+  font-size: 11px;
   font-weight: 800;
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .sot-header-badge[data-tone="not-started"] {
