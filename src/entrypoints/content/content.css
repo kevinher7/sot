@@ -75,7 +75,7 @@
 .kot-extension-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
   padding: 8px 12px;
   background: #ffffff;
 }
@@ -90,9 +90,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 18px;
+  width: 18px;
   height: 18px;
-  padding: 0 5px;
+  padding: 0;
   border: 1px solid transparent;
   border-radius: 999px;
   font-size: 10px;

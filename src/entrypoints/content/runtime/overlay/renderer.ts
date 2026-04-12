@@ -302,8 +302,8 @@ function createHeader(doc: Document, model: OverlayViewModel): HTMLElement {
   );
   const icon = createHeaderIcon(doc);
 
-  headingGroup.append(createHeaderBadgeElement(doc, model.headerBadge), title);
-  header.append(headingGroup, icon);
+  headingGroup.append(title, createHeaderBadgeElement(doc, model.headerBadge));
+  header.append(icon, headingGroup);
 
   return header;
 }
