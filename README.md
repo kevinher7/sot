@@ -16,16 +16,11 @@ Current v1 behavior:
 - stores extension settings locally in the browser
 - stays intentionally narrow in scope instead of running across the full KING OF TIME product
 
-## Screenshots
-
-### On the monthly working page
-
-![SOT on the KING OF TIME monthly working page](docs/media/sot-in-the-wild.png)
-
-### Overlay panel
-
-![SOT overlay panel](docs/media/sot-panel.png)
-
+<p align="center">
+  <img src="docs/media/sot-in-the-wild.png" alt="SOT on the KING OF TIME monthly working page" width="48%" />
+  <img src="docs/media/sot-panel.png" alt="SOT overlay panel" width="48%" />
+</p>
+<p align="center"><em>Left: SOT on the monthly working page. Right: the summary overlay panel.</em></p>
 
 ## Supported page scope
 
