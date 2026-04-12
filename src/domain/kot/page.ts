@@ -1,14 +1,31 @@
-export const KOT_ADMIN_HOST = "s2.ta.kingoftime.jp";
-export const MONTHLY_INDIVIDUAL_WORKING_LIST_PAGE_ID =
+const KOT_ADMIN_HOST = "s2.ta.kingoftime.jp";
+const MONTHLY_INDIVIDUAL_WORKING_LIST_PAGE_ID =
   "/working/monthly_individual_working_list";
+const MONTHLY_PAGE_DATE_CELL_SELECTOR =
+  'td[data-ht-identity-cell="specific-sidemenu_date"][data-ht-sort-index="WORK_DAY"]';
+const MONTHLY_PAGE_WORKING_DATE_SELECTOR = 'input[name="working_date"]';
 
-export function isKotAdminHost(url: URL): boolean {
+function isKotAdminUrl(url: URL): boolean {
   return url.hostname === KOT_ADMIN_HOST && url.pathname.startsWith("/admin/");
 }
 
-export function isMonthlyIndividualWorkingListPage(url: URL): boolean {
+function hasMonthlyIndividualWorkingListPageDom(
+  doc: Document = document,
+): boolean {
   return (
-    isKotAdminHost(url) &&
-    url.searchParams.get("page_id") === MONTHLY_INDIVIDUAL_WORKING_LIST_PAGE_ID
+    doc.querySelector(MONTHLY_PAGE_DATE_CELL_SELECTOR) !== null &&
+    doc.querySelector<HTMLInputElement>(MONTHLY_PAGE_WORKING_DATE_SELECTOR) !==
+      null
+  );
+}
+
+export function isMonthlyIndividualWorkingListPage(
+  url: URL,
+  doc: Document = document,
+): boolean {
+  return (
+    isKotAdminUrl(url) &&
+    (url.searchParams.get("page_id") === MONTHLY_INDIVIDUAL_WORKING_LIST_PAGE_ID
+      || hasMonthlyIndividualWorkingListPageDom(doc))
   );
 }
