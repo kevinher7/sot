@@ -24,6 +24,9 @@
 
 > Unofficial project. SOT is not affiliated with, endorsed by, or sponsored by Human Technologies or KING OF TIME.
 
+- **Repository:** <https://github.com/kevinher7/sot>
+- **Issues / support:** <https://github.com/kevinher7/sot/issues>
+
 ## What it does
 
 SOT reads the currently open monthly timecard page and renders an in-page summary overlay to make the page easier to understand at a glance.
@@ -55,6 +58,12 @@ For full details, see [PRIVACY.md](./PRIVACY.md).
 
 ## Installation
 
+### For end users
+
+SOT is not published to the Firefox Add-ons store yet.
+
+Right now, the extension can be used by loading a locally built version into Firefox or Zen Browser.
+
 ### Firefox / Zen Browser (temporary local install)
 
 1. Install dependencies:
@@ -68,6 +77,11 @@ For full details, see [PRIVACY.md](./PRIVACY.md).
 3. Open `about:debugging#/runtime/this-firefox`.
 4. Click **Load Temporary Add-on...**.
 5. Select `dist/manifest.json`.
+
+### Support
+
+- Report bugs or request features: <https://github.com/kevinher7/sot/issues>
+- Source code: <https://github.com/kevinher7/sot>
 
 ## Development
 
@@ -120,7 +134,9 @@ Potentially but not sure
 
 ## Support
 
-For bug reports, feature requests, or questions, please open an issue in this repository.
+For bug reports, feature requests, or questions, please open an issue:
+
+- <https://github.com/kevinher7/sot/issues>
 
 ## License
 

@@ -1,6 +1,6 @@
 # Privacy Policy
 
-_Last updated: April 5, 2026_
+_Last updated: April 12, 2026_
 
 SOT (SERVANT OF TIME) is an unofficial browser extension for the KING OF TIME admin monthly working page.
 
@@ -58,4 +58,7 @@ The extension does **not**:
 
 ## Contact / support
 
-For questions, bug reports, or privacy-related concerns, please open an issue in this repository's GitHub Issues page.
+For questions, bug reports, or privacy-related concerns, please use:
+
+- GitHub repository: <https://github.com/kevinher7/sot>
+- GitHub Issues: <https://github.com/kevinher7/sot/issues>
