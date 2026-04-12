@@ -1,9 +1,13 @@
 import { createIsoDateKey } from "@/domain/kot/date";
+import { calculateKotDay, createKotResolveDayContext } from "@/domain/kot/calculation/day/day-calculator";
+import { buildEffectiveDayScenario } from "@/domain/kot/calculation/day/scenario-builders";
 import type { KotMonthlyPageSnapshot } from "@/domain/kot/monthly-page-types";
 import type { KotRequestCacheEntry } from "@/domain/kot/request-data";
 import type { ExtensionSettings } from "@/domain/kot/types";
 import { resolveKotMonth } from "@/domain/kot/calculation/month/month-resolver";
 import type { KotResolvedMonth } from "@/domain/kot/calculation/month/month-types";
+import { getKotPendingRequestsForDate } from "@/domain/kot/calculation/requests/request-scenario";
+import { createKotPendingRequestMap } from "@/domain/kot/calculation/requests/request-simulation";
 
 export type OverlayMetricTone =
   | "positive"
@@ -26,6 +30,13 @@ export type OverlayCalculationInput = {
 
 export type TodayStatus = "in-progress" | "rest-day" | "not-started";
 
+export type TodayBadgeStatus =
+  | "break"
+  | "finished"
+  | "in-progress"
+  | "not-started"
+  | "rest-day";
+
 export type OverlayCalculationResult = {
   actualBankMinutes: number;
   actualWorkedMinutesSoFar: number;
@@ -40,6 +51,7 @@ export type OverlayCalculationResult = {
   requiredWorkedMinutesSoFar: number;
   todayBreakDiffMinutes: number;
   todayBreakMinutes: number;
+  todayBadgeStatus: TodayBadgeStatus;
   todayErrorCount: number;
   todayStatus: TodayStatus;
   todayWorkedMinutes: number;
@@ -102,6 +114,45 @@ export function calculateTodayStatus(
 
   if (!todayRow.hasClockIn) {
     return todayRow.dayKind === "offday" ? "rest-day" : "not-started";
+  }
+
+  return "in-progress";
+}
+
+export function calculateTodayBadgeStatus(input: {
+  now: Date;
+  pageSnapshot: KotMonthlyPageSnapshot;
+  requestCacheEntry: KotRequestCacheEntry | null;
+}): TodayBadgeStatus {
+  const todayRow = input.pageSnapshot.todayRow;
+
+  if (!todayRow) {
+    return "rest-day";
+  }
+
+  const requestMap = createKotPendingRequestMap(input.requestCacheEntry);
+  const pendingRequests = getKotPendingRequestsForDate(requestMap, todayRow.isoDate);
+  const effectiveScenario = buildEffectiveDayScenario(todayRow, pendingRequests);
+
+  if (effectiveScenario.interpretedRow.dayKind === "offday") {
+    return "rest-day";
+  }
+
+  const effectiveDay = calculateKotDay(
+    effectiveScenario,
+    createKotResolveDayContext(input.now),
+  );
+
+  if (effectiveDay.issues.issueCodes.includes("ongoingBreak")) {
+    return "break";
+  }
+
+  if (effectiveScenario.interpretedRow.clockInMinutes === null) {
+    return "not-started";
+  }
+
+  if (effectiveScenario.interpretedRow.clockOutMinutes !== null) {
+    return "finished";
   }
 
   return "in-progress";
@@ -223,6 +274,11 @@ export function calculateOverlayMetrics(
       input.settings,
     ),
     todayBreakMinutes,
+    todayBadgeStatus: calculateTodayBadgeStatus({
+      now: input.now,
+      pageSnapshot: input.pageSnapshot,
+      requestCacheEntry: input.requestCacheEntry,
+    }),
     todayErrorCount:
       resolvedMonth.todayDay?.effective.calculatedDay.issues.errorCount ?? 0,
     todayStatus: calculateTodayStatus(input.pageSnapshot),
