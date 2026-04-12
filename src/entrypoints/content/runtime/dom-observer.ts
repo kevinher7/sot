@@ -1,4 +1,4 @@
-import { ROOT_ID } from "@/entrypoints/content/overlay-root";
+import { ROOT_ID } from "@/entrypoints/content/runtime/overlay/root";
 
 function isOverlayMutationTarget(node: Node): boolean {
   if (node instanceof HTMLElement) {

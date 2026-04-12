@@ -1,9 +1,9 @@
-const KOT_ADMIN_HOST = "s2.ta.kingoftime.jp";
-const MONTHLY_INDIVIDUAL_WORKING_LIST_PAGE_ID =
-  "/working/monthly_individual_working_list";
-const MONTHLY_PAGE_DATE_CELL_SELECTOR =
-  'td[data-ht-identity-cell="specific-sidemenu_date"][data-ht-sort-index="WORK_DAY"]';
-const MONTHLY_PAGE_WORKING_DATE_SELECTOR = 'input[name="working_date"]';
+import {
+  KOT_ADMIN_HOST,
+  MONTHLY_INDIVIDUAL_WORKING_LIST_PAGE_ID,
+  MONTHLY_PAGE_DATE_CELL_SELECTOR,
+  MONTHLY_PAGE_WORKING_DATE_SELECTOR,
+} from "@/entrypoints/content/kot-page/contracts";
 
 function isKotAdminUrl(url: URL): boolean {
   return url.hostname === KOT_ADMIN_HOST && url.pathname.startsWith("/admin/");
@@ -25,7 +25,7 @@ export function isMonthlyIndividualWorkingListPage(
 ): boolean {
   return (
     isKotAdminUrl(url) &&
-    (url.searchParams.get("page_id") === MONTHLY_INDIVIDUAL_WORKING_LIST_PAGE_ID
-      || hasMonthlyIndividualWorkingListPageDom(doc))
+    (url.searchParams.get("page_id") === MONTHLY_INDIVIDUAL_WORKING_LIST_PAGE_ID ||
+      hasMonthlyIndividualWorkingListPageDom(doc))
   );
 }

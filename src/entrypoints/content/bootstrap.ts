@@ -1,9 +1,9 @@
-import { isMonthlyIndividualWorkingListPage } from "@/domain/kot/page";
+import { isMonthlyIndividualWorkingListPage } from "@/entrypoints/content/kot-page";
+import { startMonthlyRequiredHoursRuntime } from "@/entrypoints/content/runtime";
 import {
   ensureOverlayRoot,
   repositionOverlayRoot,
-} from "@/entrypoints/content/overlay";
-import { startMonthlyRequiredHoursRuntime } from "@/entrypoints/content/runtime";
+} from "@/entrypoints/content/runtime/overlay";
 
 async function mountOverlay(doc: Document, win: Window): Promise<void> {
   if (!doc.body) {

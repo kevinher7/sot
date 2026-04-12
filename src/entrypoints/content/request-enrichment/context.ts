@@ -1,12 +1,9 @@
 import type { KotMonthlyPageSnapshot } from "@/domain/kot/monthly-page-types";
 import type { KotRequestSyncPayload } from "@/domain/kot/request-data";
-
-const EMPLOYEE_ID_SELECTORS = [
-  'input[name="employee_id"]',
-  'input[name*="employee_id"]',
-  'select[name="employee_id"]',
-  'select[name*="employee_id"]',
-] as const;
+import {
+  REQUEST_CONTEXT_EMPLOYEE_ID_SELECTORS,
+  REQUEST_CONTEXT_EXCLUDED_PRESERVED_QUERY_KEYS,
+} from "@/entrypoints/content/request-enrichment/contracts";
 
 export type KotRequestContext = {
   key: string;
@@ -17,7 +14,7 @@ function createPreservedQueryParams(url: URL): Record<string, string> {
   const params: Record<string, string> = {};
 
   url.searchParams.forEach((value, key) => {
-    if (key === "page_id" || key === "employee_id") {
+    if (REQUEST_CONTEXT_EXCLUDED_PRESERVED_QUERY_KEYS.some((excludedKey) => excludedKey === key)) {
       return;
     }
 
@@ -27,8 +24,8 @@ function createPreservedQueryParams(url: URL): Record<string, string> {
   return params;
 }
 
-function parseEmployeeIdFromDocument(doc: Document): string | null {
-  for (const selector of EMPLOYEE_ID_SELECTORS) {
+function parseEmployeeIdFromDocument(doc: Document, origin: string): string | null {
+  for (const selector of REQUEST_CONTEXT_EMPLOYEE_ID_SELECTORS) {
     const field = doc.querySelector<HTMLInputElement | HTMLSelectElement>(
       selector,
     );
@@ -41,7 +38,7 @@ function parseEmployeeIdFromDocument(doc: Document): string | null {
 
   for (const link of doc.querySelectorAll<HTMLAnchorElement>("a[href]")) {
     try {
-      const url = new URL(link.href, window.location.origin);
+      const url = new URL(link.href, origin);
       const employeeId = url.searchParams.get("employee_id")?.trim() ?? "";
 
       if (employeeId !== "") {
@@ -62,7 +59,7 @@ function parseEmployeeId(url: URL, doc: Document): string | null {
     return fromUrl;
   }
 
-  return parseEmployeeIdFromDocument(doc);
+  return parseEmployeeIdFromDocument(doc, url.origin);
 }
 
 export function createKotRequestContext(

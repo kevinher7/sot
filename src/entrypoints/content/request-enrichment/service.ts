@@ -4,8 +4,12 @@ import {
   getCachedRequestEntry,
   setCachedRequestEntry,
 } from "@/platform/webext/storage";
-import type { KotRequestContext } from "@/entrypoints/content/request-context";
-import { readRequestListRowsFromHtml } from "@/entrypoints/content/request-list-reader";
+import {
+  REQUEST_LIST_PAGE_ID,
+  REQUEST_LIST_REMOVED_QUERY_KEYS,
+} from "@/entrypoints/content/request-enrichment/contracts";
+import type { KotRequestContext } from "@/entrypoints/content/request-enrichment/context";
+import { readRequestListRowsFromHtml } from "@/entrypoints/content/request-enrichment/request-list-reader";
 
 function createRequestListUrl(payload: KotRequestContext["payload"]): string {
   const url = new URL(payload.adminBaseUrl);
@@ -14,10 +18,12 @@ function createRequestListUrl(payload: KotRequestContext["payload"]): string {
     url.searchParams.set(key, value);
   });
 
-  url.searchParams.set("page_id", "/employee/request_list");
+  url.searchParams.set("page_id", REQUEST_LIST_PAGE_ID);
   url.searchParams.set("employee_id", payload.employeeId);
-  url.searchParams.delete("call_from");
-  url.searchParams.delete("date_selection_type");
+
+  REQUEST_LIST_REMOVED_QUERY_KEYS.forEach((key) => {
+    url.searchParams.delete(key);
+  });
 
   return url.toString();
 }
@@ -32,7 +38,8 @@ export async function getKotRequestData(
   );
 
   try {
-    const response = await fetch(createRequestListUrl(context.payload), {
+    const requestListUrl = createRequestListUrl(context.payload);
+    const response = await fetch(requestListUrl, {
       credentials: "include",
       method: "GET",
     });
@@ -45,7 +52,7 @@ export async function getKotRequestData(
 
     const syncedAt = Date.now();
     const html = await response.text();
-    const rows = readRequestListRowsFromHtml(html);
+    const rows = readRequestListRowsFromHtml(html, requestListUrl);
     const parsed = parseRequestListRows(rows, context.payload, syncedAt);
 
     return await setCachedRequestEntry(parsed);

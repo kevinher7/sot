@@ -3,9 +3,8 @@ import type {
   KotDayRowSnapshot,
   KotMonthlyPageSnapshot,
 } from "@/domain/kot/monthly-page-types";
-import { readMonthlyPageRowSnapshot } from "@/entrypoints/content/monthly-page-row-reader";
-
-const ROW_SELECTOR = "tr";
+import { MONTHLY_PAGE_ROW_SELECTOR } from "@/entrypoints/content/kot-page/contracts";
+import { readMonthlyPageRowSnapshot } from "@/entrypoints/content/kot-page/monthly-page-row-reader";
 
 function createSnapshotSignature(rows: readonly KotDayRowSnapshot[]): string {
   return rows
@@ -29,7 +28,7 @@ export function readMonthlyPageSnapshot(
   doc: Document = document,
 ): KotMonthlyPageSnapshot | null {
   const rows = Array.from(
-    doc.querySelectorAll<HTMLTableRowElement>(ROW_SELECTOR),
+    doc.querySelectorAll<HTMLTableRowElement>(MONTHLY_PAGE_ROW_SELECTOR),
   )
     .map((row) => readMonthlyPageRowSnapshot(row))
     .filter((row): row is KotDayRowSnapshot => row !== null)

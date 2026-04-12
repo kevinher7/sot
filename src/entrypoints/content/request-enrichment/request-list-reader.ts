@@ -1,27 +1,13 @@
 import type { KotRequestListRow } from "@/domain/kot/request-parser";
-
-const DATE_INPUT_CANDIDATES = [
-  'input[name="working_date"]',
-  'input[name="target_date"]',
-  'input[name="date"]',
-  'input[name*="working_date"]',
-  'input[name*="target_date"]',
-] as const;
-const EMPLOYEE_INPUT_CANDIDATES = [
-  'input[name="employee_id"]',
-  'input[name*="employee_id"]',
-] as const;
-const REQUEST_ID_INPUT_SELECTOR = 'input[name="request_id"]';
-const ORIGINAL_CONTENT_SELECTOR =
-  'td[data-ht-sort-index="EMPLOYEE_REQUEST_LIST_ORIGINAL_CONTENT"]';
-const REQUESTED_CONTENT_SELECTOR =
-  'td[data-ht-sort-index="EMPLOYEE_REQUEST_LIST_REQUESTED_CONTENT"]';
-const TARGET_DATE_SELECTOR =
-  'td[data-ht-sort-index="EMPLOYEE_REQUEST_LIST_TARGET_DATE"]';
-const STATUS_SELECTORS = [
-  'td[data-ht-sort-index="EMPLOYEE_REQUEST_LIST_STATUS"]',
-  'td[data-ht-sort-index="EMPLOYEE_REQUEST_LIST_APPROVE_STATUS"]',
-] as const;
+import {
+  REQUEST_LIST_DATE_INPUT_CANDIDATES,
+  REQUEST_LIST_EMPLOYEE_INPUT_CANDIDATES,
+  REQUEST_LIST_ORIGINAL_CONTENT_SELECTOR,
+  REQUEST_LIST_REQUESTED_CONTENT_SELECTOR,
+  REQUEST_LIST_REQUEST_ID_INPUT_SELECTOR,
+  REQUEST_LIST_STATUS_SELECTORS,
+  REQUEST_LIST_TARGET_DATE_SELECTOR,
+} from "@/entrypoints/content/request-enrichment/contracts";
 
 function normalizeText(value: string): string {
   return value.replace(/\s+/gu, " ").trim();
@@ -39,12 +25,15 @@ function readInputValues(
   );
 }
 
-function readLinkEmployeeIds(row: HTMLTableRowElement): string[] {
+function readLinkEmployeeIds(
+  row: HTMLTableRowElement,
+  baseUrl: string,
+): string[] {
   const employeeIds: string[] = [];
 
   for (const link of row.querySelectorAll<HTMLAnchorElement>("a[href]")) {
     try {
-      const url = new URL(link.href, window.location.origin);
+      const url = new URL(link.href, baseUrl);
       const employeeId = url.searchParams.get("employee_id")?.trim() ?? "";
 
       if (employeeId !== "") {
@@ -58,18 +47,21 @@ function readLinkEmployeeIds(row: HTMLTableRowElement): string[] {
   return employeeIds;
 }
 
-function readRequestListRow(row: HTMLTableRowElement): KotRequestListRow {
+function readRequestListRow(
+  row: HTMLTableRowElement,
+  baseUrl: string,
+): KotRequestListRow {
   const originalContentText =
-    row.querySelector<HTMLTableCellElement>(ORIGINAL_CONTENT_SELECTOR)
+    row.querySelector<HTMLTableCellElement>(REQUEST_LIST_ORIGINAL_CONTENT_SELECTOR)
       ?.textContent ?? "";
   const requestedContentText =
-    row.querySelector<HTMLTableCellElement>(REQUESTED_CONTENT_SELECTOR)
+    row.querySelector<HTMLTableCellElement>(REQUEST_LIST_REQUESTED_CONTENT_SELECTOR)
       ?.textContent ?? "";
   const targetDateText =
-    row.querySelector<HTMLTableCellElement>(TARGET_DATE_SELECTOR)
+    row.querySelector<HTMLTableCellElement>(REQUEST_LIST_TARGET_DATE_SELECTOR)
       ?.textContent ?? "";
   const statusText =
-    STATUS_SELECTORS.map(
+    REQUEST_LIST_STATUS_SELECTORS.map(
       (selector) =>
         row.querySelector<HTMLTableCellElement>(selector)?.textContent ?? "",
     ).find((value) => normalizeText(value) !== "") ??
@@ -77,13 +69,16 @@ function readRequestListRow(row: HTMLTableRowElement): KotRequestListRow {
     "";
   const requestId =
     row
-      .querySelector<HTMLInputElement>(REQUEST_ID_INPUT_SELECTOR)
+      .querySelector<HTMLInputElement>(REQUEST_LIST_REQUEST_ID_INPUT_SELECTOR)
       ?.value.trim() || null;
 
   return {
-    dateFieldValues: readInputValues(row, DATE_INPUT_CANDIDATES),
-    employeeFieldValues: readInputValues(row, EMPLOYEE_INPUT_CANDIDATES),
-    linkEmployeeIds: readLinkEmployeeIds(row),
+    dateFieldValues: readInputValues(row, REQUEST_LIST_DATE_INPUT_CANDIDATES),
+    employeeFieldValues: readInputValues(
+      row,
+      REQUEST_LIST_EMPLOYEE_INPUT_CANDIDATES,
+    ),
+    linkEmployeeIds: readLinkEmployeeIds(row, baseUrl),
     originalContentText: normalizeText(originalContentText),
     requestId,
     requestedContentText: normalizeText(requestedContentText),
@@ -93,10 +88,13 @@ function readRequestListRow(row: HTMLTableRowElement): KotRequestListRow {
   };
 }
 
-export function readRequestListRowsFromHtml(html: string): KotRequestListRow[] {
+export function readRequestListRowsFromHtml(
+  html: string,
+  baseUrl: string,
+): KotRequestListRow[] {
   const doc = new DOMParser().parseFromString(html, "text/html");
 
   return Array.from(doc.querySelectorAll<HTMLTableRowElement>("tr"), (row) =>
-    readRequestListRow(row),
+    readRequestListRow(row, baseUrl),
   );
 }

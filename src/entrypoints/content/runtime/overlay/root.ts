@@ -1,5 +1,5 @@
-import { positionOverlayRoot } from "@/entrypoints/content/position";
-import { renderOverlayLoading } from "@/entrypoints/content/overlay-renderer";
+import { positionOverlayRoot } from "@/entrypoints/content/runtime/overlay/position";
+import { renderOverlayLoading } from "@/entrypoints/content/runtime/overlay/renderer";
 
 export const ROOT_ID = "kot-extension-root";
 

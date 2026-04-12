@@ -1,3 +1,5 @@
+import { getOverlayAnchorBottom } from "@/entrypoints/content/kot-page";
+
 function applyFixedPosition(
   root: HTMLDivElement,
   top: string,
@@ -12,17 +14,13 @@ export function positionOverlayRoot(
   root: HTMLDivElement,
   doc: Document = document,
 ): void {
-  const pageTitle = doc.querySelector<HTMLHeadingElement>(
-    "h1.htBlock-pageTitleSticky",
-  );
+  const anchorBottom = getOverlayAnchorBottom(doc);
 
-  if (!pageTitle) {
+  if (anchorBottom === null) {
     applyFixedPosition(root, "16px");
 
     return;
   }
 
-  const rect = pageTitle.getBoundingClientRect();
-
-  applyFixedPosition(root, `${rect.bottom + 16}px`);
+  applyFixedPosition(root, `${anchorBottom + 16}px`);
 }
