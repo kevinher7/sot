@@ -1,54 +1,69 @@
 # SOT (SERVANT OF TIME)
 
-SOT (SERVANT OF TIME) is an unofficial Firefox-first WebExtension overlay for the KING OF TIME admin monthly working page.
+SOT (SERVANT OF TIME) is an unofficial Firefox-first WebExtension that adds a focused overlay to the KING OF TIME admin monthly working page.
 
-> Unofficial project. Not affiliated with, endorsed by, or sponsored by Human Technologies or KING OF TIME.
+> Unofficial project. SOT is not affiliated with, endorsed by, or sponsored by Human Technologies or KING OF TIME.
+
+## What it does
+
+SOT reads the currently open monthly timecard page and renders an in-page summary overlay to make the page easier to understand at a glance.
+
+Current v1 behavior:
+
+- shows an overlay summary on the monthly working page
+- calculates today and month-level metrics from the page data
+- accounts for request-related time corrections when available
+- stores extension settings locally in the browser
+- stays intentionally narrow in scope instead of running across the full KING OF TIME product
 
 ## Supported page scope
 
-The extension is intentionally narrow in scope.
-
-It only runs on:
+The extension only runs on:
 
 - `https://s2.ta.kingoftime.jp/admin/*`
 
-And it only activates its overlay when the current page is the KING OF TIME admin monthly individual working list page:
+## Permissions and privacy
 
-- `page_id=/working/monthly_individual_working_list`
+SOT keeps its access intentionally narrow.
 
-If the page does not match that scope, the content script does not mount the overlay.
+- **Host access:** `https://s2.ta.kingoftime.jp/admin/*`
+- **Extension permission:** `storage`
+- **Data handling:** settings and request-cache data are stored locally in `browser.storage.local`
+- **Third-party services:** none
 
-## Current behavior
+For full details, see [PRIVACY.md](./PRIVACY.md).
 
-- Reads the monthly timecard page and renders an in-page overlay summary
-- Reads extension settings from `browser.storage.local`
-- Falls back to domain defaults when stored settings are missing
-- Refreshes the overlay as page data changes and as time advances
-- Stays scoped to the supported KING OF TIME monthly page only
+## Installation
 
-## Install / development
+### Firefox / Zen Browser (temporary local install)
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Build the extension:
+   ```bash
+   npm run build
+   ```
+3. Open `about:debugging#/runtime/this-firefox`.
+4. Click **Load Temporary Add-on...**.
+5. Select `dist/manifest.json`.
+
+## Development
 
 ### Requirements
 
-- Node.js 20+ recommended
+- Node.js 20+
 - npm
 - Firefox or Zen Browser
 
-### Install dependencies
-
-```bash
-npm install
-```
-
-### Development build
-
-Watch and rebuild into `dist/` on file changes:
+### Start a watch build
 
 ```bash
 npm run dev
 ```
 
-### Typecheck
+### Type-check
 
 ```bash
 npm run typecheck
@@ -66,69 +81,27 @@ npm run lint
 npm run build
 ```
 
-## Load the extension in Firefox / Zen
+## Project status
 
-1. Install dependencies with `npm install`.
-2. Run `npm run typecheck`.
-3. Run `npm run build`.
-4. Open `about:debugging` in Firefox or Zen.
-5. Open **This Firefox**.
-6. Click **Load Temporary Add-on**.
-7. Select `dist/manifest.json`.
+SOT is currently a focused content-script extension with a deliberately small v1 scope.
 
-## Screenshots / GIF
+### Features in progress
 
-This repo does not include product screenshots yet.
+- Working on chromium support
+- Month breakdown panel
+- CSS augmented page (highlight current day, etc)
+- Remove recorder invalid buttons based on current status
 
-Recommended media to add before a public release:
+### Maybe
 
-- `docs/media/monthly-page-overlay.png`
-- `docs/media/monthly-page-overlay.gif`
+Potentially but not sure
 
-When those files are added, embed them here, for example:
+- Easier 申請 panel from a popup
 
-```md
-![Monthly page overlay](docs/media/monthly-page-overlay.png)
-```
+## Support
 
-## Privacy
-
-See [PRIVACY.md](./PRIVACY.md).
-
-## Support / contact
-
-For bug reports, feature requests, or support, please use:
-
-- [GitHub Issues](../../issues)
+For bug reports, feature requests, or questions, please open an issue in this repository.
 
 ## License
 
-This project is licensed under the [MIT License](./LICENSE).
-
-## Project structure
-
-```text
-public/
-  manifest.json
-  icons/
-
-src/
-  entrypoints/
-    content/
-  domain/
-    kot/
-  platform/
-    webext/
-```
-
-- `entrypoints/` contains shipped or future extension surfaces.
-- `domain/kot/` contains KOT-specific types and pure page/settings logic.
-- `platform/webext/` contains browser API and storage adapters.
-
-## Notes
-
-- The extension uses Manifest V3.
-- Tailwind CSS is integrated through the official Vite plugin.
-- The shipped extension currently contains only the content-script surface.
-- Settings come from `browser.storage.local`; there is no built-in options UI yet.
-- The source tree is organized by extension surface and layer to keep future popup/background additions straightforward.
+Released under the [MIT License](./LICENSE).
