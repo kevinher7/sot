@@ -1,7 +1,7 @@
 import type {
   OverlayCalculationResult,
   OverlayCalculationSettings,
-} from "@/domain/kot/overlay-calculations";
+} from "@/domain/kot/projection/overlay-metrics";
 import type {
   OverlayBadge,
   OverlayDurationMetric,

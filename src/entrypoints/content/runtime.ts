@@ -1,4 +1,4 @@
-import { calculateOverlayMetrics } from "@/domain/kot/overlay-calculations";
+import { calculateOverlayMetrics } from "@/domain/kot/projection/overlay-metrics";
 import { getNow, getDelayUntilNextMinute } from "@/platform/time/clock";
 import { getSettings } from "@/platform/webext/storage";
 import { createOverlayViewModel } from "@/entrypoints/content/model";
