@@ -89,9 +89,18 @@ Right now, the extension can be used by loading a locally built version into Fir
 
 ### Requirements
 
-- Node.js 20+
-- npm
+- Node.js 24.14.0
+- npm 11.9.0
 - Firefox or Zen Browser
+
+From the repository root:
+
+```bash
+npm ci
+npm run build
+```
+
+The built extension files are written to `dist/`.
 
 ### Start a watch build
 
