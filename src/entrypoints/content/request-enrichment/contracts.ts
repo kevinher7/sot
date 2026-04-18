@@ -1,10 +1,3 @@
-export const REQUEST_CONTEXT_EMPLOYEE_ID_SELECTORS = [
-  'input[name="employee_id"]',
-  'input[name*="employee_id"]',
-  'select[name="employee_id"]',
-  'select[name*="employee_id"]',
-] as const;
-
 export const REQUEST_LIST_DATE_INPUT_CANDIDATES = [
   'input[name="working_date"]',
   'input[name="target_date"]',
@@ -29,6 +22,8 @@ export const REQUEST_LIST_STATUS_SELECTORS = [
   'td[data-ht-sort-index="EMPLOYEE_REQUEST_LIST_APPROVE_STATUS"]',
 ] as const;
 
+export const REQUEST_CONTEXT_REQUEST_LIST_LINK_SELECTOR =
+  'a[href*="page_id=/employee/request_list"]';
 export const REQUEST_LIST_PAGE_ID = "/employee/request_list";
 export const REQUEST_LIST_REMOVED_QUERY_KEYS = [
   "call_from",

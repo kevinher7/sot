@@ -1,8 +1,9 @@
 import type { KotMonthlyPageSnapshot } from "@/domain/kot/monthly-page-types";
 import type { KotRequestSyncPayload } from "@/domain/kot/request-data";
 import {
-  REQUEST_CONTEXT_EMPLOYEE_ID_SELECTORS,
   REQUEST_CONTEXT_EXCLUDED_PRESERVED_QUERY_KEYS,
+  REQUEST_CONTEXT_REQUEST_LIST_LINK_SELECTOR,
+  REQUEST_LIST_PAGE_ID,
 } from "@/entrypoints/content/request-enrichment/contracts";
 
 export type KotRequestContext = {
@@ -14,7 +15,11 @@ function createPreservedQueryParams(url: URL): Record<string, string> {
   const params: Record<string, string> = {};
 
   url.searchParams.forEach((value, key) => {
-    if (REQUEST_CONTEXT_EXCLUDED_PRESERVED_QUERY_KEYS.some((excludedKey) => excludedKey === key)) {
+    if (
+      REQUEST_CONTEXT_EXCLUDED_PRESERVED_QUERY_KEYS.some(
+        (excludedKey) => excludedKey === key,
+      )
+    ) {
       return;
     }
 
@@ -24,42 +29,39 @@ function createPreservedQueryParams(url: URL): Record<string, string> {
   return params;
 }
 
-function parseEmployeeIdFromDocument(doc: Document, origin: string): string | null {
-  for (const selector of REQUEST_CONTEXT_EMPLOYEE_ID_SELECTORS) {
-    const field = doc.querySelector<HTMLInputElement | HTMLSelectElement>(
-      selector,
-    );
-    const value = field?.value?.trim() ?? "";
-
-    if (value !== "") {
-      return value;
-    }
-  }
-
-  for (const link of doc.querySelectorAll<HTMLAnchorElement>("a[href]")) {
-    try {
-      const url = new URL(link.href, origin);
-      const employeeId = url.searchParams.get("employee_id")?.trim() ?? "";
-
-      if (employeeId !== "") {
-        return employeeId;
-      }
-    } catch {
-      continue;
-    }
-  }
-
-  return null;
+function createPreservedQueryParamSignature(
+  params: Record<string, string>,
+): string {
+  return Object.entries(params)
+    .sort(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey))
+    .map(([key, value]) => `${key}=${value}`)
+    .join("&");
 }
 
-function parseEmployeeId(url: URL, doc: Document): string | null {
-  const fromUrl = url.searchParams.get("employee_id")?.trim() ?? "";
+function readRequestListUrl(doc: Document, currentUrl: URL): URL | null {
+  const link = doc.querySelector<HTMLAnchorElement>(
+    REQUEST_CONTEXT_REQUEST_LIST_LINK_SELECTOR,
+  );
 
-  if (fromUrl !== "") {
-    return fromUrl;
+  if (link === null) {
+    return null;
   }
 
-  return parseEmployeeIdFromDocument(doc, url.origin);
+  try {
+    const requestListUrl = new URL(link.href, currentUrl);
+
+    if (
+      requestListUrl.origin !== currentUrl.origin ||
+      requestListUrl.pathname !== currentUrl.pathname ||
+      requestListUrl.searchParams.get("page_id") !== REQUEST_LIST_PAGE_ID
+    ) {
+      return null;
+    }
+
+    return requestListUrl;
+  } catch {
+    return null;
+  }
 }
 
 export function createKotRequestContext(
@@ -67,24 +69,34 @@ export function createKotRequestContext(
   url: URL,
   doc: Document = document,
 ): KotRequestContext | null {
-  const employeeId = parseEmployeeId(url, doc);
+  const requestListUrl = readRequestListUrl(doc, url);
 
-  if (employeeId === null) {
+  if (requestListUrl === null) {
     return null;
   }
 
+  const employeeId =
+    requestListUrl.searchParams.get("employee_id")?.trim() ?? "";
+
+  if (employeeId === "") {
+    return null;
+  }
+
+  const preserveQueryParams = createPreservedQueryParams(requestListUrl);
   const payload: KotRequestSyncPayload = {
     adminBaseUrl: `${url.origin}${url.pathname}`,
     employeeId,
     month: pageSnapshot.month,
-    preserveQueryParams: createPreservedQueryParams(url),
+    preserveQueryParams,
     year: pageSnapshot.year,
   };
 
   return {
     key: `${employeeId}:${pageSnapshot.year}-${pageSnapshot.month
       .toString()
-      .padStart(2, "0")}`,
+      .padStart(2, "0")}:${createPreservedQueryParamSignature(
+      preserveQueryParams,
+    )}`,
     payload,
   };
 }
