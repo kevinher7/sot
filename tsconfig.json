@@ -13,8 +13,7 @@
     "allowJs": false,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "isolatedModules": true,
-    "types": ["firefox-webext-browser"]
+    "isolatedModules": true
   },
   "include": ["src"]
 }

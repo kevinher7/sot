@@ -4,7 +4,7 @@
 
 <h1 align="center">SOT</h1>
 <p align="center"><strong>SERVANT OF TIME</strong></p>
-<p align="center">An unofficial Firefox-first WebExtension that adds a focused overlay to the KING OF TIME admin monthly working page.</p>
+<p align="center">An unofficial WebExtension for Firefox and Chromium browsers that adds a focused overlay to the KING OF TIME admin monthly working page.</p>
 
 <p align="center">Made by <a href="https://github.com/kevinher7">@kevinher7</a> · Logo made by pimchot</p>
 
@@ -52,7 +52,7 @@ SOT keeps its access intentionally narrow.
 - **Host access:** `https://s2.ta.kingoftime.jp/admin/*`
 - **Extension permission:** `storage`
 - **Firefox AMO data disclosure:** `websiteContent`, `personallyIdentifyingInfo`
-- **Data handling:** settings and parsed request-cache data are stored locally in `browser.storage.local`
+- **Data handling:** settings and parsed request-cache data are stored locally in extension storage (`browser.storage.local` / `chrome.storage.local`)
 - **Network scope:** only the signed-in KING OF TIME pages needed for the monthly page and related request-list lookup
 - **Third-party services:** none
 
@@ -62,9 +62,9 @@ For full details, see [PRIVACY.md](./PRIVACY.md).
 
 ### For end users
 
-SOT is not published to the Firefox Add-ons store yet.
+SOT is not published to browser stores yet.
 
-Right now, the extension can be used by loading a locally built version into Firefox or Zen Browser.
+Right now, the extension can be used by loading a locally built version into Firefox, Zen Browser, or Chromium-based browsers.
 
 ### Firefox / Zen Browser (temporary local install)
 
@@ -72,13 +72,28 @@ Right now, the extension can be used by loading a locally built version into Fir
    ```bash
    npm install
    ```
-2. Build the extension:
+2. Build the Firefox package:
    ```bash
-   npm run build
+   npm run build:firefox
    ```
 3. Open `about:debugging#/runtime/this-firefox`.
 4. Click **Load Temporary Add-on...**.
-5. Select `dist/manifest.json`.
+5. Select `dist-firefox/manifest.json`.
+
+### Chrome / Chromium (unpacked local install)
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Build the Chromium package:
+   ```bash
+   npm run build:chromium
+   ```
+3. Open `chrome://extensions`.
+4. Enable **Developer mode**.
+5. Click **Load unpacked**.
+6. Select the `dist-chromium` directory.
 
 ### Support
 
@@ -100,12 +115,18 @@ npm ci
 npm run build
 ```
 
-The built extension files are written to `dist/`.
+The built extension files are written to `dist-firefox/` and `dist-chromium/`.
 
 ### Start a watch build
 
 ```bash
-npm run dev
+npm run dev:firefox
+```
+
+For Chromium:
+
+```bash
+npm run dev:chromium
 ```
 
 ### Type-check
@@ -122,8 +143,17 @@ npm run lint
 
 ### Production build
 
+Build both browser targets:
+
 ```bash
 npm run build
+```
+
+Build a single target:
+
+```bash
+npm run build:firefox
+npm run build:chromium
 ```
 
 ## Project status
@@ -132,7 +162,6 @@ SOT is currently a focused content-script extension with a deliberately small v1
 
 ### Features in progress
 
-- Working on chromium support
 - Month breakdown panel
 - CSS augmented page (highlight current day, etc)
 - Remove recorder invalid buttons based on current status

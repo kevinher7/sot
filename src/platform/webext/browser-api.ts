@@ -1,12 +1,20 @@
+import type Browser from "webextension-polyfill";
+
 type StoragePayload = Record<string, unknown>;
 
-type BrowserApi = typeof browser;
+type WebExtensionApi = typeof Browser;
 
-export function getBrowserApi(): BrowserApi {
-  const runtime = globalThis as typeof globalThis & {
-    browser?: BrowserApi;
-    chrome?: BrowserApi;
-  };
+type WebExtensionApiRuntime = typeof globalThis & {
+  browser?: WebExtensionApi;
+  chrome?: WebExtensionApi;
+};
+
+function getRuntime(): WebExtensionApiRuntime {
+  return globalThis as WebExtensionApiRuntime;
+}
+
+export function getBrowserApi(): WebExtensionApi {
+  const runtime = getRuntime();
 
   if (runtime.browser) {
     return runtime.browser;
@@ -23,9 +31,8 @@ export async function getStorageValues<T extends StoragePayload>(
   defaults: T,
 ): Promise<T> {
   const api = getBrowserApi();
-  const result = await api.storage.local.get(defaults);
 
-  return result as T;
+  return (await api.storage.local.get(defaults)) as T;
 }
 
 export async function setStorageValues(values: StoragePayload): Promise<void> {
@@ -39,5 +46,5 @@ export async function sendRuntimeMessage<TResponse>(
 ): Promise<TResponse> {
   const api = getBrowserApi();
 
-  return (await api.runtime.sendMessage(message)) as TResponse;
+  return api.runtime.sendMessage(message);
 }

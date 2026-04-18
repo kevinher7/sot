@@ -7,15 +7,6 @@
     "48": "icons/sot-48.png",
     "96": "icons/sot-96.png"
   },
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "sot@kevinher7.github",
-      "strict_min_version": "140.0",
-      "data_collection_permissions": {
-        "required": ["websiteContent", "personallyIdentifyingInfo"]
-      }
-    }
-  },
   "host_permissions": ["https://s2.ta.kingoftime.jp/admin/*"],
   "content_scripts": [
     {
