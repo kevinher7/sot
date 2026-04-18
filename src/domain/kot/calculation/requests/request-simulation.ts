@@ -137,6 +137,42 @@ function applyDeleteOperation(
   return removeMinute(row.breakEndMinutes, operation.minutes);
 }
 
+function mergeBreakMinutes(input: {
+  counterpartLength: number;
+  current: readonly number[];
+  requested: readonly number[];
+}): number[] {
+  const next = [...input.current];
+  const missingTrailingSlots = Math.max(
+    input.counterpartLength - next.length,
+    0,
+  );
+  const fillCount = Math.min(missingTrailingSlots, input.requested.length);
+
+  if (fillCount > 0) {
+    next.push(...input.requested.slice(0, fillCount));
+  }
+
+  const remainingRequested = input.requested.slice(fillCount);
+
+  if (remainingRequested.length === 0) {
+    return next;
+  }
+
+  const replaceStartIndex = Math.max(
+    next.length - remainingRequested.length,
+    0,
+  );
+
+  next.splice(
+    replaceStartIndex,
+    remainingRequested.length,
+    ...remainingRequested,
+  );
+
+  return next;
+}
+
 function applyPatchOperation(
   row: SimulatedDayRow,
   operation: Extract<KotRequestOperation, { type: "patch" }>,
@@ -150,11 +186,19 @@ function applyPatchOperation(
   }
 
   if (operation.timePatch.breakStartMinutes !== undefined) {
-    row.breakStartMinutes = [...operation.timePatch.breakStartMinutes];
+    row.breakStartMinutes = mergeBreakMinutes({
+      counterpartLength: row.breakEndMinutes.length,
+      current: row.breakStartMinutes,
+      requested: operation.timePatch.breakStartMinutes,
+    });
   }
 
   if (operation.timePatch.breakEndMinutes !== undefined) {
-    row.breakEndMinutes = [...operation.timePatch.breakEndMinutes];
+    row.breakEndMinutes = mergeBreakMinutes({
+      counterpartLength: row.breakStartMinutes.length,
+      current: row.breakEndMinutes,
+      requested: operation.timePatch.breakEndMinutes,
+    });
   }
 }
 
