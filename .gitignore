@@ -5,3 +5,4 @@ dist-chromium/
 .DS_Store
 
 .agents/tasks/
+releases/
