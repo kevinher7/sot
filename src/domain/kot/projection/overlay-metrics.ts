@@ -229,6 +229,38 @@ function calculateAggregateTone(input: {
   return "neutral";
 }
 
+function normalizeTodayStatus(
+  todayStatus: TodayStatus,
+  settings: OverlayCalculationSettings,
+  pageSnapshot: KotMonthlyPageSnapshot,
+): TodayStatus {
+  if (
+    todayStatus === "rest-day" &&
+    settings.workMode === "intern" &&
+    pageSnapshot.todayRow?.dayKind === "offday"
+  ) {
+    return "not-started";
+  }
+
+  return todayStatus;
+}
+
+function normalizeTodayBadgeStatus(
+  todayBadgeStatus: TodayBadgeStatus,
+  settings: OverlayCalculationSettings,
+  pageSnapshot: KotMonthlyPageSnapshot,
+): TodayBadgeStatus {
+  if (
+    todayBadgeStatus === "rest-day" &&
+    settings.workMode === "intern" &&
+    pageSnapshot.todayRow?.dayKind === "offday"
+  ) {
+    return "not-started";
+  }
+
+  return todayBadgeStatus;
+}
+
 function createModeProjectionInput(
   input: OverlayCalculationInput,
   resolvedMonth: KotResolvedMonth,
@@ -255,6 +287,20 @@ function createModeProjectionInput(
     resolvedMonth.effectiveSummary.bankMinutesSoFar,
     requiredWorkedMinutesSoFar,
   );
+  const todayStatus = normalizeTodayStatus(
+    calculateTodayStatus(input.pageSnapshot),
+    input.settings,
+    input.pageSnapshot,
+  );
+  const todayBadgeStatus = normalizeTodayBadgeStatus(
+    calculateTodayBadgeStatus({
+      now: input.now,
+      pageSnapshot: input.pageSnapshot,
+      requestCacheEntry: input.requestCacheEntry,
+    }),
+    input.settings,
+    input.pageSnapshot,
+  );
 
   return {
     monthBankMinutes,
@@ -278,11 +324,7 @@ function createModeProjectionInput(
     }),
     requiredWorkdayMinutes: input.settings.standardWorkdayHours * 60,
     resolvedMonth,
-    todayBadgeStatus: calculateTodayBadgeStatus({
-      now: input.now,
-      pageSnapshot: input.pageSnapshot,
-      requestCacheEntry: input.requestCacheEntry,
-    }),
+    todayBadgeStatus,
     todayBreakAllowanceMinutes,
     todayBreakDiffMinutes: calculateTodayBreakDiffMinutes(
       todayBreakMinutes,
@@ -296,7 +338,7 @@ function createModeProjectionInput(
     todayBreakMinutes,
     todayErrorCount:
       resolvedMonth.todayDay?.effective.calculatedDay.issues.errorCount ?? 0,
-    todayStatus: calculateTodayStatus(input.pageSnapshot),
+    todayStatus,
     todayWorkedMinutes,
     todayWorkDiffMinutes: calculateTodayWorkDiffMinutes(
       todayWorkedMinutes,
