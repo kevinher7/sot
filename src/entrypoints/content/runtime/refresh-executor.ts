@@ -17,6 +17,7 @@ import {
   shouldSyncRequestData,
 } from "@/entrypoints/content/runtime/state";
 import { getNow } from "@/platform/time/clock";
+import type { WorkMode } from "@/domain/kot/types";
 import { getSettings, setWorkMode } from "@/platform/webext/storage";
 
 export function createRefreshExecutor(
@@ -95,10 +96,12 @@ export function createRefreshExecutor(
     });
     const model = createOverlayViewModel(now, result, settings);
 
-    renderOverlayResult(root, doc, model, () => {
-      const nextMode = settings.workMode === "full" ? "intern" : "full";
+    renderOverlayResult(root, doc, model, (workMode: WorkMode) => {
+      if (workMode === settings.workMode) {
+        return;
+      }
 
-      void setWorkMode(nextMode).then(() => {
+      void setWorkMode(workMode).then(() => {
         queueModeRefresh();
       });
     });

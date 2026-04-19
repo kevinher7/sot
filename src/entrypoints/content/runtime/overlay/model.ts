@@ -6,6 +6,7 @@ import type {
   OverlayBadge,
   OverlayDurationMetric,
   OverlayHeaderBadge,
+  OverlayModeSelector,
   OverlayProgressMetric,
   OverlaySectionModel,
   OverlayViewModel,
@@ -185,6 +186,28 @@ function createHeaderBadge(
   };
 }
 
+function createModeSelector(
+  result: OverlayCalculationResult,
+): OverlayModeSelector {
+  return {
+    ariaLabel: "Work mode",
+    options: [
+      {
+        ariaLabel: "Select full mode",
+        isActive: result.workMode === "full",
+        label: "FULL",
+        mode: "full",
+      },
+      {
+        ariaLabel: "Select intern mode",
+        isActive: result.workMode === "intern",
+        label: "INTERN",
+        mode: "intern",
+      },
+    ],
+  };
+}
+
 function createTodaySection(
   now: Date,
   result: OverlayCalculationResult,
@@ -196,15 +219,8 @@ function createTodaySection(
       createDurationMetricFromProjection(result.todayPrimaryMetric),
       createDurationMetricFromProjection(result.todaySecondaryMetric),
     ],
+    modeSelector: createModeSelector(result),
     progressMetric: null,
-    toggleAction: {
-      ariaLabel:
-        result.workMode === "full"
-          ? "Switch to intern mode"
-          : "Switch to full mode",
-      currentMode: result.workMode,
-      text: result.workMode === "full" ? "FULL" : "INTERN",
-    },
   };
 }
 

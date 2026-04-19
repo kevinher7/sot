@@ -1,8 +1,10 @@
 import { sotSvg } from "@/assets/branding/sot-svg";
 import type { OverlayMetricTone } from "@/domain/kot/projection/overlay-metrics";
+import type { WorkMode } from "@/domain/kot/types";
 import type {
   OverlayDurationMetric,
   OverlayHeaderBadge,
+  OverlayModeSelector,
   OverlayProgressMetric,
   OverlaySectionModel,
   OverlayViewModel,
@@ -92,25 +94,46 @@ function createHeaderIcon(doc: Document): HTMLSpanElement {
   return wrapper;
 }
 
-function createSectionToggle(
+function createModeSelector(
   doc: Document,
-  model: NonNullable<OverlaySectionModel["toggleAction"]>,
-  onToggleMode: () => void,
-): HTMLButtonElement {
-  const button = createElement(doc, "button", "sot-mode-toggle", model.text);
+  model: OverlayModeSelector,
+  onSelectWorkMode: (mode: WorkMode) => void,
+): HTMLDivElement {
+  const group = createElement(doc, "div", "sot-mode-selector");
 
-  button.type = "button";
-  button.ariaLabel = model.ariaLabel;
-  button.dataset.mode = model.currentMode;
-  button.addEventListener("click", onToggleMode);
+  group.setAttribute("role", "group");
+  group.ariaLabel = model.ariaLabel;
 
-  return button;
+  model.options.forEach((option) => {
+    const button = createElement(
+      doc,
+      "button",
+      "sot-mode-selector-button",
+      option.label,
+    );
+
+    button.type = "button";
+    button.ariaLabel = option.ariaLabel;
+    button.ariaPressed = option.isActive ? "true" : "false";
+    button.dataset.active = option.isActive ? "true" : "false";
+    button.dataset.mode = option.mode;
+    button.addEventListener("click", () => {
+      if (option.isActive) {
+        return;
+      }
+
+      onSelectWorkMode(option.mode);
+    });
+    group.append(button);
+  });
+
+  return group;
 }
 
 function createSectionLabel(
   doc: Document,
   model: OverlaySectionModel,
-  onToggleMode?: () => void,
+  onSelectWorkMode?: (mode: WorkMode) => void,
 ): HTMLDivElement {
   const wrapper = createElement(doc, "div", "sot-section-label-row");
   const left = createElement(doc, "div", "sot-section-label-wrap");
@@ -140,8 +163,10 @@ function createSectionLabel(
 
   wrapper.append(left);
 
-  if (model.toggleAction && onToggleMode) {
-    wrapper.append(createSectionToggle(doc, model.toggleAction, onToggleMode));
+  if (model.modeSelector && onSelectWorkMode) {
+    wrapper.append(
+      createModeSelector(doc, model.modeSelector, onSelectWorkMode),
+    );
   }
 
   return wrapper;
@@ -257,7 +282,7 @@ function createHeader(doc: Document, model: OverlayViewModel): HTMLElement {
 function createTodaySection(
   doc: Document,
   model: OverlayViewModel,
-  onToggleMode: () => void,
+  onSelectWorkMode: (mode: WorkMode) => void,
 ): HTMLElement {
   const section = createElement(doc, "section", "sot-section");
   const metrics = createElement(doc, "div", "sot-metric-stack");
@@ -267,7 +292,7 @@ function createTodaySection(
   });
 
   section.append(
-    createSectionLabel(doc, model.todaySection, onToggleMode),
+    createSectionLabel(doc, model.todaySection, onSelectWorkMode),
     metrics,
   );
 
@@ -333,7 +358,7 @@ function createCtaSection(doc: Document, onToggle: () => void): HTMLDivElement {
 function createOverlayCard(
   doc: Document,
   model: OverlayViewModel,
-  onToggleMode: () => void,
+  onSelectWorkMode: (mode: WorkMode) => void,
 ): HTMLDivElement {
   const shell = createElement(doc, "div", "sot-shell");
   const divider = createElement(doc, "div", "sot-divider");
@@ -346,7 +371,7 @@ function createOverlayCard(
   };
 
   content.append(
-    createTodaySection(doc, model, onToggleMode),
+    createTodaySection(doc, model, onSelectWorkMode),
     createMonthSection(doc, model),
     createCtaSection(doc, toggleWipPanel),
     wipPanel,
@@ -423,11 +448,11 @@ export function renderOverlayResult(
   root: HTMLDivElement,
   doc: Document,
   model: OverlayViewModel,
-  onToggleMode: () => void,
+  onSelectWorkMode: (mode: WorkMode) => void,
 ): void {
   renderOverlayChildren(
     root,
-    [createOverlayCard(doc, model, onToggleMode)],
+    [createOverlayCard(doc, model, onSelectWorkMode)],
     "ready",
   );
 }

@@ -37,18 +37,24 @@ export type OverlayHeaderBadge = {
   tone: TodayBadgeStatus;
 };
 
-export type OverlayToggleAction = {
+export type OverlayModeSelectorOption = {
   ariaLabel: string;
-  currentMode: WorkMode;
-  text: string;
+  isActive: boolean;
+  label: string;
+  mode: WorkMode;
+};
+
+export type OverlayModeSelector = {
+  ariaLabel: string;
+  options: readonly OverlayModeSelectorOption[];
 };
 
 export type OverlaySectionModel = {
   badges: readonly OverlayBadge[];
   label: string;
   metrics: readonly OverlayDurationMetric[];
+  modeSelector?: OverlayModeSelector;
   progressMetric: OverlayProgressMetric | null;
-  toggleAction?: OverlayToggleAction;
 };
 
 export type OverlayViewModel = {
