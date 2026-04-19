@@ -181,7 +181,15 @@ export function calculateTodayBreakAllowanceMinutes(
   settings: OverlayCalculationSettings,
 ): number {
   if (settings.workMode === "intern") {
-    return todayWorkedMinutes > 6 * 60 ? 60 : 45;
+    if (todayWorkedMinutes < 6 * 60) {
+      return 0;
+    }
+
+    if (todayWorkedMinutes < 8 * 60) {
+      return 45;
+    }
+
+    return 60;
   }
 
   return settings.standardBreakMinutes;
