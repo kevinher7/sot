@@ -1,6 +1,4 @@
 import { calculateOverlayMetrics } from "@/domain/kot/projection/overlay-metrics";
-import { getNow } from "@/platform/time/clock";
-import { getSettings } from "@/platform/webext/storage";
 import { readMonthlyPageSnapshot } from "@/entrypoints/content/kot-page";
 import {
   createKotRequestContext,
@@ -14,10 +12,12 @@ import {
 import {
   clearRequestCache,
   createSettingsSignature,
-  shouldSyncRequestData,
   type RefreshCache,
   type RefreshReason,
+  shouldSyncRequestData,
 } from "@/entrypoints/content/runtime/state";
+import { getNow } from "@/platform/time/clock";
+import { getSettings, setWorkMode } from "@/platform/webext/storage";
 
 export function createRefreshExecutor(
   win: Window,
@@ -25,6 +25,7 @@ export function createRefreshExecutor(
   root: HTMLDivElement,
   cache: RefreshCache,
   scheduleNextMinuteRefresh: () => void,
+  queueModeRefresh: () => void,
 ): (reason: RefreshReason) => Promise<void> {
   return async (reason: RefreshReason): Promise<void> => {
     const now = getNow();
@@ -46,7 +47,11 @@ export function createRefreshExecutor(
     }
 
     const currentUrl = new URL(win.location.href);
-    const requestContext = createKotRequestContext(pageSnapshot, currentUrl, doc);
+    const requestContext = createKotRequestContext(
+      pageSnapshot,
+      currentUrl,
+      doc,
+    );
     const settingsSignature = createSettingsSignature(settings);
 
     if (requestContext === null) {
@@ -62,7 +67,9 @@ export function createRefreshExecutor(
       )
     ) {
       cache.requestSnapshot =
-        requestContext === null ? null : await getKotRequestData(requestContext);
+        requestContext === null
+          ? null
+          : await getKotRequestData(requestContext);
       cache.requestContextKey = requestContext?.key ?? null;
       cache.requestSignature = cache.requestSnapshot?.signature ?? null;
     }
@@ -88,7 +95,13 @@ export function createRefreshExecutor(
     });
     const model = createOverlayViewModel(now, result, settings);
 
-    renderOverlayResult(root, doc, model);
+    renderOverlayResult(root, doc, model, () => {
+      const nextMode = settings.workMode === "full" ? "intern" : "full";
+
+      void setWorkMode(nextMode).then(() => {
+        queueModeRefresh();
+      });
+    });
     cache.pageSignature = pageSnapshot.signature;
     cache.requestContextKey = requestContext?.key ?? null;
     cache.requestSignature = cache.requestSnapshot?.signature ?? null;

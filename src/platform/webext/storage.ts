@@ -1,6 +1,6 @@
 import { normalizeSettings } from "@/domain/kot/settings";
 import type { KotRequestCacheEntry } from "@/domain/kot/request-data";
-import type { ExtensionSettings } from "@/domain/kot/types";
+import type { ExtensionSettings, WorkMode } from "@/domain/kot/types";
 import {
   getStorageValues,
   setStorageValues,
@@ -33,6 +33,20 @@ export async function setSettings(settings: ExtensionSettings): Promise<void> {
   await setStorageValues({
     [SETTINGS_KEY]: normalizeSettings(settings),
   });
+}
+
+export async function setWorkMode(
+  workMode: WorkMode,
+): Promise<ExtensionSettings> {
+  const settings = await getSettings();
+  const nextSettings = normalizeSettings({
+    ...settings,
+    workMode,
+  });
+
+  await setSettings(nextSettings);
+
+  return nextSettings;
 }
 
 async function getRequestCacheStore(): Promise<RequestCacheStore> {

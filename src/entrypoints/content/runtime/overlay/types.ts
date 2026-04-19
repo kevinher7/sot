@@ -2,12 +2,14 @@ import type {
   OverlayMetricTone,
   TodayBadgeStatus,
 } from "@/domain/kot/projection/overlay-metrics";
+import type { WorkMode } from "@/domain/kot/types";
 
-export type OverlayDurationMetricAppearance = "default" | "rest-day";
+export type OverlayDurationMetricAppearance = "default" | "rest-day" | "subtle";
 
 export type OverlayDurationMetric = {
   appearance: OverlayDurationMetricAppearance;
   cardTone: OverlayMetricTone;
+  label: string;
   tone: OverlayMetricTone;
   unit: "" | "h" | "m";
   value: string;
@@ -35,14 +37,22 @@ export type OverlayHeaderBadge = {
   tone: TodayBadgeStatus;
 };
 
+export type OverlayToggleAction = {
+  ariaLabel: string;
+  currentMode: WorkMode;
+  text: string;
+};
+
+export type OverlaySectionModel = {
+  badges: readonly OverlayBadge[];
+  label: string;
+  metrics: readonly OverlayDurationMetric[];
+  progressMetric: OverlayProgressMetric | null;
+  toggleAction?: OverlayToggleAction;
+};
+
 export type OverlayViewModel = {
   headerBadge: OverlayHeaderBadge;
-  monthErrorBadges: readonly OverlayBadge[];
-  monthlyBank: OverlayDurationMetric;
-  monthLabel: string;
-  monthlyProgress: OverlayProgressMetric;
-  todayErrorBadges: readonly OverlayBadge[];
-  todayBreakLeft: OverlayDurationMetric;
-  todayLabel: string;
-  todayWorkLeft: OverlayDurationMetric;
+  monthSection: OverlaySectionModel;
+  todaySection: OverlaySectionModel;
 };

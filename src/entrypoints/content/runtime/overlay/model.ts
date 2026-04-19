@@ -7,6 +7,7 @@ import type {
   OverlayDurationMetric,
   OverlayHeaderBadge,
   OverlayProgressMetric,
+  OverlaySectionModel,
   OverlayViewModel,
 } from "@/entrypoints/content/runtime/overlay/types";
 
@@ -23,6 +24,7 @@ const TODAY_DAY_FORMATTER = new Intl.DateTimeFormat("ja-JP", {
 });
 
 function createDurationMetric(
+  label: string,
   appearance: OverlayDurationMetric["appearance"],
   value: string,
   unit: OverlayDurationMetric["unit"],
@@ -32,6 +34,7 @@ function createDurationMetric(
   return {
     appearance,
     cardTone,
+    label,
     tone,
     unit,
     value,
@@ -85,112 +88,54 @@ function formatSignedHoursAndMinutes(totalMinutes: number): string {
   return `${prefix} ${formatHoursAndMinutes(totalMinutes)}`;
 }
 
-function createTodayWorkMetric(
-  result: OverlayCalculationResult,
-  settings: OverlayCalculationSettings,
+function createDurationMetricFromProjection(
+  metric: OverlayCalculationResult["todayPrimaryMetric"],
 ): OverlayDurationMetric {
-  if (result.todayStatus === "rest-day") {
-    return createDurationMetric("rest-day", "REST DAY", "", "neutral");
+  if (metric.appearance === "rest-day") {
+    return createDurationMetric(
+      metric.label,
+      "rest-day",
+      "REST DAY",
+      "",
+      "neutral",
+    );
   }
 
-  const remainingMinutes =
-    result.todayStatus === "not-started"
-      ? -(settings.standardWorkdayHours * 60)
-      : result.todayWorkDiffMinutes;
-
-  const tone =
-    remainingMinutes < 0
-      ? "negative"
-      : remainingMinutes > 0
-        ? "positive"
-        : "neutral";
-
   return createDurationMetric(
-    "default",
-    formatSignedHoursAndMinutes(remainingMinutes),
-    "h",
-    tone,
+    metric.label,
+    metric.appearance,
+    metric.format === "signed-duration"
+      ? formatSignedHoursAndMinutes(metric.minutes)
+      : formatHoursAndMinutes(metric.minutes),
+    metric.unit,
+    metric.tone,
+    metric.cardTone,
   );
 }
 
-function createTodayBreakMetric(
-  result: OverlayCalculationResult,
-  settings: OverlayCalculationSettings,
-): OverlayDurationMetric {
-  if (result.todayStatus === "rest-day") {
-    return createDurationMetric("rest-day", "REST DAY", "", "neutral");
-  }
-
-  const remainingMinutes =
-    result.todayStatus === "not-started"
-      ? -settings.standardBreakMinutes
-      : result.todayBreakDiffMinutes;
-
-  const tone =
-    remainingMinutes < 0
-      ? "negative"
-      : remainingMinutes > 0
-        ? "positive"
-        : "neutral";
-
-  return createDurationMetric(
-    "default",
-    formatSignedHoursAndMinutes(remainingMinutes),
-    "h",
-    tone,
-    result.todayErrorCount > 0 ? "error" : undefined,
-  );
-}
-
-function createMonthlyBankMetric(
-  result: OverlayCalculationResult,
-): OverlayDurationMetric {
-  const valueTone =
-    result.monthBankMinutes > 0
-      ? "positive"
-      : result.monthBankMinutes < 0
-        ? "negative"
-        : "neutral";
-
-  return createDurationMetric(
-    "default",
-    formatSignedHoursAndMinutes(result.monthBankMinutes),
-    "h",
-    valueTone,
-    result.bankTone,
-  );
-}
-
-function createMonthErrorBadges(
-  errorDayCount: number,
-  warningDayCount: number,
+function createBadges(
+  errorCount: number,
+  warningCount: number,
 ): OverlayBadge[] {
   const badges: OverlayBadge[] = [];
 
-  if (errorDayCount > 0) {
+  if (errorCount > 0) {
     badges.push({
-      countText: errorDayCount.toString(),
+      countText: errorCount.toString(),
       iconText: "⚠",
       tone: "error",
     });
   }
 
-  if (warningDayCount > 0) {
+  if (warningCount > 0) {
     badges.push({
-      countText: warningDayCount.toString(),
+      countText: warningCount.toString(),
       iconText: "⚠",
       tone: "warning",
     });
   }
 
   return badges;
-}
-
-function createTodayErrorBadges(
-  errorCount: number,
-  warningCount: number,
-): OverlayBadge[] {
-  return createMonthErrorBadges(errorCount, warningCount);
 }
 
 function createHeaderBadge(
@@ -240,31 +185,59 @@ function createHeaderBadge(
   };
 }
 
+function createTodaySection(
+  now: Date,
+  result: OverlayCalculationResult,
+): OverlaySectionModel {
+  return {
+    badges: createBadges(result.todayErrorCount, result.todayWarningCount),
+    label: formatTodayLabel(now),
+    metrics: [
+      createDurationMetricFromProjection(result.todayPrimaryMetric),
+      createDurationMetricFromProjection(result.todaySecondaryMetric),
+    ],
+    progressMetric: null,
+    toggleAction: {
+      ariaLabel:
+        result.workMode === "full"
+          ? "Switch to intern mode"
+          : "Switch to full mode",
+      currentMode: result.workMode,
+      text: result.workMode === "full" ? "FULL" : "INTERN",
+    },
+  };
+}
+
+function createMonthSection(
+  now: Date,
+  result: OverlayCalculationResult,
+): OverlaySectionModel {
+  return {
+    badges: createBadges(result.monthErrorCount, result.monthWarningCount),
+    label: formatMonthLabel(now),
+    metrics: [createDurationMetricFromProjection(result.monthPrimaryMetric)],
+    progressMetric:
+      result.monthProgressMetric === null
+        ? null
+        : createProgressMetric(
+            result.monthProgressMetric.label,
+            result.monthProgressMetric.actualPercent,
+            result.monthProgressMetric.estimatedPercent,
+            result.monthProgressMetric.tone,
+          ),
+  };
+}
+
 export function createOverlayViewModel(
   now: Date,
   result: OverlayCalculationResult,
   settings: OverlayCalculationSettings,
 ): OverlayViewModel {
+  void settings;
+
   return {
     headerBadge: createHeaderBadge(result),
-    monthErrorBadges: createMonthErrorBadges(
-      result.errorDayCount,
-      result.warningDayCount,
-    ),
-    monthlyBank: createMonthlyBankMetric(result),
-    monthLabel: formatMonthLabel(now),
-    monthlyProgress: createProgressMetric(
-      "TOTAL",
-      result.monthActualProgressPercent,
-      result.monthEstimatedProgressPercent,
-      result.progressTone,
-    ),
-    todayErrorBadges: createTodayErrorBadges(
-      result.todayErrorCount,
-      result.todayWarningCount,
-    ),
-    todayBreakLeft: createTodayBreakMetric(result, settings),
-    todayLabel: formatTodayLabel(now),
-    todayWorkLeft: createTodayWorkMetric(result, settings),
+    monthSection: createMonthSection(now, result),
+    todaySection: createTodaySection(now, result),
   };
 }

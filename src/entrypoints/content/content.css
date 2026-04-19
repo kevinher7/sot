@@ -178,11 +178,21 @@
   border-top: 1px solid rgba(148, 163, 184, 0.2);
 }
 
+.sot-section-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  padding: 0 2px;
+}
+
 .sot-section-label-wrap {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
-  padding: 0 2px;
+  min-width: 0;
 }
 
 .sot-section-label {
@@ -239,6 +249,39 @@
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
   gap: 8px;
+}
+
+.sot-month-grid--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.sot-mode-toggle {
+  flex: 0 0 auto;
+  min-width: 58px;
+  padding: 3px 8px;
+  border: 1px solid rgba(22, 163, 74, 0.24);
+  border-radius: 999px;
+  background: rgba(240, 253, 244, 0.95);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #15803d;
+  cursor: pointer;
+}
+
+.sot-mode-toggle[data-mode="intern"] {
+  border-color: rgba(71, 85, 105, 0.22);
+  background: #f8fafc;
+  color: #475569;
+}
+
+.sot-mode-toggle:hover {
+  background: rgba(220, 252, 231, 0.95);
+}
+
+.sot-mode-toggle[data-mode="intern"]:hover {
+  background: #f1f5f9;
 }
 
 .sot-metric-card,
@@ -331,6 +374,11 @@
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.04em;
+}
+
+.sot-metric-value[data-appearance="subtle"],
+.sot-metric-value-text[data-appearance="subtle"] {
+  color: #64748b;
 }
 
 .sot-metric-unit {

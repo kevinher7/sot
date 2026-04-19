@@ -27,6 +27,7 @@ export function createSettingsSignature(
   return JSON.stringify({
     standardBreakMinutes: settings.standardBreakMinutes,
     standardWorkdayHours: settings.standardWorkdayHours,
+    workMode: settings.workMode,
   });
 }
 

@@ -17,6 +17,7 @@ export async function startMonthlyRequiredHoursRuntime(
 
   try {
     const root = ensureOverlayRoot(doc);
+    let queueModeRefresh = (): void => {};
 
     const scheduleNextMinuteRefresh = (): void => {
       if (nextMinuteTimerId !== null) {
@@ -36,8 +37,15 @@ export async function startMonthlyRequiredHoursRuntime(
       root,
       cache,
       scheduleNextMinuteRefresh,
+      () => {
+        queueModeRefresh();
+      },
     );
     const coordinator = createRefreshCoordinator(win, runRefresh);
+
+    queueModeRefresh = (): void => {
+      void coordinator.queueRefresh("dom");
+    };
 
     observeDocumentChanges(doc, () => {
       coordinator.scheduleRefresh("dom");
