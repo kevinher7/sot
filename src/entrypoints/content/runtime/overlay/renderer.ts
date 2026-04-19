@@ -1,10 +1,12 @@
 import { sotSvg } from "@/assets/branding/sot-svg";
 import type { OverlayMetricTone } from "@/domain/kot/projection/overlay-metrics";
+import type { WorkMode } from "@/domain/kot/types";
 import type {
-  OverlayBadge,
   OverlayDurationMetric,
   OverlayHeaderBadge,
+  OverlayModeSelector,
   OverlayProgressMetric,
+  OverlaySectionModel,
   OverlayViewModel,
 } from "@/entrypoints/content/runtime/overlay/types";
 
@@ -92,17 +94,54 @@ function createHeaderIcon(doc: Document): HTMLSpanElement {
   return wrapper;
 }
 
+function createModeSelector(
+  doc: Document,
+  model: OverlayModeSelector,
+  onSelectWorkMode: (mode: WorkMode) => void,
+): HTMLDivElement {
+  const group = createElement(doc, "div", "sot-mode-selector");
+
+  group.setAttribute("role", "group");
+  group.ariaLabel = model.ariaLabel;
+
+  model.options.forEach((option) => {
+    const button = createElement(
+      doc,
+      "button",
+      "sot-mode-selector-button",
+      option.label,
+    );
+
+    button.type = "button";
+    button.ariaLabel = option.ariaLabel;
+    button.ariaPressed = option.isActive ? "true" : "false";
+    button.dataset.active = option.isActive ? "true" : "false";
+    button.dataset.mode = option.mode;
+    button.addEventListener("click", () => {
+      if (option.isActive) {
+        return;
+      }
+
+      onSelectWorkMode(option.mode);
+    });
+    group.append(button);
+  });
+
+  return group;
+}
+
 function createSectionLabel(
   doc: Document,
-  text: string,
-  badges: readonly OverlayBadge[] = [],
+  model: OverlaySectionModel,
+  onSelectWorkMode?: (mode: WorkMode) => void,
 ): HTMLDivElement {
-  const wrapper = createElement(doc, "div", "sot-section-label-wrap");
-  const label = createElement(doc, "span", "sot-section-label", text);
+  const wrapper = createElement(doc, "div", "sot-section-label-row");
+  const left = createElement(doc, "div", "sot-section-label-wrap");
+  const label = createElement(doc, "span", "sot-section-label", model.label);
 
-  wrapper.append(label);
+  left.append(label);
 
-  badges.forEach((badge) => {
+  model.badges.forEach((badge) => {
     const badgeElement = createElement(doc, "span", "sot-section-badge");
     const iconElement = createElement(
       doc,
@@ -119,19 +158,26 @@ function createSectionLabel(
 
     badgeElement.dataset.tone = badge.tone;
     badgeElement.append(iconElement, countElement);
-    wrapper.append(badgeElement);
+    left.append(badgeElement);
   });
+
+  wrapper.append(left);
+
+  if (model.modeSelector && onSelectWorkMode) {
+    wrapper.append(
+      createModeSelector(doc, model.modeSelector, onSelectWorkMode),
+    );
+  }
 
   return wrapper;
 }
 
 function createDurationMetricCard(
   doc: Document,
-  labelText: string,
   metric: OverlayDurationMetric,
 ): HTMLDivElement {
   const card = createElement(doc, "div", "sot-metric-card");
-  const label = createElement(doc, "span", "sot-metric-label", labelText);
+  const label = createElement(doc, "span", "sot-metric-label", metric.label);
   const valueGroup = createElement(
     doc,
     "div",
@@ -148,6 +194,7 @@ function createDurationMetricCard(
   valueGroup.dataset.appearance = metric.appearance;
   value.dataset.appearance = metric.appearance;
 
+  card.append(label, valueGroup);
   valueGroup.append(value);
 
   if (metric.unit !== "") {
@@ -155,8 +202,6 @@ function createDurationMetricCard(
 
     valueGroup.append(unit);
   }
-
-  card.append(label, valueGroup);
 
   return card;
 }
@@ -237,17 +282,17 @@ function createHeader(doc: Document, model: OverlayViewModel): HTMLElement {
 function createTodaySection(
   doc: Document,
   model: OverlayViewModel,
+  onSelectWorkMode: (mode: WorkMode) => void,
 ): HTMLElement {
   const section = createElement(doc, "section", "sot-section");
   const metrics = createElement(doc, "div", "sot-metric-stack");
 
-  metrics.append(
-    createDurationMetricCard(doc, "Work left", model.todayWorkLeft),
-    createDurationMetricCard(doc, "Break left", model.todayBreakLeft),
-  );
+  model.todaySection.metrics.forEach((metric) => {
+    metrics.append(createDurationMetricCard(doc, metric));
+  });
 
   section.append(
-    createSectionLabel(doc, model.todayLabel, model.todayErrorBadges),
+    createSectionLabel(doc, model.todaySection, onSelectWorkMode),
     metrics,
   );
 
@@ -263,17 +308,23 @@ function createMonthSection(
     "section",
     "sot-section sot-section--month",
   );
-  const grid = createElement(doc, "div", "sot-month-grid");
-
-  grid.append(
-    createDurationMetricCard(doc, "Bank", model.monthlyBank),
-    createProgressCard(doc, model.monthlyProgress),
+  const grid = createElement(
+    doc,
+    "div",
+    model.monthSection.progressMetric === null
+      ? "sot-month-grid sot-month-grid--single"
+      : "sot-month-grid",
   );
 
-  section.append(
-    createSectionLabel(doc, model.monthLabel, model.monthErrorBadges),
-    grid,
-  );
+  model.monthSection.metrics.forEach((metric) => {
+    grid.append(createDurationMetricCard(doc, metric));
+  });
+
+  if (model.monthSection.progressMetric !== null) {
+    grid.append(createProgressCard(doc, model.monthSection.progressMetric));
+  }
+
+  section.append(createSectionLabel(doc, model.monthSection), grid);
 
   return section;
 }
@@ -307,6 +358,7 @@ function createCtaSection(doc: Document, onToggle: () => void): HTMLDivElement {
 function createOverlayCard(
   doc: Document,
   model: OverlayViewModel,
+  onSelectWorkMode: (mode: WorkMode) => void,
 ): HTMLDivElement {
   const shell = createElement(doc, "div", "sot-shell");
   const divider = createElement(doc, "div", "sot-divider");
@@ -319,7 +371,7 @@ function createOverlayCard(
   };
 
   content.append(
-    createTodaySection(doc, model),
+    createTodaySection(doc, model, onSelectWorkMode),
     createMonthSection(doc, model),
     createCtaSection(doc, toggleWipPanel),
     wipPanel,
@@ -358,6 +410,7 @@ export function renderOverlayLoading(
 
   shell.append(
     createElement(doc, "strong", "sot-status-title", "SOT (SERVANT OF TIME)"),
+    createElement(doc, "div", "sot-status-copy", "Loading extension summary…"),
     createElement(doc, "div", "sot-status-copy", message),
   );
 }
@@ -395,6 +448,11 @@ export function renderOverlayResult(
   root: HTMLDivElement,
   doc: Document,
   model: OverlayViewModel,
+  onSelectWorkMode: (mode: WorkMode) => void,
 ): void {
-  renderOverlayChildren(root, [createOverlayCard(doc, model)], "ready");
+  renderOverlayChildren(
+    root,
+    [createOverlayCard(doc, model, onSelectWorkMode)],
+    "ready",
+  );
 }

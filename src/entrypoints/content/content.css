@@ -174,15 +174,26 @@
 }
 
 .sot-section--month {
+  --sot-month-card-min-height: 40px;
   padding-top: 8px;
   border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.sot-section-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  padding: 0 2px;
 }
 
 .sot-section-label-wrap {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
-  padding: 0 2px;
+  min-width: 0;
 }
 
 .sot-section-label {
@@ -230,15 +241,71 @@
 }
 
 .sot-metric-stack {
+  --sot-today-card-min-height: 34px;
+
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.sot-metric-stack > .sot-metric-card {
+  min-height: var(--sot-today-card-min-height);
 }
 
 .sot-month-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
   gap: 8px;
+}
+
+.sot-month-grid--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.sot-month-grid > .sot-metric-card,
+.sot-month-grid > .sot-progress-card {
+  min-height: var(--sot-month-card-min-height);
+}
+
+.sot-mode-selector {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  flex: 0 0 auto;
+  min-width: 96px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 4px;
+  background: #ffffff;
+}
+
+.sot-mode-selector-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 3px 6px;
+  border: 0;
+  background: transparent;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: #334155;
+  cursor: pointer;
+}
+
+.sot-mode-selector-button + .sot-mode-selector-button {
+  border-left: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.sot-mode-selector-button[data-active="true"] {
+  background: rgba(220, 252, 231, 0.95);
+  color: #15803d;
+}
+
+.sot-mode-selector-button[data-active="false"]:hover {
+  background: rgba(241, 245, 249, 0.9);
 }
 
 .sot-metric-card,
@@ -331,6 +398,11 @@
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.04em;
+}
+
+.sot-metric-value[data-appearance="subtle"],
+.sot-metric-value-text[data-appearance="subtle"] {
+  color: #64748b;
 }
 
 .sot-metric-unit {

@@ -6,3 +6,5 @@ dist-chromium/
 
 .agents/tasks/
 releases/
+
+.codex-plan

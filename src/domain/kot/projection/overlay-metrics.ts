@@ -1,13 +1,22 @@
-import { createIsoDateKey } from "@/domain/kot/date";
-import { calculateKotDay, createKotResolveDayContext } from "@/domain/kot/calculation/day/day-calculator";
+import {
+  calculateKotDay,
+  createKotResolveDayContext,
+} from "@/domain/kot/calculation/day/day-calculator";
 import { buildEffectiveDayScenario } from "@/domain/kot/calculation/day/scenario-builders";
-import type { KotMonthlyPageSnapshot } from "@/domain/kot/monthly-page-types";
-import type { KotRequestCacheEntry } from "@/domain/kot/request-data";
-import type { ExtensionSettings } from "@/domain/kot/types";
-import { resolveKotMonth } from "@/domain/kot/calculation/month/month-resolver";
 import type { KotResolvedMonth } from "@/domain/kot/calculation/month/month-types";
+import { resolveKotMonth } from "@/domain/kot/calculation/month/month-resolver";
 import { getKotPendingRequestsForDate } from "@/domain/kot/calculation/requests/request-scenario";
 import { createKotPendingRequestMap } from "@/domain/kot/calculation/requests/request-simulation";
+import { createIsoDateKey } from "@/domain/kot/date";
+import type { KotMonthlyPageSnapshot } from "@/domain/kot/monthly-page-types";
+import type { KotRequestCacheEntry } from "@/domain/kot/request-data";
+import { projectFullOverlayMode } from "@/domain/kot/projection/overlay-mode/full";
+import { projectInternOverlayMode } from "@/domain/kot/projection/overlay-mode/intern";
+import type {
+  OverlayModeProjectionInput,
+  OverlayModeProjectionResult,
+} from "@/domain/kot/projection/overlay-mode/types";
+import type { ExtensionSettings } from "@/domain/kot/types";
 
 export type OverlayMetricTone =
   | "positive"
@@ -18,7 +27,7 @@ export type OverlayMetricTone =
 
 export type OverlayCalculationSettings = Pick<
   ExtensionSettings,
-  "standardBreakMinutes" | "standardWorkdayHours"
+  "standardBreakMinutes" | "standardWorkdayHours" | "workMode"
 >;
 
 export type OverlayCalculationInput = {
@@ -37,27 +46,12 @@ export type TodayBadgeStatus =
   | "not-started"
   | "rest-day";
 
-export type OverlayCalculationResult = {
-  actualBankMinutes: number;
-  actualWorkedMinutesSoFar: number;
-  bankTone: OverlayMetricTone;
-  displayWorkedMinutesSoFar: number;
-  errorDayCount: number;
-  isUsingEstimate: boolean;
-  monthActualProgressPercent: number;
-  monthBankMinutes: number;
-  monthEstimatedProgressPercent: number;
-  progressTone: OverlayMetricTone;
-  requiredWorkedMinutesSoFar: number;
-  todayBreakDiffMinutes: number;
-  todayBreakMinutes: number;
+export type OverlayCalculationResult = OverlayModeProjectionResult & {
+  monthErrorCount: number;
+  monthWarningCount: number;
   todayBadgeStatus: TodayBadgeStatus;
   todayErrorCount: number;
-  todayStatus: TodayStatus;
-  todayWorkedMinutes: number;
-  todayWorkDiffMinutes: number;
   todayWarningCount: number;
-  warningDayCount: number;
 };
 
 export function calculateRequiredElapsedWorkdays(
@@ -89,14 +83,18 @@ function calculateRequiredWorkedMinutesInMonth(
   return totalWorkdays * settings.standardWorkdayHours * 60;
 }
 
-export function calculateTodayWorkedMinutes(resolvedMonth: KotResolvedMonth): number {
+export function calculateTodayWorkedMinutes(
+  resolvedMonth: KotResolvedMonth,
+): number {
   return (
     resolvedMonth.todayDay?.effective.calculatedDay.interpretation
       .workedMinutesDisplay ?? 0
   );
 }
 
-export function calculateTodayBreakMinutes(resolvedMonth: KotResolvedMonth): number {
+export function calculateTodayBreakMinutes(
+  resolvedMonth: KotResolvedMonth,
+): number {
   return (
     resolvedMonth.todayDay?.effective.calculatedDay.interpretation
       .breakMinutesDisplay ?? 0
@@ -131,8 +129,14 @@ export function calculateTodayBadgeStatus(input: {
   }
 
   const requestMap = createKotPendingRequestMap(input.requestCacheEntry);
-  const pendingRequests = getKotPendingRequestsForDate(requestMap, todayRow.isoDate);
-  const effectiveScenario = buildEffectiveDayScenario(todayRow, pendingRequests);
+  const pendingRequests = getKotPendingRequestsForDate(
+    requestMap,
+    todayRow.isoDate,
+  );
+  const effectiveScenario = buildEffectiveDayScenario(
+    todayRow,
+    pendingRequests,
+  );
 
   if (effectiveScenario.interpretedRow.dayKind === "offday") {
     return "rest-day";
@@ -167,9 +171,20 @@ export function calculateTodayWorkDiffMinutes(
 
 export function calculateTodayBreakDiffMinutes(
   todayBreakMinutes: number,
+  breakAllowanceMinutes: number,
+): number {
+  return todayBreakMinutes - breakAllowanceMinutes;
+}
+
+export function calculateTodayBreakAllowanceMinutes(
+  todayWorkedMinutes: number,
   settings: OverlayCalculationSettings,
 ): number {
-  return todayBreakMinutes - settings.standardBreakMinutes;
+  if (settings.workMode === "intern") {
+    return todayWorkedMinutes > 6 * 60 ? 60 : 45;
+  }
+
+  return settings.standardBreakMinutes;
 }
 
 export function calculateMonthBankMinutes(
@@ -190,38 +205,66 @@ export function calculateMonthProgressPercent(
   return (workedMinutesSoFar / requiredWorkedMinutesSoFar) * 100;
 }
 
-function calculateBankTone(
-  displayBankMinutes: number,
-  errorDayCount: number,
-  isUsingEstimate: boolean,
-): OverlayMetricTone {
-  if (errorDayCount > 0) {
+function calculateAggregateTone(input: {
+  displayMinutes: number;
+  errorDayCount: number;
+  isUsingEstimate: boolean;
+}): OverlayMetricTone {
+  if (input.errorDayCount > 0) {
     return "negative";
   }
 
-  if (isUsingEstimate) {
+  if (input.isUsingEstimate) {
     return "warning";
   }
 
-  if (displayBankMinutes > 0) {
+  if (input.displayMinutes > 0) {
     return "positive";
   }
 
-  if (displayBankMinutes < 0) {
+  if (input.displayMinutes < 0) {
     return "negative";
   }
 
   return "neutral";
 }
 
-export function calculateOverlayMetrics(
+function normalizeTodayStatus(
+  todayStatus: TodayStatus,
+  settings: OverlayCalculationSettings,
+  pageSnapshot: KotMonthlyPageSnapshot,
+): TodayStatus {
+  if (
+    todayStatus === "rest-day" &&
+    settings.workMode === "intern" &&
+    pageSnapshot.todayRow?.dayKind === "offday"
+  ) {
+    return "not-started";
+  }
+
+  return todayStatus;
+}
+
+function normalizeTodayBadgeStatus(
+  todayBadgeStatus: TodayBadgeStatus,
+  settings: OverlayCalculationSettings,
+  pageSnapshot: KotMonthlyPageSnapshot,
+): TodayBadgeStatus {
+  if (
+    todayBadgeStatus === "rest-day" &&
+    settings.workMode === "intern" &&
+    pageSnapshot.todayRow?.dayKind === "offday"
+  ) {
+    return "not-started";
+  }
+
+  return todayBadgeStatus;
+}
+
+function createModeProjectionInput(
   input: OverlayCalculationInput,
-): OverlayCalculationResult {
-  const resolvedMonth = resolveKotMonth({
-    now: input.now,
-    pageSnapshot: input.pageSnapshot,
-    requestCacheEntry: input.requestCacheEntry,
-  });
+  resolvedMonth: KotResolvedMonth,
+): OverlayModeProjectionInput {
   const elapsedWorkdays = calculateRequiredElapsedWorkdays(
     input.now,
     input.pageSnapshot,
@@ -236,59 +279,95 @@ export function calculateOverlayMetrics(
   );
   const todayWorkedMinutes = calculateTodayWorkedMinutes(resolvedMonth);
   const todayBreakMinutes = calculateTodayBreakMinutes(resolvedMonth);
-
-  const actualBankMinutes = calculateMonthBankMinutes(
-    resolvedMonth.actualSummary.bankMinutesSoFar,
-    requiredWorkedMinutesSoFar,
+  const todayBreakAllowanceMinutes = calculateTodayBreakAllowanceMinutes(
+    todayWorkedMinutes,
+    input.settings,
   );
   const monthBankMinutes = calculateMonthBankMinutes(
     resolvedMonth.effectiveSummary.bankMinutesSoFar,
     requiredWorkedMinutesSoFar,
   );
-  const bankTone = calculateBankTone(
-    monthBankMinutes,
-    resolvedMonth.aggregateFlags.errorDayCount,
-    resolvedMonth.aggregateFlags.isUsingEstimate,
+  const todayStatus = normalizeTodayStatus(
+    calculateTodayStatus(input.pageSnapshot),
+    input.settings,
+    input.pageSnapshot,
   );
-
-  return {
-    actualBankMinutes,
-    actualWorkedMinutesSoFar: resolvedMonth.actualSummary.bankMinutesSoFar,
-    bankTone,
-    displayWorkedMinutesSoFar: resolvedMonth.effectiveSummary.bankMinutesSoFar,
-    errorDayCount: resolvedMonth.aggregateFlags.errorDayCount,
-    isUsingEstimate: resolvedMonth.aggregateFlags.isUsingEstimate,
-    monthActualProgressPercent: calculateMonthProgressPercent(
-      resolvedMonth.actualSummary.bankMinutesSoFar,
-      requiredWorkedMinutesInMonth,
-    ),
-    monthBankMinutes,
-    monthEstimatedProgressPercent: calculateMonthProgressPercent(
-      resolvedMonth.effectiveSummary.bankMinutesSoFar,
-      requiredWorkedMinutesInMonth,
-    ),
-    progressTone: bankTone,
-    requiredWorkedMinutesSoFar,
-    todayBreakDiffMinutes: calculateTodayBreakDiffMinutes(
-      todayBreakMinutes,
-      input.settings,
-    ),
-    todayBreakMinutes,
-    todayBadgeStatus: calculateTodayBadgeStatus({
+  const todayBadgeStatus = normalizeTodayBadgeStatus(
+    calculateTodayBadgeStatus({
       now: input.now,
       pageSnapshot: input.pageSnapshot,
       requestCacheEntry: input.requestCacheEntry,
     }),
+    input.settings,
+    input.pageSnapshot,
+  );
+
+  return {
+    monthBankMinutes,
+    monthBankTone: calculateAggregateTone({
+      displayMinutes: monthBankMinutes,
+      errorDayCount: resolvedMonth.aggregateFlags.errorDayCount,
+      isUsingEstimate: resolvedMonth.aggregateFlags.isUsingEstimate,
+    }),
+    monthProgressActualPercent: calculateMonthProgressPercent(
+      resolvedMonth.actualSummary.bankMinutesSoFar,
+      requiredWorkedMinutesInMonth,
+    ),
+    monthProgressEstimatedPercent: calculateMonthProgressPercent(
+      resolvedMonth.effectiveSummary.bankMinutesSoFar,
+      requiredWorkedMinutesInMonth,
+    ),
+    monthWorkedCardTone: calculateAggregateTone({
+      displayMinutes: resolvedMonth.effectiveSummary.workedMinutesSoFar,
+      errorDayCount: resolvedMonth.aggregateFlags.errorDayCount,
+      isUsingEstimate: resolvedMonth.aggregateFlags.isUsingEstimate,
+    }),
+    requiredWorkdayMinutes: input.settings.standardWorkdayHours * 60,
+    resolvedMonth,
+    todayBadgeStatus,
+    todayBreakAllowanceMinutes,
+    todayBreakDiffMinutes: calculateTodayBreakDiffMinutes(
+      todayBreakMinutes,
+      todayBreakAllowanceMinutes,
+    ),
+    todayBreakMetricCardTone:
+      (resolvedMonth.todayDay?.effective.calculatedDay.issues.errorCount ?? 0) >
+      0
+        ? "error"
+        : "neutral",
+    todayBreakMinutes,
     todayErrorCount:
       resolvedMonth.todayDay?.effective.calculatedDay.issues.errorCount ?? 0,
-    todayStatus: calculateTodayStatus(input.pageSnapshot),
+    todayStatus,
     todayWorkedMinutes,
     todayWorkDiffMinutes: calculateTodayWorkDiffMinutes(
       todayWorkedMinutes,
       input.settings,
     ),
+  };
+}
+
+export function calculateOverlayMetrics(
+  input: OverlayCalculationInput,
+): OverlayCalculationResult {
+  const resolvedMonth = resolveKotMonth({
+    now: input.now,
+    pageSnapshot: input.pageSnapshot,
+    requestCacheEntry: input.requestCacheEntry,
+  });
+  const projectionInput = createModeProjectionInput(input, resolvedMonth);
+  const modeResult =
+    input.settings.workMode === "intern"
+      ? projectInternOverlayMode(projectionInput)
+      : projectFullOverlayMode(projectionInput);
+
+  return {
+    ...modeResult,
+    monthErrorCount: resolvedMonth.aggregateFlags.errorDayCount,
+    monthWarningCount: resolvedMonth.aggregateFlags.warningDayCount,
+    todayBadgeStatus: projectionInput.todayBadgeStatus,
+    todayErrorCount: projectionInput.todayErrorCount,
     todayWarningCount:
       resolvedMonth.todayDay?.effective.calculatedDay.issues.warningCount ?? 0,
-    warningDayCount: resolvedMonth.aggregateFlags.warningDayCount,
   };
 }
