@@ -1,6 +1,6 @@
 # Release checklist
 
-## Prepare v1.2.0 artifacts
+## Prepare v1.2.1 artifacts
 
 1. Run `npm ci`.
 2. Run `npm run release:prepare`.
@@ -12,9 +12,8 @@
 
 1. Open the existing SOT listing in AMO Developer Hub.
 2. Upload `releases/firefox.xpi` as a new version.
-3. Add release notes for v1.2.0:
-   - Work mode selector
-   - Intern overlay projection
+3. Add release notes for v1.2.1:
+   - Adjust intern break allowance thresholds
 4. Verify permissions and data disclosures still match the extension behavior.
 5. Submit the update for review.
 
