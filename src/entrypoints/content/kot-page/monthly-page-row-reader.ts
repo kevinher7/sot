@@ -28,6 +28,27 @@ function normalizeCellText(element: Element | null): string {
   return element?.textContent?.replace(/\s+/gu, " ").trim() ?? "";
 }
 
+function normalizeCellTextExcludingRequests(element: Element | null): string {
+  if (!element) {
+    return "";
+  }
+
+  const clone = element.cloneNode(true) as Element;
+
+  for (const requested of clone.querySelectorAll(
+    MONTHLY_PAGE_REQUEST_MARKER_SELECTOR,
+  )) {
+    requested.remove();
+  }
+
+  const text = clone.textContent ?? "";
+
+  return text
+    .replace(/\[申\][^\[]*?\d{1,2}:\d{2}/gu, "")
+    .replace(/\s+/gu, " ")
+    .trim();
+}
+
 function parseNumber(value: string): number | null {
   if (!/^\d+$/u.test(value)) {
     return null;
@@ -43,8 +64,9 @@ function parseWorkingDateFromActionCell(row: HTMLTableRowElement): {
   year: number;
 } | null {
   const workingDateValue = (
-    row.querySelector<HTMLInputElement>(MONTHLY_PAGE_ACTION_CELL_WORKING_DATE_SELECTOR)
-      ?.value ?? ""
+    row.querySelector<HTMLInputElement>(
+      MONTHLY_PAGE_ACTION_CELL_WORKING_DATE_SELECTOR,
+    )?.value ?? ""
   ).trim();
 
   if (/^\d{8}$/u.test(workingDateValue)) {
@@ -136,25 +158,29 @@ export function readMonthlyPageRowSnapshot(
   }
 
   const workDayTypeText = normalizeCellText(
-    row.querySelector<HTMLTableCellElement>(MONTHLY_PAGE_WORK_DAY_TYPE_SELECTOR),
+    row.querySelector<HTMLTableCellElement>(
+      MONTHLY_PAGE_WORK_DAY_TYPE_SELECTOR,
+    ),
   );
   const clockInMinutes = parseClockTextMinutes(
-    normalizeCellText(
+    normalizeCellTextExcludingRequests(
       row.querySelector<HTMLTableCellElement>(MONTHLY_PAGE_CLOCK_IN_SELECTOR),
     ),
   );
   const clockOutMinutes = parseClockTextMinutes(
-    normalizeCellText(
+    normalizeCellTextExcludingRequests(
       row.querySelector<HTMLTableCellElement>(MONTHLY_PAGE_CLOCK_OUT_SELECTOR),
     ),
   );
   const breakStartMinutes = parseClockTextMinuteList(
-    normalizeCellText(
-      row.querySelector<HTMLTableCellElement>(MONTHLY_PAGE_BREAK_START_SELECTOR),
+    normalizeCellTextExcludingRequests(
+      row.querySelector<HTMLTableCellElement>(
+        MONTHLY_PAGE_BREAK_START_SELECTOR,
+      ),
     ),
   );
   const breakEndMinutes = parseClockTextMinuteList(
-    normalizeCellText(
+    normalizeCellTextExcludingRequests(
       row.querySelector<HTMLTableCellElement>(MONTHLY_PAGE_BREAK_END_SELECTOR),
     ),
   );

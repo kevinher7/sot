@@ -156,6 +156,8 @@ function mergeBreakMinutes(input: {
   const remainingRequested = input.requested.slice(fillCount);
 
   if (remainingRequested.length === 0) {
+    next.sort((a, b) => a - b);
+
     return next;
   }
 
@@ -169,6 +171,8 @@ function mergeBreakMinutes(input: {
     remainingRequested.length,
     ...remainingRequested,
   );
+
+  next.sort((a, b) => a - b);
 
   return next;
 }
