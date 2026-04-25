@@ -1,6 +1,6 @@
 # Release checklist
 
-## Prepare v1.2.1 artifacts
+## Prepare v1.2.2 artifacts
 
 1. Run `npm ci`.
 2. Run `npm run release:prepare`.
@@ -12,23 +12,19 @@
 
 1. Open the existing SOT listing in AMO Developer Hub.
 2. Upload `releases/firefox.xpi` as a new version.
-3. Add release notes for v1.2.1:
-   - Adjust intern break allowance thresholds
+3. Add release notes for v1.2.2:
+   - Fix: remove superseded request entries from patch simulation
+   - Fix: merge storage defaults with stored values
+   - Fix: ignore requested break markers when parsing monthly rows
 4. Verify permissions and data disclosures still match the extension behavior.
 5. Submit the update for review.
 
-## Chrome Web Store (new listing)
+## Chrome Web Store (existing listing)
 
 1. Open the Chrome Web Store Developer Dashboard.
-2. Create a new item and upload `releases/chromium.zip`.
-3. Complete the store listing:
-   - title, summary, description
-   - screenshots
-   - 128x128 icon
-   - privacy policy URL
-   - support/homepage URLs
-4. Complete the privacy practices section based on `PRIVACY.md`.
-5. Submit for review, then publish when approved.
+2. Open the existing SOT listing and upload `releases/chromium.zip` as an update.
+3. Verify the store listing is still accurate.
+4. Submit for review, then publish when approved.
 
 ## Manual verification before submission
 
