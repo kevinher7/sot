@@ -31,8 +31,10 @@ export async function getStorageValues<T extends StoragePayload>(
   defaults: T,
 ): Promise<T> {
   const api = getBrowserApi();
+  const keys = Object.keys(defaults);
+  const stored = await api.storage.local.get(keys);
 
-  return (await api.storage.local.get(defaults)) as T;
+  return { ...defaults, ...stored } as T;
 }
 
 export async function setStorageValues(values: StoragePayload): Promise<void> {
