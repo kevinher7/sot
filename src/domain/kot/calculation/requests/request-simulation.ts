@@ -2,6 +2,7 @@ import type { KotDayRowSnapshot } from "@/domain/kot/monthly-page-types";
 import type {
   KotRequestCacheEntry,
   KotRequestOperation,
+  KotRequestTimeLabel,
   KotTimeCorrectionRequest,
 } from "@/domain/kot/request-data";
 
@@ -177,10 +178,42 @@ function mergeBreakMinutes(input: {
   return next;
 }
 
+function removeSupersededEntries(
+  row: SimulatedDayRow,
+  supersededEntries: readonly { label: KotRequestTimeLabel; minutes: number }[],
+): void {
+  for (const entry of supersededEntries) {
+    if (entry.label === "clockIn") {
+      if (row.clockInMinutes === entry.minutes) {
+        row.clockInMinutes = null;
+      }
+
+      continue;
+    }
+
+    if (entry.label === "clockOut") {
+      if (row.clockOutMinutes === entry.minutes) {
+        row.clockOutMinutes = null;
+      }
+
+      continue;
+    }
+
+    if (entry.label === "breakStart") {
+      removeMinute(row.breakStartMinutes, entry.minutes);
+      continue;
+    }
+
+    removeMinute(row.breakEndMinutes, entry.minutes);
+  }
+}
+
 function applyPatchOperation(
   row: SimulatedDayRow,
   operation: Extract<KotRequestOperation, { type: "patch" }>,
 ): void {
+  removeSupersededEntries(row, operation.supersededEntries);
+
   if (operation.timePatch.clockInMinutes !== undefined) {
     row.clockInMinutes = operation.timePatch.clockInMinutes;
   }
