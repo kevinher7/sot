@@ -143,6 +143,46 @@ function toRequestTimeLabel(value: string): KotRequestTimeLabel | null {
   return null;
 }
 
+function parseOriginalEntries(
+  text: string,
+): readonly { label: KotRequestTimeLabel; minutes: number }[] {
+  const entries: { label: KotRequestTimeLabel; minutes: number }[] = [];
+
+  for (const match of text.matchAll(REQUEST_ENTRY_PATTERN_GLOBAL)) {
+    const minutes = parseClockMinutes(match[1] ?? "");
+    const label = toRequestTimeLabel(match[2] ?? "");
+
+    if (minutes === undefined || label === null) {
+      continue;
+    }
+
+    entries.push({ label, minutes });
+  }
+
+  return entries;
+}
+
+function computeSupersededEntries(
+  originalEntries: readonly { label: KotRequestTimeLabel; minutes: number }[],
+  timePatch: KotRequestTimePatch,
+): readonly { label: KotRequestTimeLabel; minutes: number }[] {
+  return originalEntries.filter((entry) => {
+    if (entry.label === "clockIn") {
+      return timePatch.clockInMinutes === undefined;
+    }
+
+    if (entry.label === "clockOut") {
+      return timePatch.clockOutMinutes === undefined;
+    }
+
+    if (entry.label === "breakStart") {
+      return timePatch.breakStartMinutes === undefined;
+    }
+
+    return timePatch.breakEndMinutes === undefined;
+  });
+}
+
 function createDeleteOperation(text: string): KotRequestOperation | null {
   const matches = Array.from(text.matchAll(REQUEST_ENTRY_PATTERN_GLOBAL));
 
@@ -189,7 +229,15 @@ function createRequestOperation(
     return null;
   }
 
+  const originalContentText = normalizeText(row.originalContentText);
+  const originalEntries = parseOriginalEntries(originalContentText);
+  const supersededEntries = computeSupersededEntries(
+    originalEntries,
+    timePatch,
+  );
+
   return {
+    supersededEntries,
     timePatch,
     type: "patch",
   };
@@ -304,12 +352,20 @@ function createOperationSignature(operation: KotRequestOperation): string {
   const breakStart = operation.timePatch.breakStartMinutes?.join(",") ?? "-";
   const breakEnd = operation.timePatch.breakEndMinutes?.join(",") ?? "-";
 
+  const supersededEntriesPart =
+    operation.supersededEntries.length > 0
+      ? operation.supersededEntries
+          .map((entry) => `${entry.label}:${entry.minutes}`)
+          .join(",")
+      : "-";
+
   return [
     "patch",
     operation.timePatch.clockInMinutes ?? "-",
     operation.timePatch.clockOutMinutes ?? "-",
     breakStart,
     breakEnd,
+    supersededEntriesPart,
   ].join("|");
 }
 

@@ -20,6 +20,10 @@ export type KotRequestTimePatch = {
 
 export type KotRequestOperation =
   | {
+      supersededEntries: readonly {
+        label: KotRequestTimeLabel;
+        minutes: number;
+      }[];
       timePatch: KotRequestTimePatch;
       type: "patch";
     }
