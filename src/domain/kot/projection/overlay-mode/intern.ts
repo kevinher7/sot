@@ -54,7 +54,6 @@ export function projectInternOverlayMode(
   if (input.todayStatus === "rest-day") {
     return {
       monthPrimaryMetric: createMonthPrimaryMetric(input),
-      monthProgressMetric: null,
       todayPrimaryMetric: createRestDayMetric("Work time"),
       todaySecondaryMetric: createRestDayMetric("Break left"),
       workMode: "intern",
@@ -78,7 +77,6 @@ export function projectInternOverlayMode(
 
   return {
     monthPrimaryMetric: createMonthPrimaryMetric(input),
-    monthProgressMetric: null,
     todayPrimaryMetric: {
       appearance: todayMetricVisualState.appearance,
       cardTone: todayMetricVisualState.primaryCardTone,

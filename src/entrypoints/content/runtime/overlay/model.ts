@@ -7,7 +7,6 @@ import type {
   OverlayDurationMetric,
   OverlayHeaderBadge,
   OverlayModeSelector,
-  OverlayProgressMetric,
   OverlaySectionModel,
   OverlayViewModel,
 } from "@/entrypoints/content/runtime/overlay/types";
@@ -39,20 +38,6 @@ function createDurationMetric(
     tone,
     unit,
     value,
-  };
-}
-
-function createProgressMetric(
-  label: string,
-  actualPercent: number,
-  estimatedPercent: number,
-  tone: OverlayProgressMetric["tone"],
-): OverlayProgressMetric {
-  return {
-    actualPercent,
-    estimatedPercent,
-    label,
-    tone,
   };
 }
 
@@ -220,7 +205,6 @@ function createTodaySection(
       createDurationMetricFromProjection(result.todaySecondaryMetric),
     ],
     modeSelector: createModeSelector(result),
-    progressMetric: null,
   };
 }
 
@@ -232,15 +216,6 @@ function createMonthSection(
     badges: createBadges(result.monthErrorCount, result.monthWarningCount),
     label: formatMonthLabel(now),
     metrics: [createDurationMetricFromProjection(result.monthPrimaryMetric)],
-    progressMetric:
-      result.monthProgressMetric === null
-        ? null
-        : createProgressMetric(
-            result.monthProgressMetric.label,
-            result.monthProgressMetric.actualPercent,
-            result.monthProgressMetric.estimatedPercent,
-            result.monthProgressMetric.tone,
-          ),
   };
 }
 

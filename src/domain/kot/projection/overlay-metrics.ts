@@ -72,17 +72,6 @@ export function calculateRequiredWorkedMinutesSoFar(
   return elapsedWorkdays * settings.standardWorkdayHours * 60;
 }
 
-function calculateRequiredWorkedMinutesInMonth(
-  pageSnapshot: KotMonthlyPageSnapshot,
-  settings: OverlayCalculationSettings,
-): number {
-  const totalWorkdays = pageSnapshot.rows.filter(
-    (row) => row.dayKind === "workday",
-  ).length;
-
-  return totalWorkdays * settings.standardWorkdayHours * 60;
-}
-
 export function calculateTodayWorkedMinutes(
   resolvedMonth: KotResolvedMonth,
 ): number {
@@ -202,17 +191,6 @@ export function calculateMonthBankMinutes(
   return workedMinutesSoFar - requiredWorkedMinutesSoFar;
 }
 
-export function calculateMonthProgressPercent(
-  workedMinutesSoFar: number,
-  requiredWorkedMinutesSoFar: number,
-): number {
-  if (requiredWorkedMinutesSoFar <= 0) {
-    return 0;
-  }
-
-  return (workedMinutesSoFar / requiredWorkedMinutesSoFar) * 100;
-}
-
 function calculateAggregateTone(input: {
   displayMinutes: number;
   errorDayCount: number;
@@ -281,10 +259,6 @@ function createModeProjectionInput(
     elapsedWorkdays,
     input.settings,
   );
-  const requiredWorkedMinutesInMonth = calculateRequiredWorkedMinutesInMonth(
-    input.pageSnapshot,
-    input.settings,
-  );
   const todayWorkedMinutes = calculateTodayWorkedMinutes(resolvedMonth);
   const todayBreakMinutes = calculateTodayBreakMinutes(resolvedMonth);
   const todayBreakAllowanceMinutes = calculateTodayBreakAllowanceMinutes(
@@ -317,14 +291,6 @@ function createModeProjectionInput(
       errorDayCount: resolvedMonth.aggregateFlags.errorDayCount,
       isUsingEstimate: resolvedMonth.aggregateFlags.isUsingEstimate,
     }),
-    monthProgressActualPercent: calculateMonthProgressPercent(
-      resolvedMonth.actualSummary.bankMinutesSoFar,
-      requiredWorkedMinutesInMonth,
-    ),
-    monthProgressEstimatedPercent: calculateMonthProgressPercent(
-      resolvedMonth.effectiveSummary.bankMinutesSoFar,
-      requiredWorkedMinutesInMonth,
-    ),
     monthWorkedCardTone: calculateAggregateTone({
       displayMinutes: resolvedMonth.effectiveSummary.workedMinutesSoFar,
       errorDayCount: resolvedMonth.aggregateFlags.errorDayCount,

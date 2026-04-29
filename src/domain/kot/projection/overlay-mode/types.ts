@@ -19,16 +19,8 @@ export type OverlayDurationMetricProjection = {
   unit: "" | "h";
 };
 
-export type OverlayProgressMetricProjection = {
-  actualPercent: number;
-  estimatedPercent: number;
-  label: string;
-  tone: OverlayMetricTone;
-};
-
 export type OverlayModeProjectionResult = {
   monthPrimaryMetric: OverlayDurationMetricProjection;
-  monthProgressMetric: OverlayProgressMetricProjection | null;
   todayPrimaryMetric: OverlayDurationMetricProjection;
   todaySecondaryMetric: OverlayDurationMetricProjection;
   workMode: WorkMode;
@@ -37,8 +29,6 @@ export type OverlayModeProjectionResult = {
 export type OverlayModeProjectionInput = {
   monthBankMinutes: number;
   monthBankTone: OverlayMetricTone;
-  monthProgressActualPercent: number;
-  monthProgressEstimatedPercent: number;
   monthWorkedCardTone: OverlayMetricTone;
   requiredWorkdayMinutes: number;
   resolvedMonth: KotResolvedMonth;
