@@ -4,10 +4,21 @@ import type {
   TodayBadgeStatus,
   TodayStatus,
 } from "@/domain/kot/projection/overlay-metrics";
-import type { WorkMode } from "@/domain/kot/types";
+import type {
+  BreakTodayView,
+  ExtensionMetricViews,
+  MonthBankView,
+  WorkMode,
+  WorkTodayView,
+} from "@/domain/kot/types";
 
 export type OverlayMetricAppearance = "default" | "rest-day" | "subtle";
 export type OverlayMetricFormat = "signed-duration" | "unsigned-duration";
+
+export type OverlayDurationMetricViewBinding =
+  | { viewKey: "workToday"; nextView: WorkTodayView }
+  | { viewKey: "breakToday"; nextView: BreakTodayView }
+  | { viewKey: "monthBank"; nextView: MonthBankView };
 
 export type OverlayDurationMetricProjection = {
   appearance: OverlayMetricAppearance;
@@ -17,6 +28,7 @@ export type OverlayDurationMetricProjection = {
   minutes: number;
   tone: OverlayMetricTone;
   unit: "" | "h";
+  viewBinding?: OverlayDurationMetricViewBinding;
 };
 
 export type OverlayModeProjectionResult = {
@@ -27,6 +39,8 @@ export type OverlayModeProjectionResult = {
 };
 
 export type OverlayModeProjectionInput = {
+  metricViews: ExtensionMetricViews;
+  monthBankEstimatedMinutes: number;
   monthBankMinutes: number;
   monthBankTone: OverlayMetricTone;
   monthWorkedCardTone: OverlayMetricTone;

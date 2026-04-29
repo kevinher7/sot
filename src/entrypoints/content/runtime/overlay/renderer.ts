@@ -1,10 +1,12 @@
 import { sotSvg } from "@/assets/branding/sot-svg";
 import type { OverlayMetricTone } from "@/domain/kot/projection/overlay-metrics";
-import type { WorkMode } from "@/domain/kot/types";
 import type {
+  OnSelectWorkMode,
+  OnToggleMetricView,
   OverlayDurationMetric,
   OverlayHeaderBadge,
   OverlayModeSelector,
+  OverlayRenderCallbacks,
   OverlaySectionModel,
   OverlayViewModel,
 } from "@/entrypoints/content/runtime/overlay/types";
@@ -96,7 +98,7 @@ function createHeaderIcon(doc: Document): HTMLSpanElement {
 function createModeSelector(
   doc: Document,
   model: OverlayModeSelector,
-  onSelectWorkMode: (mode: WorkMode) => void,
+  onSelectWorkMode: OnSelectWorkMode,
 ): HTMLDivElement {
   const group = createElement(doc, "div", "sot-mode-selector");
 
@@ -132,7 +134,7 @@ function createModeSelector(
 function createSectionLabel(
   doc: Document,
   model: OverlaySectionModel,
-  onSelectWorkMode?: (mode: WorkMode) => void,
+  onSelectWorkMode?: OnSelectWorkMode,
 ): HTMLDivElement {
   const wrapper = createElement(doc, "div", "sot-section-label-row");
   const left = createElement(doc, "div", "sot-section-label-wrap");
@@ -174,8 +176,23 @@ function createSectionLabel(
 function createDurationMetricCard(
   doc: Document,
   metric: OverlayDurationMetric,
-): HTMLDivElement {
-  const card = createElement(doc, "div", "sot-metric-card");
+  onToggleMetricView: OnToggleMetricView,
+): HTMLElement {
+  const binding = metric.viewBinding;
+  const card: HTMLElement = binding
+    ? createElement(doc, "button", "sot-metric-card")
+    : createElement(doc, "div", "sot-metric-card");
+
+  if (binding && card instanceof HTMLButtonElement) {
+    card.type = "button";
+    card.dataset.toggleable = "true";
+    card.ariaLabel = `Toggle ${metric.label} view`;
+    card.title = `Click to toggle ${metric.label} view`;
+    card.addEventListener("click", () => {
+      onToggleMetricView(binding);
+    });
+  }
+
   const label = createElement(doc, "span", "sot-metric-label", metric.label);
   const valueGroup = createElement(
     doc,
@@ -238,17 +255,19 @@ function createHeader(doc: Document, model: OverlayViewModel): HTMLElement {
 function createTodaySection(
   doc: Document,
   model: OverlayViewModel,
-  onSelectWorkMode: (mode: WorkMode) => void,
+  callbacks: OverlayRenderCallbacks,
 ): HTMLElement {
   const section = createElement(doc, "section", "sot-section");
   const metrics = createElement(doc, "div", "sot-metric-stack");
 
   model.todaySection.metrics.forEach((metric) => {
-    metrics.append(createDurationMetricCard(doc, metric));
+    metrics.append(
+      createDurationMetricCard(doc, metric, callbacks.onToggleMetricView),
+    );
   });
 
   section.append(
-    createSectionLabel(doc, model.todaySection, onSelectWorkMode),
+    createSectionLabel(doc, model.todaySection, callbacks.onSelectWorkMode),
     metrics,
   );
 
@@ -258,6 +277,7 @@ function createTodaySection(
 function createMonthSection(
   doc: Document,
   model: OverlayViewModel,
+  callbacks: OverlayRenderCallbacks,
 ): HTMLElement {
   const section = createElement(
     doc,
@@ -267,7 +287,9 @@ function createMonthSection(
   const grid = createElement(doc, "div", "sot-month-grid");
 
   model.monthSection.metrics.forEach((metric) => {
-    grid.append(createDurationMetricCard(doc, metric));
+    grid.append(
+      createDurationMetricCard(doc, metric, callbacks.onToggleMetricView),
+    );
   });
 
   section.append(createSectionLabel(doc, model.monthSection), grid);
@@ -304,7 +326,7 @@ function createCtaSection(doc: Document, onToggle: () => void): HTMLDivElement {
 function createOverlayCard(
   doc: Document,
   model: OverlayViewModel,
-  onSelectWorkMode: (mode: WorkMode) => void,
+  callbacks: OverlayRenderCallbacks,
 ): HTMLDivElement {
   const shell = createElement(doc, "div", "sot-shell");
   const divider = createElement(doc, "div", "sot-divider");
@@ -317,8 +339,8 @@ function createOverlayCard(
   };
 
   content.append(
-    createTodaySection(doc, model, onSelectWorkMode),
-    createMonthSection(doc, model),
+    createTodaySection(doc, model, callbacks),
+    createMonthSection(doc, model, callbacks),
     createCtaSection(doc, toggleWipPanel),
     wipPanel,
   );
@@ -394,11 +416,11 @@ export function renderOverlayResult(
   root: HTMLDivElement,
   doc: Document,
   model: OverlayViewModel,
-  onSelectWorkMode: (mode: WorkMode) => void,
+  callbacks: OverlayRenderCallbacks,
 ): void {
   renderOverlayChildren(
     root,
-    [createOverlayCard(doc, model, onSelectWorkMode)],
+    [createOverlayCard(doc, model, callbacks)],
     "ready",
   );
 }

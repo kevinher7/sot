@@ -28,6 +28,7 @@ export function createSettingsSignature(
     standardBreakMinutes: settings.standardBreakMinutes,
     standardWorkdayHours: settings.standardWorkdayHours,
     workMode: settings.workMode,
+    metricViews: settings.metricViews,
   });
 }
 

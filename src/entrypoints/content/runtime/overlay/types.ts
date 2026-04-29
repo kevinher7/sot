@@ -2,6 +2,7 @@ import type {
   OverlayMetricTone,
   TodayBadgeStatus,
 } from "@/domain/kot/projection/overlay-metrics";
+import type { OverlayDurationMetricViewBinding } from "@/domain/kot/projection/overlay-mode/types";
 import type { WorkMode } from "@/domain/kot/types";
 
 export type OverlayDurationMetricAppearance = "default" | "rest-day" | "subtle";
@@ -13,6 +14,17 @@ export type OverlayDurationMetric = {
   tone: OverlayMetricTone;
   unit: "" | "h" | "m";
   value: string;
+  viewBinding?: OverlayDurationMetricViewBinding;
+};
+
+export type OnSelectWorkMode = (mode: WorkMode) => void;
+export type OnToggleMetricView = (
+  binding: OverlayDurationMetricViewBinding,
+) => void;
+
+export type OverlayRenderCallbacks = {
+  onSelectWorkMode: OnSelectWorkMode;
+  onToggleMetricView: OnToggleMetricView;
 };
 
 export type OverlayBadgeTone = "error" | "warning";

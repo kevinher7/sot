@@ -27,7 +27,7 @@ export type OverlayMetricTone =
 
 export type OverlayCalculationSettings = Pick<
   ExtensionSettings,
-  "standardBreakMinutes" | "standardWorkdayHours" | "workMode"
+  "standardBreakMinutes" | "standardWorkdayHours" | "workMode" | "metricViews"
 >;
 
 export type OverlayCalculationInput = {
@@ -191,6 +191,21 @@ export function calculateMonthBankMinutes(
   return workedMinutesSoFar - requiredWorkedMinutesSoFar;
 }
 
+export function calculateMonthBankEstimatedMinutes(
+  monthBankMinutes: number,
+  requiredWorkdayMinutes: number,
+  todayWorkedMinutes: number,
+  isTodayWorkday: boolean,
+): number {
+  if (!isTodayWorkday) {
+    return monthBankMinutes;
+  }
+
+  return (
+    monthBankMinutes + Math.max(0, requiredWorkdayMinutes - todayWorkedMinutes)
+  );
+}
+
 function calculateAggregateTone(input: {
   displayMinutes: number;
   errorDayCount: number;
@@ -269,8 +284,16 @@ function createModeProjectionInput(
     resolvedMonth.effectiveSummary.bankMinutesSoFar,
     requiredWorkedMinutesSoFar,
   );
+  const requiredWorkdayMinutes = input.settings.standardWorkdayHours * 60;
+  const rawTodayStatus = calculateTodayStatus(input.pageSnapshot);
+  const monthBankEstimatedMinutes = calculateMonthBankEstimatedMinutes(
+    monthBankMinutes,
+    requiredWorkdayMinutes,
+    todayWorkedMinutes,
+    rawTodayStatus !== "rest-day",
+  );
   const todayStatus = normalizeTodayStatus(
-    calculateTodayStatus(input.pageSnapshot),
+    rawTodayStatus,
     input.settings,
     input.pageSnapshot,
   );
@@ -285,6 +308,8 @@ function createModeProjectionInput(
   );
 
   return {
+    metricViews: input.settings.metricViews,
+    monthBankEstimatedMinutes,
     monthBankMinutes,
     monthBankTone: calculateAggregateTone({
       displayMinutes: monthBankMinutes,
@@ -296,7 +321,7 @@ function createModeProjectionInput(
       errorDayCount: resolvedMonth.aggregateFlags.errorDayCount,
       isUsingEstimate: resolvedMonth.aggregateFlags.isUsingEstimate,
     }),
-    requiredWorkdayMinutes: input.settings.standardWorkdayHours * 60,
+    requiredWorkdayMinutes,
     resolvedMonth,
     todayBadgeStatus,
     todayBreakAllowanceMinutes,

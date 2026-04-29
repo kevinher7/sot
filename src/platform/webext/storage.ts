@@ -1,6 +1,11 @@
 import { normalizeSettings } from "@/domain/kot/settings";
 import type { KotRequestCacheEntry } from "@/domain/kot/request-data";
-import type { ExtensionSettings, WorkMode } from "@/domain/kot/types";
+import type {
+  ExtensionMetricViews,
+  ExtensionSettings,
+  MetricViewKey,
+  WorkMode,
+} from "@/domain/kot/types";
 import {
   getStorageValues,
   setStorageValues,
@@ -42,6 +47,24 @@ export async function setWorkMode(
   const nextSettings = normalizeSettings({
     ...settings,
     workMode,
+  });
+
+  await setSettings(nextSettings);
+
+  return nextSettings;
+}
+
+export async function setMetricView<K extends MetricViewKey>(
+  key: K,
+  value: ExtensionMetricViews[K],
+): Promise<ExtensionSettings> {
+  const settings = await getSettings();
+  const nextSettings = normalizeSettings({
+    ...settings,
+    metricViews: {
+      ...settings.metricViews,
+      [key]: value,
+    },
   });
 
   await setSettings(nextSettings);

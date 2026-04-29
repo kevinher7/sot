@@ -30,6 +30,7 @@ function createDurationMetric(
   unit: OverlayDurationMetric["unit"],
   tone: OverlayDurationMetric["tone"],
   cardTone: OverlayDurationMetric["cardTone"] = tone,
+  viewBinding?: OverlayDurationMetric["viewBinding"],
 ): OverlayDurationMetric {
   return {
     appearance,
@@ -38,6 +39,7 @@ function createDurationMetric(
     tone,
     unit,
     value,
+    viewBinding,
   };
 }
 
@@ -96,6 +98,7 @@ function createDurationMetricFromProjection(
     metric.unit,
     metric.tone,
     metric.cardTone,
+    metric.viewBinding,
   );
 }
 

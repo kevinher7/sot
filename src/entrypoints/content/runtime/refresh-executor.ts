@@ -18,7 +18,11 @@ import {
 } from "@/entrypoints/content/runtime/state";
 import { getNow } from "@/platform/time/clock";
 import type { WorkMode } from "@/domain/kot/types";
-import { getSettings, setWorkMode } from "@/platform/webext/storage";
+import {
+  getSettings,
+  setMetricView,
+  setWorkMode,
+} from "@/platform/webext/storage";
 
 export function createRefreshExecutor(
   win: Window,
@@ -96,14 +100,21 @@ export function createRefreshExecutor(
     });
     const model = createOverlayViewModel(now, result, settings);
 
-    renderOverlayResult(root, doc, model, (workMode: WorkMode) => {
-      if (workMode === settings.workMode) {
-        return;
-      }
+    renderOverlayResult(root, doc, model, {
+      onSelectWorkMode: (workMode: WorkMode) => {
+        if (workMode === settings.workMode) {
+          return;
+        }
 
-      void setWorkMode(workMode).then(() => {
-        queueModeRefresh();
-      });
+        void setWorkMode(workMode).then(() => {
+          queueModeRefresh();
+        });
+      },
+      onToggleMetricView: (binding) => {
+        void setMetricView(binding.viewKey, binding.nextView).then(() => {
+          queueModeRefresh();
+        });
+      },
     });
     cache.pageSignature = pageSnapshot.signature;
     cache.requestContextKey = requestContext?.key ?? null;
