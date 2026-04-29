@@ -14,6 +14,7 @@ function createRestDayMetric(label: string): OverlayDurationMetricProjection {
     minutes: 0,
     tone: "neutral",
     unit: "",
+    viewBinding: undefined,
   };
 }
 
@@ -45,6 +46,7 @@ function createMonthPrimaryMetric(
         ? "positive"
         : "neutral",
     unit: "h",
+    viewBinding: undefined,
   };
 }
 
@@ -85,6 +87,7 @@ export function projectInternOverlayMode(
       minutes: input.todayWorkedMinutes,
       tone: isNotStarted ? "neutral" : "positive",
       unit: "h",
+      viewBinding: undefined,
     },
     todaySecondaryMetric: {
       appearance: todayMetricVisualState.appearance,
@@ -94,6 +97,7 @@ export function projectInternOverlayMode(
       minutes: breakRemainingMinutes,
       tone: breakRemainingTone,
       unit: "h",
+      viewBinding: undefined,
     },
     workMode: "intern",
   };

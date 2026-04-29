@@ -337,6 +337,35 @@
   background: #f3f4f6;
 }
 
+.sot-metric-card[data-toggleable="true"] {
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  transition: background-color 0.12s ease;
+}
+
+.sot-metric-card[data-toggleable="true"]:hover {
+  background: rgba(241, 245, 249, 0.9);
+}
+
+.sot-metric-card[data-toggleable="true"][data-tone="error"]:hover {
+  background: rgba(254, 226, 226, 0.95);
+}
+
+.sot-metric-card[data-toggleable="true"][data-tone="warning"]:hover {
+  background: rgba(254, 243, 199, 0.95);
+}
+
+.sot-metric-card[data-toggleable="true"][data-tone="neutral"]:hover {
+  background: rgba(229, 231, 235, 0.95);
+}
+
+.sot-metric-card[data-toggleable="true"]:focus-visible {
+  outline: 2px solid rgba(40, 167, 69, 0.45);
+  outline-offset: 2px;
+}
+
 .sot-metric-label {
   min-width: 0;
   font-size: 11px;

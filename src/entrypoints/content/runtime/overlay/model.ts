@@ -29,7 +29,8 @@ function createDurationMetric(
   value: string,
   unit: OverlayDurationMetric["unit"],
   tone: OverlayDurationMetric["tone"],
-  cardTone: OverlayDurationMetric["cardTone"] = tone,
+  cardTone: OverlayDurationMetric["cardTone"],
+  viewBinding: OverlayDurationMetric["viewBinding"],
 ): OverlayDurationMetric {
   return {
     appearance,
@@ -38,6 +39,7 @@ function createDurationMetric(
     tone,
     unit,
     value,
+    viewBinding,
   };
 }
 
@@ -84,6 +86,8 @@ function createDurationMetricFromProjection(
       "REST DAY",
       "",
       "neutral",
+      "neutral",
+      undefined,
     );
   }
 
@@ -96,6 +100,7 @@ function createDurationMetricFromProjection(
     metric.unit,
     metric.tone,
     metric.cardTone,
+    metric.viewBinding,
   );
 }
 
@@ -216,6 +221,7 @@ function createMonthSection(
     badges: createBadges(result.monthErrorCount, result.monthWarningCount),
     label: formatMonthLabel(now),
     metrics: [createDurationMetricFromProjection(result.monthPrimaryMetric)],
+    modeSelector: undefined,
   };
 }
 
