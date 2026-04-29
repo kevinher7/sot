@@ -15,6 +15,7 @@ function createRestDayMetric(label: string): OverlayDurationMetricProjection {
     minutes: 0,
     tone: "neutral",
     unit: "",
+    viewBinding: undefined,
   };
 }
 

@@ -24,16 +24,16 @@ let headerIconIdSequence = 0;
 function createElement<K extends keyof HTMLElementTagNameMap>(
   doc: Document,
   tagName: K,
-  className?: string,
-  textContent?: string,
+  className: string | undefined,
+  textContent: string | undefined,
 ): HTMLElementTagNameMap[K] {
   const element = doc.createElement(tagName);
 
-  if (className) {
+  if (className !== undefined) {
     element.className = className;
   }
 
-  if (textContent) {
+  if (textContent !== undefined) {
     element.textContent = textContent;
   }
 
@@ -47,7 +47,7 @@ function createHeaderIconId(prefix: string): string {
 }
 
 function createHeaderIcon(doc: Document): HTMLSpanElement {
-  const wrapper = createElement(doc, "span", "sot-icon");
+  const wrapper = createElement(doc, "span", "sot-icon", undefined);
   const parsedSvgDocument = new DOMParser().parseFromString(
     sotSvg,
     "image/svg+xml",
@@ -100,7 +100,7 @@ function createModeSelector(
   model: OverlayModeSelector,
   onSelectWorkMode: OnSelectWorkMode,
 ): HTMLDivElement {
-  const group = createElement(doc, "div", "sot-mode-selector");
+  const group = createElement(doc, "div", "sot-mode-selector", undefined);
 
   group.setAttribute("role", "group");
   group.ariaLabel = model.ariaLabel;
@@ -134,16 +134,21 @@ function createModeSelector(
 function createSectionLabel(
   doc: Document,
   model: OverlaySectionModel,
-  onSelectWorkMode?: OnSelectWorkMode,
+  onSelectWorkMode: OnSelectWorkMode | undefined,
 ): HTMLDivElement {
-  const wrapper = createElement(doc, "div", "sot-section-label-row");
-  const left = createElement(doc, "div", "sot-section-label-wrap");
+  const wrapper = createElement(doc, "div", "sot-section-label-row", undefined);
+  const left = createElement(doc, "div", "sot-section-label-wrap", undefined);
   const label = createElement(doc, "span", "sot-section-label", model.label);
 
   left.append(label);
 
   model.badges.forEach((badge) => {
-    const badgeElement = createElement(doc, "span", "sot-section-badge");
+    const badgeElement = createElement(
+      doc,
+      "span",
+      "sot-section-badge",
+      undefined,
+    );
     const iconElement = createElement(
       doc,
       "span",
@@ -180,8 +185,8 @@ function createDurationMetricCard(
 ): HTMLElement {
   const binding = metric.viewBinding;
   const card: HTMLElement = binding
-    ? createElement(doc, "button", "sot-metric-card")
-    : createElement(doc, "div", "sot-metric-card");
+    ? createElement(doc, "button", "sot-metric-card", undefined)
+    : createElement(doc, "div", "sot-metric-card", undefined);
 
   if (binding && card instanceof HTMLButtonElement) {
     card.type = "button";
@@ -198,6 +203,7 @@ function createDurationMetricCard(
     doc,
     "div",
     `sot-metric-value ${METRIC_TONE_CLASS_NAME[metric.tone]}`,
+    undefined,
   );
   const value = createElement(
     doc,
@@ -236,8 +242,8 @@ function createHeaderBadgeElement(
 }
 
 function createHeader(doc: Document, model: OverlayViewModel): HTMLElement {
-  const header = createElement(doc, "header", "sot-header");
-  const headingGroup = createElement(doc, "div", "sot-header-group");
+  const header = createElement(doc, "header", "sot-header", undefined);
+  const headingGroup = createElement(doc, "div", "sot-header-group", undefined);
   const title = createElement(
     doc,
     "span",
@@ -257,8 +263,8 @@ function createTodaySection(
   model: OverlayViewModel,
   callbacks: OverlayRenderCallbacks,
 ): HTMLElement {
-  const section = createElement(doc, "section", "sot-section");
-  const metrics = createElement(doc, "div", "sot-metric-stack");
+  const section = createElement(doc, "section", "sot-section", undefined);
+  const metrics = createElement(doc, "div", "sot-metric-stack", undefined);
 
   model.todaySection.metrics.forEach((metric) => {
     metrics.append(
@@ -283,8 +289,9 @@ function createMonthSection(
     doc,
     "section",
     "sot-section sot-section--month",
+    undefined,
   );
-  const grid = createElement(doc, "div", "sot-month-grid");
+  const grid = createElement(doc, "div", "sot-month-grid", undefined);
 
   model.monthSection.metrics.forEach((metric) => {
     grid.append(
@@ -292,7 +299,7 @@ function createMonthSection(
     );
   });
 
-  section.append(createSectionLabel(doc, model.monthSection), grid);
+  section.append(createSectionLabel(doc, model.monthSection, undefined), grid);
 
   return section;
 }
@@ -306,8 +313,8 @@ function createWipPanel(doc: Document): HTMLElement {
 }
 
 function createCtaSection(doc: Document, onToggle: () => void): HTMLDivElement {
-  const wrapper = createElement(doc, "div", "sot-cta-wrap");
-  const button = createElement(doc, "button", "sot-cta-button");
+  const wrapper = createElement(doc, "div", "sot-cta-wrap", undefined);
+  const button = createElement(doc, "button", "sot-cta-button", undefined);
   const label = createElement(doc, "span", "sot-cta-label", "Month breakdown");
   const icon = createElement(doc, "span", "sot-cta-icon", "▾");
 
@@ -328,10 +335,10 @@ function createOverlayCard(
   model: OverlayViewModel,
   callbacks: OverlayRenderCallbacks,
 ): HTMLDivElement {
-  const shell = createElement(doc, "div", "sot-shell");
-  const divider = createElement(doc, "div", "sot-divider");
-  const content = createElement(doc, "main", "sot-content");
-  const accent = createElement(doc, "div", "sot-accent");
+  const shell = createElement(doc, "div", "sot-shell", undefined);
+  const divider = createElement(doc, "div", "sot-divider", undefined);
+  const content = createElement(doc, "main", "sot-content", undefined);
+  const accent = createElement(doc, "div", "sot-accent", undefined);
   const wipPanel = createWipPanel(doc);
 
   const toggleWipPanel = (): void => {
@@ -366,7 +373,7 @@ export function renderOverlayLoading(
 ): void {
   renderOverlayChildren(
     root,
-    [createElement(doc, "div", "sot-shell sot-shell--status")],
+    [createElement(doc, "div", "sot-shell sot-shell--status", undefined)],
     "loading",
   );
 
@@ -390,7 +397,7 @@ export function renderOverlayError(
 ): void {
   renderOverlayChildren(
     root,
-    [createElement(doc, "div", "sot-shell sot-shell--status")],
+    [createElement(doc, "div", "sot-shell sot-shell--status", undefined)],
     "error",
   );
 

@@ -28,7 +28,7 @@ export type OverlayDurationMetricProjection = {
   minutes: number;
   tone: OverlayMetricTone;
   unit: "" | "h";
-  viewBinding?: OverlayDurationMetricViewBinding;
+  viewBinding: OverlayDurationMetricViewBinding | undefined;
 };
 
 export type OverlayModeProjectionResult = {

@@ -14,7 +14,7 @@ export type OverlayDurationMetric = {
   tone: OverlayMetricTone;
   unit: "" | "h" | "m";
   value: string;
-  viewBinding?: OverlayDurationMetricViewBinding;
+  viewBinding: OverlayDurationMetricViewBinding | undefined;
 };
 
 export type OnSelectWorkMode = (mode: WorkMode) => void;
@@ -58,7 +58,7 @@ export type OverlaySectionModel = {
   badges: readonly OverlayBadge[];
   label: string;
   metrics: readonly OverlayDurationMetric[];
-  modeSelector?: OverlayModeSelector;
+  modeSelector: OverlayModeSelector | undefined;
 };
 
 export type OverlayViewModel = {
