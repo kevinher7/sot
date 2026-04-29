@@ -11,6 +11,7 @@ SOT is a Firefox-first WebExtension for augmenting KING OF TIME's admin monthly 
 - Prefer `type` over `interface` for new TypeScript types
 - Never use `any`
 - No `@ts-ignore` or `@ts-expect-error`
+- Prefer explicit `T | undefined` unions over `?` optional syntax for properties and parameters
 - Keep entrypoint files thin; move logic into focused modules when possible
 - Keep domain logic pure and independent from DOM/browser APIs
 - Keep browser API access behind `src/platform/webext/`
