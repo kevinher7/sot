@@ -11,6 +11,7 @@ export type OverlayDurationMetric = {
   appearance: OverlayDurationMetricAppearance;
   cardTone: OverlayMetricTone;
   label: string;
+  showNewBadge: boolean;
   tone: OverlayMetricTone;
   unit: "" | "h" | "m";
   value: string;

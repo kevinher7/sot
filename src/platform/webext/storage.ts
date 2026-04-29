@@ -65,6 +65,10 @@ export async function setMetricView<K extends MetricViewKey>(
       ...settings.metricViews,
       [key]: value,
     },
+    seenBoxes: {
+      ...settings.seenBoxes,
+      [key]: true,
+    },
   });
 
   await setSettings(nextSettings);

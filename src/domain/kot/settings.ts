@@ -3,6 +3,7 @@ import type {
   ExtensionMetricViews,
   ExtensionSettings,
   MonthBankView,
+  SeenBoxes,
   WorkMode,
   WorkTodayView,
 } from "@/domain/kot/types";
@@ -33,10 +34,26 @@ function normalizeMetricViews(
   };
 }
 
+function normalizeSeenBoxes(
+  seenBoxes: Partial<SeenBoxes> | undefined,
+): SeenBoxes {
+  return {
+    workToday: seenBoxes?.workToday === true,
+    breakToday: seenBoxes?.breakToday === true,
+    monthBank: seenBoxes?.monthBank === true,
+  };
+}
+
 export const DEFAULT_METRIC_VIEWS: ExtensionMetricViews = {
   workToday: "left",
   breakToday: "left",
   monthBank: "actual",
+};
+
+export const DEFAULT_SEEN_BOXES: SeenBoxes = {
+  workToday: false,
+  breakToday: false,
+  monthBank: false,
 };
 
 export const DEFAULT_SETTINGS: ExtensionSettings = {
@@ -44,6 +61,7 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
   standardWorkdayHours: 8,
   workMode: "full",
   metricViews: DEFAULT_METRIC_VIEWS,
+  seenBoxes: DEFAULT_SEEN_BOXES,
 };
 
 export function normalizeSettings(
@@ -54,5 +72,6 @@ export function normalizeSettings(
     ...settings,
     workMode: normalizeWorkMode(settings?.workMode),
     metricViews: normalizeMetricViews(settings?.metricViews),
+    seenBoxes: normalizeSeenBoxes(settings?.seenBoxes),
   };
 }

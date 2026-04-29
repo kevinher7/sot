@@ -12,9 +12,12 @@ export type ExtensionMetricViews = {
   monthBank: MonthBankView;
 };
 
+export type SeenBoxes = Record<MetricViewKey, boolean>;
+
 export type ExtensionSettings = {
   standardBreakMinutes: number;
   standardWorkdayHours: number;
   workMode: WorkMode;
   metricViews: ExtensionMetricViews;
+  seenBoxes: SeenBoxes;
 };

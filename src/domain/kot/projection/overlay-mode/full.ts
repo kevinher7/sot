@@ -69,7 +69,7 @@ function createMonthPrimaryMetric(
     appearance: "default",
     cardTone: input.monthBankTone,
     format: "signed-duration",
-    label: "Bank",
+    label: "Bank curr.",
     minutes: input.monthBankMinutes,
     tone: createSignedTone(input.monthBankMinutes),
     unit: "h",

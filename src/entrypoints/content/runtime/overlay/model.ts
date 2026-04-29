@@ -1,7 +1,5 @@
-import type {
-  OverlayCalculationResult,
-  OverlayCalculationSettings,
-} from "@/domain/kot/projection/overlay-metrics";
+import type { OverlayCalculationResult } from "@/domain/kot/projection/overlay-metrics";
+import type { ExtensionSettings, SeenBoxes } from "@/domain/kot/types";
 import type {
   OverlayBadge,
   OverlayDurationMetric,
@@ -31,11 +29,13 @@ function createDurationMetric(
   tone: OverlayDurationMetric["tone"],
   cardTone: OverlayDurationMetric["cardTone"],
   viewBinding: OverlayDurationMetric["viewBinding"],
+  showNewBadge: boolean,
 ): OverlayDurationMetric {
   return {
     appearance,
     cardTone,
     label,
+    showNewBadge,
     tone,
     unit,
     value,
@@ -78,7 +78,12 @@ function formatSignedHoursAndMinutes(totalMinutes: number): string {
 
 function createDurationMetricFromProjection(
   metric: OverlayCalculationResult["todayPrimaryMetric"],
+  seenBoxes: SeenBoxes,
 ): OverlayDurationMetric {
+  const showNewBadge =
+    metric.viewBinding !== undefined &&
+    seenBoxes[metric.viewBinding.viewKey] === false;
+
   if (metric.appearance === "rest-day") {
     return createDurationMetric(
       metric.label,
@@ -88,6 +93,7 @@ function createDurationMetricFromProjection(
       "neutral",
       "neutral",
       undefined,
+      false,
     );
   }
 
@@ -101,6 +107,7 @@ function createDurationMetricFromProjection(
     metric.tone,
     metric.cardTone,
     metric.viewBinding,
+    showNewBadge,
   );
 }
 
@@ -201,13 +208,17 @@ function createModeSelector(
 function createTodaySection(
   now: Date,
   result: OverlayCalculationResult,
+  seenBoxes: SeenBoxes,
 ): OverlaySectionModel {
   return {
     badges: createBadges(result.todayErrorCount, result.todayWarningCount),
     label: formatTodayLabel(now),
     metrics: [
-      createDurationMetricFromProjection(result.todayPrimaryMetric),
-      createDurationMetricFromProjection(result.todaySecondaryMetric),
+      createDurationMetricFromProjection(result.todayPrimaryMetric, seenBoxes),
+      createDurationMetricFromProjection(
+        result.todaySecondaryMetric,
+        seenBoxes,
+      ),
     ],
     modeSelector: createModeSelector(result),
   };
@@ -216,11 +227,14 @@ function createTodaySection(
 function createMonthSection(
   now: Date,
   result: OverlayCalculationResult,
+  seenBoxes: SeenBoxes,
 ): OverlaySectionModel {
   return {
     badges: createBadges(result.monthErrorCount, result.monthWarningCount),
     label: formatMonthLabel(now),
-    metrics: [createDurationMetricFromProjection(result.monthPrimaryMetric)],
+    metrics: [
+      createDurationMetricFromProjection(result.monthPrimaryMetric, seenBoxes),
+    ],
     modeSelector: undefined,
   };
 }
@@ -228,13 +242,11 @@ function createMonthSection(
 export function createOverlayViewModel(
   now: Date,
   result: OverlayCalculationResult,
-  settings: OverlayCalculationSettings,
+  settings: ExtensionSettings,
 ): OverlayViewModel {
-  void settings;
-
   return {
     headerBadge: createHeaderBadge(result),
-    monthSection: createMonthSection(now, result),
-    todaySection: createTodaySection(now, result),
+    monthSection: createMonthSection(now, result, settings.seenBoxes),
+    todaySection: createTodaySection(now, result, settings.seenBoxes),
   };
 }
