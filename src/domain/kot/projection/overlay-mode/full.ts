@@ -75,12 +75,6 @@ export function projectFullOverlayMode(
   if (input.todayStatus === "rest-day") {
     return {
       monthPrimaryMetric: createMonthPrimaryMetric(input),
-      monthProgressMetric: {
-        actualPercent: input.monthProgressActualPercent,
-        estimatedPercent: input.monthProgressEstimatedPercent,
-        label: "TOTAL",
-        tone: input.monthBankTone,
-      },
       todayPrimaryMetric: createRestDayMetric("Work left"),
       todaySecondaryMetric: createRestDayMetric("Break left"),
       workMode: "full",
@@ -89,12 +83,6 @@ export function projectFullOverlayMode(
 
   return {
     monthPrimaryMetric: createMonthPrimaryMetric(input),
-    monthProgressMetric: {
-      actualPercent: input.monthProgressActualPercent,
-      estimatedPercent: input.monthProgressEstimatedPercent,
-      label: "TOTAL",
-      tone: input.monthBankTone,
-    },
     todayPrimaryMetric: {
       appearance: todayMetricVisualState.appearance,
       cardTone: todayMetricVisualState.primaryCardTone,

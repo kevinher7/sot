@@ -15,13 +15,6 @@ export type OverlayDurationMetric = {
   value: string;
 };
 
-export type OverlayProgressMetric = {
-  actualPercent: number;
-  estimatedPercent: number;
-  label: string;
-  tone: OverlayMetricTone;
-};
-
 export type OverlayBadgeTone = "error" | "warning";
 
 export type OverlayBadge = {
@@ -54,7 +47,6 @@ export type OverlaySectionModel = {
   label: string;
   metrics: readonly OverlayDurationMetric[];
   modeSelector?: OverlayModeSelector;
-  progressMetric: OverlayProgressMetric | null;
 };
 
 export type OverlayViewModel = {

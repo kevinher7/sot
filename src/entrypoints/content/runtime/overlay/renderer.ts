@@ -5,7 +5,6 @@ import type {
   OverlayDurationMetric,
   OverlayHeaderBadge,
   OverlayModeSelector,
-  OverlayProgressMetric,
   OverlaySectionModel,
   OverlayViewModel,
 } from "@/entrypoints/content/runtime/overlay/types";
@@ -206,49 +205,6 @@ function createDurationMetricCard(
   return card;
 }
 
-function createProgressFill(
-  doc: Document,
-  className: string,
-  percent: number,
-  tone: OverlayMetricTone,
-): HTMLDivElement {
-  const fill = createElement(doc, "div", className);
-  const safeValue = Math.max(0, Math.min(100, percent));
-
-  fill.dataset.tone = tone;
-  fill.style.width = `${safeValue}%`;
-
-  return fill;
-}
-
-function createProgressCard(
-  doc: Document,
-  metric: OverlayProgressMetric,
-): HTMLDivElement {
-  const card = createElement(doc, "div", "sot-progress-card");
-  const label = createElement(doc, "span", "sot-metric-label", metric.label);
-  const rail = createElement(doc, "div", "sot-progress-rail");
-
-  card.dataset.tone = metric.tone;
-  rail.append(
-    createProgressFill(
-      doc,
-      "sot-progress-fill sot-progress-fill--estimated",
-      metric.estimatedPercent,
-      metric.tone,
-    ),
-    createProgressFill(
-      doc,
-      "sot-progress-fill sot-progress-fill--actual",
-      metric.actualPercent,
-      "positive",
-    ),
-  );
-  card.append(label, rail);
-
-  return card;
-}
-
 function createHeaderBadgeElement(
   doc: Document,
   badge: OverlayHeaderBadge,
@@ -308,21 +264,11 @@ function createMonthSection(
     "section",
     "sot-section sot-section--month",
   );
-  const grid = createElement(
-    doc,
-    "div",
-    model.monthSection.progressMetric === null
-      ? "sot-month-grid sot-month-grid--single"
-      : "sot-month-grid",
-  );
+  const grid = createElement(doc, "div", "sot-month-grid");
 
   model.monthSection.metrics.forEach((metric) => {
     grid.append(createDurationMetricCard(doc, metric));
   });
-
-  if (model.monthSection.progressMetric !== null) {
-    grid.append(createProgressCard(doc, model.monthSection.progressMetric));
-  }
 
   section.append(createSectionLabel(doc, model.monthSection), grid);
 

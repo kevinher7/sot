@@ -12,6 +12,5 @@ export { createOverlayViewModel } from "@/entrypoints/content/runtime/overlay/mo
 export type {
   OverlayBadge,
   OverlayDurationMetric,
-  OverlayProgressMetric,
   OverlayViewModel,
 } from "@/entrypoints/content/runtime/overlay/types";
