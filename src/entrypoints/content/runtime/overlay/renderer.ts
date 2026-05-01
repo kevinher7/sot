@@ -20,6 +20,7 @@ const METRIC_TONE_CLASS_NAME: Record<OverlayMetricTone, string> = {
 };
 
 let headerIconIdSequence = 0;
+let hasPulsedThisSession = false;
 
 function createElement<K extends keyof HTMLElementTagNameMap>(
   doc: Document,
@@ -182,6 +183,7 @@ function createDurationMetricCard(
   doc: Document,
   metric: OverlayDurationMetric,
   onToggleMetricView: OnToggleMetricView,
+  allowPulse: boolean,
 ): HTMLElement {
   const binding = metric.viewBinding;
   const card: HTMLElement = binding
@@ -225,6 +227,23 @@ function createDurationMetricCard(
     valueGroup.append(unit);
   }
 
+  if (metric.showNewBadge) {
+    card.dataset.newBadge = "true";
+
+    if (allowPulse) {
+      card.dataset.pulse = "true";
+    }
+
+    const newBadge = createElement(
+      doc,
+      "span",
+      "sot-metric-card-new-badge",
+      "NEW",
+    );
+
+    card.append(newBadge);
+  }
+
   return card;
 }
 
@@ -262,13 +281,19 @@ function createTodaySection(
   doc: Document,
   model: OverlayViewModel,
   callbacks: OverlayRenderCallbacks,
+  allowPulse: boolean,
 ): HTMLElement {
   const section = createElement(doc, "section", "sot-section", undefined);
   const metrics = createElement(doc, "div", "sot-metric-stack", undefined);
 
   model.todaySection.metrics.forEach((metric) => {
     metrics.append(
-      createDurationMetricCard(doc, metric, callbacks.onToggleMetricView),
+      createDurationMetricCard(
+        doc,
+        metric,
+        callbacks.onToggleMetricView,
+        allowPulse,
+      ),
     );
   });
 
@@ -284,6 +309,7 @@ function createMonthSection(
   doc: Document,
   model: OverlayViewModel,
   callbacks: OverlayRenderCallbacks,
+  allowPulse: boolean,
 ): HTMLElement {
   const section = createElement(
     doc,
@@ -295,7 +321,12 @@ function createMonthSection(
 
   model.monthSection.metrics.forEach((metric) => {
     grid.append(
-      createDurationMetricCard(doc, metric, callbacks.onToggleMetricView),
+      createDurationMetricCard(
+        doc,
+        metric,
+        callbacks.onToggleMetricView,
+        allowPulse,
+      ),
     );
   });
 
@@ -334,6 +365,7 @@ function createOverlayCard(
   doc: Document,
   model: OverlayViewModel,
   callbacks: OverlayRenderCallbacks,
+  allowPulse: boolean,
 ): HTMLDivElement {
   const shell = createElement(doc, "div", "sot-shell", undefined);
   const divider = createElement(doc, "div", "sot-divider", undefined);
@@ -346,8 +378,8 @@ function createOverlayCard(
   };
 
   content.append(
-    createTodaySection(doc, model, callbacks),
-    createMonthSection(doc, model, callbacks),
+    createTodaySection(doc, model, callbacks, allowPulse),
+    createMonthSection(doc, model, callbacks, allowPulse),
     createCtaSection(doc, toggleWipPanel),
     wipPanel,
   );
@@ -425,9 +457,13 @@ export function renderOverlayResult(
   model: OverlayViewModel,
   callbacks: OverlayRenderCallbacks,
 ): void {
+  const allowPulse = !hasPulsedThisSession;
+
+  hasPulsedThisSession = true;
+
   renderOverlayChildren(
     root,
-    [createOverlayCard(doc, model, callbacks)],
+    [createOverlayCard(doc, model, callbacks, allowPulse)],
     "ready",
   );
 }

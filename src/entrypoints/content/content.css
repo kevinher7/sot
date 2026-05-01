@@ -304,6 +304,7 @@
 }
 
 .sot-metric-card {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -364,6 +365,42 @@
 .sot-metric-card[data-toggleable="true"]:focus-visible {
   outline: 2px solid rgba(40, 167, 69, 0.45);
   outline-offset: 2px;
+}
+
+.sot-metric-card-new-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 5px;
+  border-radius: 2px;
+  background: #28a745;
+  color: #ffffff;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  pointer-events: none;
+  box-shadow: 0 1px 2px rgba(25, 28, 30, 0.18);
+  transition: opacity 0.18s ease;
+}
+
+@keyframes sot-pulse-attention {
+  0% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.55);
+  }
+
+  100% {
+    box-shadow: 0 0 0 8px rgba(40, 167, 69, 0);
+  }
+}
+
+.sot-metric-card[data-pulse="true"] {
+  animation: sot-pulse-attention 1.4s ease-out 3;
 }
 
 .sot-metric-label {
