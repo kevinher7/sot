@@ -4,12 +4,12 @@ import type {
   KotResolvedDayIssueCode,
 } from "@/domain/kot/calculation/day/calculation-types";
 
+function isInformationalIssueCode(issueCode: KotResolvedDayIssueCode): boolean {
+  return issueCode === "ongoingBreak" || issueCode === "ongoingWork";
+}
+
 function isWarningIssueCode(issueCode: KotResolvedDayIssueCode): boolean {
-  return (
-    issueCode === "ongoingBreak" ||
-    issueCode === "ongoingWork" ||
-    issueCode === "requestEstimate"
-  );
+  return issueCode === "requestEstimate";
 }
 
 function getRequestIssueCode(
@@ -55,6 +55,10 @@ export function assessKotDayIssues(input: {
   let errorCount = 0;
 
   issueCodeSet.forEach((issueCode) => {
+    if (isInformationalIssueCode(issueCode)) {
+      return;
+    }
+
     if (isWarningIssueCode(issueCode)) {
       warningCount += 1;
 
