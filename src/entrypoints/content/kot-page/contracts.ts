@@ -35,4 +35,7 @@ export const MONTHLY_PAGE_OFFDAY_WORK_DAY_TYPE_PATTERNS = [
   /休み/u,
 ] as const;
 
+export const MONTHLY_PAGE_TABLE_BODY_SELECTOR =
+  ".htBlock-adjastableTableF tbody";
+
 export const OVERLAY_POSITION_ANCHOR_SELECTOR = "h1.htBlock-pageTitleSticky";

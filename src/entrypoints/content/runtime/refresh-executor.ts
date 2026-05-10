@@ -1,5 +1,6 @@
 import { calculateOverlayMetrics } from "@/domain/kot/projection/overlay-metrics";
 import { readMonthlyPageSnapshot } from "@/entrypoints/content/kot-page";
+import { applyTodayRowHighlight } from "@/entrypoints/content/runtime/day-highlight";
 import {
   createKotRequestContext,
   getKotRequestData,
@@ -34,6 +35,9 @@ export function createRefreshExecutor(
 ): (reason: RefreshReason) => Promise<void> {
   return async (reason: RefreshReason): Promise<void> => {
     const now = getNow();
+
+    applyTodayRowHighlight(doc, now);
+
     const settings = await getSettings();
     const pageSnapshot = readMonthlyPageSnapshot(now, doc);
 
