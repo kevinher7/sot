@@ -4,7 +4,7 @@ import {
   MONTHLY_PAGE_TABLE_BODY_SELECTOR,
 } from "@/entrypoints/content/kot-page/contracts";
 
-const TODAY_ROW_BACKGROUND = "rgba(255, 237, 213, 0.55)";
+const TODAY_ROW_BACKGROUND = "#E2F4E9";
 const HIGHLIGHTED_ATTR = "data-sot-highlighted";
 
 export function applyTodayRowHighlight(doc: Document, now: Date): void {
