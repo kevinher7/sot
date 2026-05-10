@@ -1,6 +1,6 @@
 # Release checklist
 
-## Prepare v1.2.2 artifacts
+## Prepare v1.2.3 artifacts
 
 1. Run `npm ci`.
 2. Run `npm run release:prepare`.
@@ -12,10 +12,11 @@
 
 1. Open the existing SOT listing in AMO Developer Hub.
 2. Upload `releases/firefox.xpi` as a new version.
-3. Add release notes for v1.2.2:
-   - Fix: remove superseded request entries from patch simulation
-   - Fix: merge storage defaults with stored values
-   - Fix: ignore requested break markers when parsing monthly rows
+3. Add release notes for v1.2.3:
+   - Highlight the current day row in the monthly table
+   - Fix: treat ongoing work and break as informational
+   - Add first-view NEW badges to KOT metric cards
+   - Add toggleable metric views to the KOT overlay
 4. Verify permissions and data disclosures still match the extension behavior.
 5. Submit the update for review.
 
