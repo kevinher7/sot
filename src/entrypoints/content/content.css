@@ -587,13 +587,13 @@
   flex: 1;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  padding: 8px 4px;
+  width: 38px;
+  padding: 10px 6px;
   border: 0;
   border-radius: 0;
   background: #ffffff;
   font-family: inherit;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.05em;
   writing-mode: vertical-rl;
