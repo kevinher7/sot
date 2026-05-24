@@ -116,7 +116,7 @@ export function createRefreshExecutor(
     renderOverlayResult(root, doc, model, {
       onRecordAction: (action) => {
         void submitRecordAction(action).then(() => {
-          queueModeRefresh();
+          win.location.reload();
         });
       },
       onSelectWorkMode: (workMode: WorkMode) => {
