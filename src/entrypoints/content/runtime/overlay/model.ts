@@ -1,5 +1,9 @@
-import type { OverlayCalculationResult } from "@/domain/kot/projection/overlay-metrics";
+import type {
+  OverlayCalculationResult,
+  TodayBadgeStatus,
+} from "@/domain/kot/projection/overlay-metrics";
 import type { ExtensionSettings, SeenBoxes } from "@/domain/kot/types";
+import type { RecordAction } from "@/entrypoints/content/runtime/recorder/types";
 import type {
   OverlayBadge,
   OverlayDurationMetric,
@@ -7,6 +11,9 @@ import type {
   OverlayModeSelector,
   OverlaySectionModel,
   OverlayViewModel,
+  SidebarButtonModel,
+  SidebarButtonStatus,
+  SidebarModel,
 } from "@/entrypoints/content/runtime/overlay/types";
 
 const TODAY_MONTH_FORMATTER = new Intl.DateTimeFormat("ja-JP", {
@@ -239,14 +246,71 @@ function createMonthSection(
   };
 }
 
+const SIDEBAR_BUTTONS: readonly { action: RecordAction; label: string }[] = [
+  { action: "clock-in", label: "出勤" },
+  { action: "break-start", label: "休始" },
+  { action: "break-end", label: "休終" },
+  { action: "clock-out", label: "退勤" },
+];
+
+const HIGHLIGHTED_ACTIONS: Record<
+  TodayBadgeStatus,
+  ReadonlySet<RecordAction>
+> = {
+  "not-started": new Set(["clock-in"]),
+  "in-progress": new Set(["break-start", "clock-out"]),
+  break: new Set(["break-end"]),
+  finished: new Set(),
+  "rest-day": new Set(),
+};
+
+function resolveSidebarButtonStatus(
+  action: RecordAction,
+  status: TodayBadgeStatus,
+  pendingAction: RecordAction | null,
+): SidebarButtonStatus {
+  if (pendingAction === action) {
+    return "pending";
+  }
+
+  if (pendingAction !== null) {
+    return "dimmed";
+  }
+
+  if (HIGHLIGHTED_ACTIONS[status].has(action)) {
+    return "highlighted";
+  }
+
+  return "dimmed";
+}
+
+function createSidebarModel(
+  status: TodayBadgeStatus,
+  pendingAction: RecordAction | null,
+): SidebarModel {
+  const visible = true;
+
+  const buttons: SidebarButtonModel[] = SIDEBAR_BUTTONS.map(
+    ({ action, label }) => ({
+      action,
+      label,
+      status: resolveSidebarButtonStatus(action, status, pendingAction),
+    }),
+  );
+
+  return { buttons, visible };
+}
+
 export function createOverlayViewModel(
   now: Date,
   result: OverlayCalculationResult,
   settings: ExtensionSettings,
+  pendingAction: RecordAction | null,
 ): OverlayViewModel {
   return {
     headerBadge: createHeaderBadge(result),
     monthSection: createMonthSection(now, result, settings.seenBoxes),
+    sidebar: createSidebarModel(result.todayBadgeStatus, pendingAction),
     todaySection: createTodaySection(now, result, settings.seenBoxes),
   };
 }

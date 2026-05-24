@@ -11,6 +11,10 @@ import {
   renderOverlayResult,
 } from "@/entrypoints/content/runtime/overlay";
 import {
+  getPendingAction,
+  submitRecordAction,
+} from "@/entrypoints/content/runtime/recorder";
+import {
   clearRequestCache,
   createSettingsSignature,
   type RefreshCache,
@@ -102,9 +106,19 @@ export function createRefreshExecutor(
       requestCacheEntry: cache.requestSnapshot,
       settings,
     });
-    const model = createOverlayViewModel(now, result, settings);
+    const model = createOverlayViewModel(
+      now,
+      result,
+      settings,
+      getPendingAction(),
+    );
 
     renderOverlayResult(root, doc, model, {
+      onRecordAction: (action) => {
+        void submitRecordAction(action).then(() => {
+          queueModeRefresh();
+        });
+      },
       onSelectWorkMode: (workMode: WorkMode) => {
         if (workMode === settings.workMode) {
           return;

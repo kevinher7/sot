@@ -41,6 +41,14 @@
   opacity: 0.6;
 }
 
+#sot-root:has(.sot-sidebar[data-expanded="true"]) .sot-shell {
+  border-radius: 0 8px 8px 0;
+}
+
+#sot-root:has(.sot-sidebar[data-expanded="true"]) .sot-shell::before {
+  border-radius: 0 12px 12px 0;
+}
+
 .sot-shell--status {
   padding: 12px 14px;
 }
@@ -528,4 +536,107 @@
     rgba(40, 167, 69, 0.3),
     transparent
   );
+}
+
+/* ── Sidebar clock buttons ── */
+
+.sot-sidebar-trigger {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 40px;
+  z-index: 2;
+  transform: translateX(-100%);
+  pointer-events: auto;
+}
+
+.sot-sidebar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateX(-100%);
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.sot-sidebar[data-expanded="true"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sot-sidebar-board {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  background: #ffffff;
+  box-shadow: -2px 2px 6px rgba(25, 28, 30, 0.06);
+}
+
+.sot-sidebar-btn {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  padding: 10px 6px;
+  border: 0;
+  border-radius: 0;
+  background: #ffffff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  color: #3e4a3c;
+  cursor: pointer;
+  transition:
+    background-color 0.12s ease,
+    opacity 0.12s ease;
+}
+
+.sot-sidebar-btn + .sot-sidebar-btn {
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.sot-sidebar-btn:hover {
+  background: rgba(220, 252, 231, 0.95);
+  color: #15803d;
+}
+
+.sot-sidebar-btn:focus-visible {
+  outline: 2px solid rgba(40, 167, 69, 0.45);
+  outline-offset: 2px;
+}
+
+.sot-sidebar-btn[data-status="highlighted"] {
+  background: rgba(220, 252, 231, 0.95);
+  color: #059669;
+}
+
+.sot-sidebar-btn[data-status="dimmed"] {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.sot-sidebar-btn[data-status="dimmed"]:hover {
+  background: #ffffff;
+  color: #3e4a3c;
+}
+
+.sot-sidebar-btn[data-status="pending"] {
+  opacity: 0.5;
+  cursor: wait;
+  pointer-events: none;
 }
