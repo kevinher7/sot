@@ -1,5 +1,6 @@
 import { sotSvg } from "@/assets/branding/sot-svg";
 import type { OverlayMetricTone } from "@/domain/kot/projection/overlay-metrics";
+import { createSidebarElements } from "@/entrypoints/content/runtime/overlay/sidebar";
 import type {
   OnSelectWorkMode,
   OnToggleMetricView,
@@ -461,9 +462,15 @@ export function renderOverlayResult(
 
   hasPulsedThisSession = true;
 
+  const { sidebar, trigger } = createSidebarElements(
+    doc,
+    model.sidebar,
+    callbacks.onRecordAction,
+  );
+
   renderOverlayChildren(
     root,
-    [createOverlayCard(doc, model, callbacks, allowPulse)],
+    [createOverlayCard(doc, model, callbacks, allowPulse), sidebar, trigger],
     "ready",
   );
 }

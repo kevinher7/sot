@@ -3,6 +3,7 @@ import type {
   TodayBadgeStatus,
 } from "@/domain/kot/projection/overlay-metrics";
 import type { OverlayDurationMetricViewBinding } from "@/domain/kot/projection/overlay-mode/types";
+import type { RecordAction } from "@/entrypoints/content/runtime/recorder/types";
 import type { WorkMode } from "@/domain/kot/types";
 
 export type OverlayDurationMetricAppearance = "default" | "rest-day" | "subtle";
@@ -23,7 +24,10 @@ export type OnToggleMetricView = (
   binding: OverlayDurationMetricViewBinding,
 ) => void;
 
+export type OnRecordAction = (action: RecordAction) => void;
+
 export type OverlayRenderCallbacks = {
+  onRecordAction: OnRecordAction;
   onSelectWorkMode: OnSelectWorkMode;
   onToggleMetricView: OnToggleMetricView;
 };
@@ -62,8 +66,26 @@ export type OverlaySectionModel = {
   modeSelector: OverlayModeSelector | undefined;
 };
 
+export type SidebarButtonStatus =
+  | "default"
+  | "highlighted"
+  | "dimmed"
+  | "pending";
+
+export type SidebarButtonModel = {
+  action: RecordAction;
+  label: string;
+  status: SidebarButtonStatus;
+};
+
+export type SidebarModel = {
+  buttons: readonly SidebarButtonModel[];
+  visible: boolean;
+};
+
 export type OverlayViewModel = {
   headerBadge: OverlayHeaderBadge;
   monthSection: OverlaySectionModel;
+  sidebar: SidebarModel;
   todaySection: OverlaySectionModel;
 };
