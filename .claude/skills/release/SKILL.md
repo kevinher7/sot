@@ -57,14 +57,20 @@ git log <last-tag>..main --oneline --grep="^feat\|^fix" --extended-regexp
 
 Include PRs with `feat:` or `fix:` prefixes. Omit `chore:`, `docs:`, and `ci:` commits.
 
-### Step 5: Commit
+### Step 5: Update lock file
 
 ```bash
-git add package.json manifest/base.json docs/release-checklist.md
+npm install --package-lock-only
+```
+
+### Step 6: Commit
+
+```bash
+git add package.json package-lock.json manifest/base.json docs/release-checklist.md
 git commit -m "chore(release): v<version>"
 ```
 
-### Step 6: Push and create PR
+### Step 7: Push and create PR
 
 ```bash
 git push -u origin release/v<version>
