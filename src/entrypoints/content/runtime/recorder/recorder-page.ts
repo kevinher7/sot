@@ -1,7 +1,7 @@
 import { getNow } from "@/platform/time/clock";
 import type {
-  KotRecorderButton,
-  KotRecorderSettings,
+  RecorderButton,
+  RecorderSettings,
   RecordAction,
   RecordActionResult,
 } from "@/entrypoints/content/runtime/recorder/types";
@@ -28,7 +28,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function readRecorderSettings(): KotRecorderSettings | null {
+function readRecorderSettings(): RecorderSettings | null {
   const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
 
   if (raw === null) return null;
@@ -63,7 +63,7 @@ function readRecorderSettings(): KotRecorderSettings | null {
 
   if (!Array.isArray(rawButtons)) return null;
 
-  const buttons: KotRecorderButton[] = [];
+  const buttons: RecorderButton[] = [];
 
   for (const b of rawButtons) {
     if (
@@ -90,7 +90,7 @@ function readBrowserId(): string | null {
 }
 
 function findButtonId(
-  buttons: readonly KotRecorderButton[],
+  buttons: readonly RecorderButton[],
   action: RecordAction,
 ): string | null {
   const targetName = ACTION_BUTTON_NAMES[action];
@@ -113,7 +113,7 @@ function formatUniqueTimestamp(now: Date): string {
 
 function buildGatewayPayload(
   buttonId: string,
-  settings: KotRecorderSettings,
+  settings: RecorderSettings,
   browserId: string,
   now: Date,
 ): URLSearchParams {

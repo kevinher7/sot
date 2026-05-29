@@ -6,15 +6,15 @@ export type RecordAction =
 
 export type RecordActionResult = { ok: true } | { ok: false; reason: string };
 
-export type KotRecorderButton = {
+export type RecorderButton = {
   name: string;
   id: string;
   color: string;
   mark: string;
 };
 
-export type KotRecorderSettings = {
+export type RecorderSettings = {
   userToken: string;
   token: string;
-  buttons: readonly KotRecorderButton[];
+  buttons: readonly RecorderButton[];
 };
