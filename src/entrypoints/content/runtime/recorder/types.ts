@@ -6,8 +6,15 @@ export type RecordAction =
 
 export type RecordActionResult = { ok: true } | { ok: false; reason: string };
 
-export type RecorderFormData = {
-  actionUrl: string;
-  csrfToken: string;
-  hiddenFields: Record<string, string>;
+export type KotRecorderButton = {
+  name: string;
+  id: string;
+  color: string;
+  mark: string;
+};
+
+export type KotRecorderSettings = {
+  userToken: string;
+  token: string;
+  buttons: readonly KotRecorderButton[];
 };
