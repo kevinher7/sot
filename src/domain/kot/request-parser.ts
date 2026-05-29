@@ -1,11 +1,13 @@
 import { parseKotIsoDate } from "@/domain/kot/date";
 import type {
+  KotLeaveKind,
   KotRequestCacheEntry,
   KotRequestOperation,
   KotRequestStatus,
   KotRequestSyncPayload,
   KotRequestTimeLabel,
   KotRequestTimePatch,
+  KotScheduleLeaveRequest,
   KotTimeCorrectionRequest,
 } from "@/domain/kot/request-data";
 
@@ -41,6 +43,8 @@ const REQUEST_ENTRY_PATTERN_GLOBAL = new RegExp(
   "gu",
 );
 const DELETE_REQUEST_PATTERN = /^削除$/u;
+const FULL_LEAVE_PATTERN = /\(休暇\s+/u;
+const HALF_LEAVE_PATTERN = /\(通常勤務\s+AM/u;
 const PENDING_PATTERNS = [/対応中/u] as const;
 const APPROVED_PATTERNS = [/承認済/u] as const;
 
@@ -344,6 +348,66 @@ function parseRequestRow(
   };
 }
 
+function detectLeaveKind(text: string): KotLeaveKind | null {
+  if (FULL_LEAVE_PATTERN.test(text)) {
+    return "fullLeave";
+  }
+
+  if (HALF_LEAVE_PATTERN.test(text)) {
+    return "halfLeave";
+  }
+
+  return null;
+}
+
+function parseScheduleLeaveRow(
+  row: KotRequestListRow,
+  context: KotRequestSyncPayload,
+  syncedAt: number,
+): KotScheduleLeaveRequest | null {
+  const requestedContentText = normalizeText(row.requestedContentText);
+  const statusText = normalizeText(row.statusText);
+  const rowText = normalizeText(row.rowText);
+
+  const leaveKind = detectLeaveKind(requestedContentText);
+
+  if (leaveKind === null) {
+    return null;
+  }
+
+  const isoDate = parseRowIsoDate(row);
+
+  if (
+    isoDate === null ||
+    !isoDate.startsWith(
+      `${context.year}-${context.month.toString().padStart(2, "0")}`,
+    )
+  ) {
+    return null;
+  }
+
+  const employeeId = parseEmployeeId(row, context.employeeId);
+  const status = parseStatus(statusText);
+  const cacheText =
+    requestedContentText === "" ? rowText : requestedContentText;
+
+  return {
+    cacheKey: createCacheKey(
+      employeeId,
+      isoDate,
+      status,
+      cacheText,
+      row.requestId,
+    ),
+    employeeId,
+    isoDate,
+    label: rowText,
+    leaveKind,
+    status,
+    updatedAt: syncedAt,
+  };
+}
+
 function createOperationSignature(operation: KotRequestOperation): string {
   if (operation.type === "delete") {
     return ["delete", operation.label, operation.minutes].join("|");
@@ -371,8 +435,9 @@ function createOperationSignature(operation: KotRequestOperation): string {
 
 function createSignature(
   requests: readonly KotTimeCorrectionRequest[],
+  scheduleLeaveRequests: readonly KotScheduleLeaveRequest[],
 ): string {
-  return requests
+  const timeCorrectionPart = requests
     .map((request) => {
       return [
         request.cacheKey,
@@ -382,6 +447,19 @@ function createSignature(
       ].join("|");
     })
     .join(";");
+
+  const schedulePart = scheduleLeaveRequests
+    .map((request) => {
+      return [
+        request.cacheKey,
+        request.isoDate,
+        request.status,
+        request.leaveKind,
+      ].join("|");
+    })
+    .join(";");
+
+  return `${timeCorrectionPart}##${schedulePart}`;
 }
 
 export function parseRequestListRows(
@@ -402,11 +480,25 @@ export function parseRequestListRows(
       return left.cacheKey.localeCompare(right.cacheKey);
     });
 
+  const scheduleLeaveRequests = rows
+    .map((row) => parseScheduleLeaveRow(row, context, syncedAt))
+    .filter((request): request is KotScheduleLeaveRequest => request !== null)
+    .sort((left, right) => {
+      const dateCompare = left.isoDate.localeCompare(right.isoDate);
+
+      if (dateCompare !== 0) {
+        return dateCompare;
+      }
+
+      return left.cacheKey.localeCompare(right.cacheKey);
+    });
+
   return {
     employeeId: context.employeeId,
     month: context.month,
     requests,
-    signature: createSignature(requests),
+    scheduleLeaveRequests,
+    signature: createSignature(requests, scheduleLeaveRequests),
     syncedAt,
     year: context.year,
   };

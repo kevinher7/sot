@@ -61,7 +61,7 @@ export function calculateRequiredElapsedWorkdays(
   const todayDate = createIsoDateKey(now);
 
   return pageSnapshot.rows.filter(
-    (row) => row.dayKind === "workday" && row.isoDate <= todayDate,
+    (row) => row.dayKind !== "offday" && row.isoDate <= todayDate,
   ).length;
 }
 
@@ -110,6 +110,7 @@ export function calculateTodayBadgeStatus(input: {
   now: Date;
   pageSnapshot: KotMonthlyPageSnapshot;
   requestCacheEntry: KotRequestCacheEntry | null;
+  standardWorkdayHours: number;
 }): TodayBadgeStatus {
   const todayRow = input.pageSnapshot.todayRow;
 
@@ -133,7 +134,7 @@ export function calculateTodayBadgeStatus(input: {
 
   const effectiveDay = calculateKotDay(
     effectiveScenario,
-    createKotResolveDayContext(input.now),
+    createKotResolveDayContext(input.now, input.standardWorkdayHours),
   );
 
   if (effectiveDay.issues.issueCodes.includes("ongoingBreak")) {
@@ -302,6 +303,7 @@ function createModeProjectionInput(
       now: input.now,
       pageSnapshot: input.pageSnapshot,
       requestCacheEntry: input.requestCacheEntry,
+      standardWorkdayHours: input.settings.standardWorkdayHours,
     }),
     input.settings,
     input.pageSnapshot,
@@ -353,6 +355,7 @@ export function calculateOverlayMetrics(
     now: input.now,
     pageSnapshot: input.pageSnapshot,
     requestCacheEntry: input.requestCacheEntry,
+    standardWorkdayHours: input.settings.standardWorkdayHours,
   });
   const projectionInput = createModeProjectionInput(input, resolvedMonth);
   const modeResult =

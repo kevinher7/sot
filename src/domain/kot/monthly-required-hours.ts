@@ -11,7 +11,7 @@ export function calculateMonthlyRequiredHours(
   standardWorkdayHours: number,
 ): MonthlyRequiredHoursResult {
   const workdayCount = dayKinds.filter(
-    (dayKind) => dayKind === "workday",
+    (dayKind) => dayKind !== "offday",
   ).length;
   const offdayCount = dayKinds.length - workdayCount;
 

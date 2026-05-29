@@ -1,4 +1,4 @@
-export type KotDayKind = "workday" | "offday";
+export type KotDayKind = "workday" | "offday" | "fullLeave" | "halfLeave";
 export type KotDayResolution = "normal" | "warning" | "error";
 
 export type KotDayRowSnapshot = {
