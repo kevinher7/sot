@@ -30,9 +30,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function readRecorderSettings(): KotRecorderSettings | null {
   const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
+
   if (raw === null) return null;
 
   let parsed: unknown;
+
   try {
     parsed = JSON.parse(raw);
   } catch {
@@ -54,12 +56,15 @@ function readRecorderSettings(): KotRecorderSettings | null {
   if (userToken === null || token === null) return null;
 
   const timerecorder = parsed["timerecorder"];
+
   if (!isRecord(timerecorder)) return null;
 
   const rawButtons = timerecorder["record_button"];
+
   if (!Array.isArray(rawButtons)) return null;
 
   const buttons: KotRecorderButton[] = [];
+
   for (const b of rawButtons) {
     if (
       !isRecord(b) ||
@@ -90,6 +95,7 @@ function findButtonId(
 ): string | null {
   const targetName = ACTION_BUTTON_NAMES[action];
   const match = buttons.find((b) => b.name === targetName);
+
   return match?.id ?? null;
 }
 
@@ -101,6 +107,7 @@ function formatUniqueTimestamp(now: Date): string {
   const h = String(jst.getUTCHours()).padStart(2, "0");
   const mi = String(jst.getUTCMinutes()).padStart(2, "0");
   const s = String(jst.getUTCSeconds()).padStart(2, "0");
+
   return `${y}${mo}${d}${h}${mi}${s}`;
 }
 
@@ -111,6 +118,7 @@ function buildGatewayPayload(
   now: Date,
 ): URLSearchParams {
   const body = new URLSearchParams();
+
   body.set("id", buttonId);
   body.set("user_token", settings.userToken);
   body.set("token", settings.token);
@@ -125,6 +133,7 @@ function buildGatewayPayload(
   body.set("lowAcPos", "");
   body.set("record_image", "");
   body.set("timerecorder_id", "");
+
   return body;
 }
 
@@ -135,6 +144,7 @@ export async function submitRecordAction(
 
   try {
     const settings = readRecorderSettings();
+
     if (settings === null) {
       return {
         ok: false,
@@ -143,11 +153,13 @@ export async function submitRecordAction(
     }
 
     const browserId = readBrowserId();
+
     if (browserId === null) {
       return { ok: false, reason: "Browser ID not found in localStorage" };
     }
 
     const buttonId = findButtonId(settings.buttons, action);
+
     if (buttonId === null) {
       return {
         ok: false,

@@ -44,7 +44,7 @@ function normalizeCellTextExcludingRequests(element: Element | null): string {
   const text = clone.textContent ?? "";
 
   return text
-    .replace(/\[申\][^\[]*?\d{1,2}:\d{2}/gu, "")
+    .replace(/\[申\][^\\[]*?\d{1,2}:\d{2}/gu, "")
     .replace(/\s+/gu, " ")
     .trim();
 }
