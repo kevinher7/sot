@@ -1,5 +1,6 @@
 import { getNow } from "@/platform/time/clock";
 import type {
+  GatewayPayload,
   RecorderButton,
   RecorderSettings,
   RecordAction,
@@ -117,24 +118,24 @@ function buildGatewayPayload(
   browserId: string,
   now: Date,
 ): URLSearchParams {
-  const body = new URLSearchParams();
+  const payload: GatewayPayload = {
+    id: buttonId,
+    user_token: settings.userToken,
+    token: settings.token,
+    browser_id: browserId,
+    unique_timestamp: formatUniqueTimestamp(now),
+    d_param: String(now.getTime()),
+    credential_code: "40",
+    highAccuracyFlg: "false",
+    latitude: "",
+    longitude: "",
+    highAcPos: "",
+    lowAcPos: "",
+    record_image: "",
+    timerecorder_id: "",
+  };
 
-  body.set("id", buttonId);
-  body.set("user_token", settings.userToken);
-  body.set("token", settings.token);
-  body.set("browser_id", browserId);
-  body.set("unique_timestamp", formatUniqueTimestamp(now));
-  body.set("d_param", String(now.getTime()));
-  body.set("credential_code", "40");
-  body.set("highAccuracyFlg", "false");
-  body.set("latitude", "");
-  body.set("longitude", "");
-  body.set("highAcPos", "");
-  body.set("lowAcPos", "");
-  body.set("record_image", "");
-  body.set("timerecorder_id", "");
-
-  return body;
+  return new URLSearchParams(payload);
 }
 
 export async function submitRecordAction(
