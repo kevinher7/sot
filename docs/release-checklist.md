@@ -1,6 +1,6 @@
 # Release checklist
 
-## Prepare v1.2.3 artifacts
+## Prepare v1.3.0 artifacts
 
 1. Run `npm ci`.
 2. Run `npm run release:prepare`.
@@ -12,11 +12,10 @@
 
 1. Open the existing SOT listing in AMO Developer Hub.
 2. Upload `releases/firefox.xpi` as a new version.
-3. Add release notes for v1.2.3:
-   - Highlight the current day row in the monthly table
-   - Fix: treat ongoing work and break as informational
-   - Add first-view NEW badges to KOT metric cards
-   - Add toggleable metric views to the KOT overlay
+3. Add release notes for v1.3.0:
+   - Add sidebar clock controls to the overlay
+   - Reload page after clock submission
+   - Fix: use recorder settings for gateway clock-in requests
 4. Verify permissions and data disclosures still match the extension behavior.
 5. Submit the update for review.
 
