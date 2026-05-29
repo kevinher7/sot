@@ -1,17 +1,22 @@
+import { getNow } from "@/platform/time/clock";
 import type {
+  GatewayPayload,
+  RecorderButton,
+  RecorderSettings,
   RecordAction,
   RecordActionResult,
-  RecorderFormData,
 } from "@/entrypoints/content/runtime/recorder/types";
 
-const RECORDER_URL =
-  "https://s2.ta.kingoftime.jp/independent/recorder2/personal/";
+const GATEWAY_URL = "https://s2.ta.kingoftime.jp/gateway/bprgateway";
 
-const ACTION_BUTTON_SELECTORS: Record<RecordAction, string> = {
-  "clock-in": ".record-clock-in",
-  "break-start": ".record-rest-start",
-  "break-end": ".record-rest-end",
-  "clock-out": ".record-clock-out",
+const SETTINGS_STORAGE_KEY = "PARSONAL_BROWSER_RECORDER@SETTING";
+const BROWSER_ID_STORAGE_KEY = "PARSONAL_BROWSER_RECORDER@BROWSER_ID";
+
+const ACTION_BUTTON_NAMES: Record<RecordAction, string> = {
+  "clock-in": "出勤",
+  "break-start": "休始",
+  "break-end": "休終",
+  "clock-out": "退勤",
 };
 
 let pendingAction: RecordAction | null = null;
@@ -20,72 +25,117 @@ export function getPendingAction(): RecordAction | null {
   return pendingAction;
 }
 
-function parseRecorderPage(html: string): RecorderFormData | null {
-  const doc = new DOMParser().parseFromString(html, "text/html");
-  const form = doc.querySelector<HTMLFormElement>("form");
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 
-  if (form === null) {
+function readRecorderSettings(): RecorderSettings | null {
+  const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
+
+  if (raw === null) return null;
+
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
     return null;
   }
 
-  const actionUrl = form.action || RECORDER_URL;
-  const hiddenFields: Record<string, string> = {};
+  if (!isRecord(parsed)) return null;
 
-  form
-    .querySelectorAll<HTMLInputElement>('input[type="hidden"]')
-    .forEach((input) => {
-      if (input.name) {
-        hiddenFields[input.name] = input.value;
-      }
+  const userToken =
+    isRecord(parsed["user"]) && typeof parsed["user"]["user_token"] === "string"
+      ? parsed["user"]["user_token"]
+      : null;
+
+  const token =
+    isRecord(parsed["token"]) && typeof parsed["token"]["token_b"] === "string"
+      ? parsed["token"]["token_b"]
+      : null;
+
+  if (userToken === null || token === null) return null;
+
+  const timerecorder = parsed["timerecorder"];
+
+  if (!isRecord(timerecorder)) return null;
+
+  const rawButtons = timerecorder["record_button"];
+
+  if (!Array.isArray(rawButtons)) return null;
+
+  const buttons: RecorderButton[] = [];
+
+  for (const b of rawButtons) {
+    if (
+      !isRecord(b) ||
+      typeof b["name"] !== "string" ||
+      typeof b["id"] !== "string" ||
+      typeof b["color"] !== "string"
+    ) {
+      return null;
+    }
+    buttons.push({
+      name: b["name"],
+      id: b["id"],
+      color: b["color"],
+      mark: typeof b["mark"] === "string" ? b["mark"] : "",
     });
+  }
 
-  const csrfToken = hiddenFields["_token"] ?? hiddenFields["token"] ?? "";
-
-  return { actionUrl, csrfToken, hiddenFields };
+  return { userToken, token, buttons };
 }
 
-function findButtonIdentifier(
-  html: string,
+function readBrowserId(): string | null {
+  return window.localStorage.getItem(BROWSER_ID_STORAGE_KEY);
+}
+
+function findButtonId(
+  buttons: readonly RecorderButton[],
   action: RecordAction,
 ): string | null {
-  const doc = new DOMParser().parseFromString(html, "text/html");
-  const selector = ACTION_BUTTON_SELECTORS[action];
-  const button = doc.querySelector<HTMLElement>(selector);
+  const targetName = ACTION_BUTTON_NAMES[action];
+  const match = buttons.find((b) => b.name === targetName);
 
-  if (button !== null) {
-    return button.id || button.getAttribute("data-id") || null;
-  }
+  return match?.id ?? null;
+}
 
-  const allButtons = doc.querySelectorAll<HTMLElement>(
-    '[class*="record-btn-outer"], [class*="record-clock"], [class*="record-rest"]',
-  );
+function formatUniqueTimestamp(now: Date): string {
+  const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  const y = jst.getUTCFullYear();
+  const mo = String(jst.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(jst.getUTCDate()).padStart(2, "0");
+  const h = String(jst.getUTCHours()).padStart(2, "0");
+  const mi = String(jst.getUTCMinutes()).padStart(2, "0");
+  const s = String(jst.getUTCSeconds()).padStart(2, "0");
 
-  const actionKeywords: Record<RecordAction, string[]> = {
-    "clock-in": ["clock_in", "clock-in", "出勤", "timerecorder_clock_in"],
-    "break-start": [
-      "rest_start",
-      "rest-start",
-      "休始",
-      "timerecorder_rest_start",
-    ],
-    "break-end": ["rest_end", "rest-end", "休終", "timerecorder_rest_end"],
-    "clock-out": ["clock_out", "clock-out", "退勤", "timerecorder_clock_out"],
+  return `${y}${mo}${d}${h}${mi}${s}`;
+}
+
+function buildGatewayPayload(
+  buttonId: string,
+  settings: RecorderSettings,
+  browserId: string,
+  now: Date,
+): URLSearchParams {
+  const payload: GatewayPayload = {
+    id: buttonId,
+    user_token: settings.userToken,
+    token: settings.token,
+    browser_id: browserId,
+    unique_timestamp: formatUniqueTimestamp(now),
+    d_param: String(now.getTime()),
+    credential_code: "40",
+    highAccuracyFlg: "false",
+    latitude: "",
+    longitude: "",
+    highAcPos: "",
+    lowAcPos: "",
+    record_image: "",
+    timerecorder_id: "",
   };
 
-  const keywords = actionKeywords[action];
-
-  for (const btn of allButtons) {
-    const id = btn.id || "";
-    const text = btn.textContent || "";
-    const classes = btn.className || "";
-    const combined = `${id} ${text} ${classes}`.toLowerCase();
-
-    if (keywords.some((kw) => combined.includes(kw.toLowerCase()))) {
-      return id || null;
-    }
-  }
-
-  return null;
+  return new URLSearchParams(payload);
 }
 
 export async function submitRecordAction(
@@ -94,40 +144,34 @@ export async function submitRecordAction(
   pendingAction = action;
 
   try {
-    const response = await fetch(RECORDER_URL, {
-      credentials: "include",
-      method: "GET",
-    });
+    const settings = readRecorderSettings();
 
-    if (!response.ok) {
+    if (settings === null) {
       return {
         ok: false,
-        reason: `Recorder page fetch failed: ${response.status}`,
+        reason: "Recorder settings not found in localStorage",
       };
     }
 
-    const html = await response.text();
-    const formData = parseRecorderPage(html);
+    const browserId = readBrowserId();
 
-    if (formData === null) {
-      return { ok: false, reason: "Could not parse recorder form" };
+    if (browserId === null) {
+      return { ok: false, reason: "Browser ID not found in localStorage" };
     }
 
-    const buttonId = findButtonIdentifier(html, action);
+    const buttonId = findButtonId(settings.buttons, action);
 
-    const body = new URLSearchParams();
-
-    Object.entries(formData.hiddenFields).forEach(([key, value]) => {
-      body.set(key, value);
-    });
-
-    if (buttonId !== null) {
-      body.set("id", buttonId);
+    if (buttonId === null) {
+      return {
+        ok: false,
+        reason: `No button found for action: ${action}`,
+      };
     }
 
-    body.set("action", action);
+    const now = getNow();
+    const body = buildGatewayPayload(buttonId, settings, browserId, now);
 
-    const postResponse = await fetch(formData.actionUrl, {
+    const response = await fetch(GATEWAY_URL, {
       body,
       credentials: "include",
       headers: {
@@ -136,10 +180,10 @@ export async function submitRecordAction(
       method: "POST",
     });
 
-    if (!postResponse.ok) {
+    if (!response.ok) {
       return {
         ok: false,
-        reason: `Record action failed: ${postResponse.status}`,
+        reason: `Gateway request failed: ${response.status}`,
       };
     }
 
