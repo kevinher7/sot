@@ -25,6 +25,7 @@ import { getNow } from "@/platform/time/clock";
 import type { WorkMode } from "@/domain/kot/types";
 import {
   getSettings,
+  setExcludeNightWorkFromBank,
   setMetricView,
   setWorkMode,
 } from "@/platform/webext/storage";
@@ -132,6 +133,15 @@ export function createRefreshExecutor(
         void setMetricView(binding.viewKey, binding.nextView).then(() => {
           queueModeRefresh();
         });
+      },
+      onToggleNightWorkExclusion: (next) => {
+        if (next === settings.excludeNightWorkFromBank) {
+          return;
+        }
+
+        // Phase 1: persist only. Nothing consumes this value yet, so we skip the
+        // re-render that would otherwise collapse the open settings panel.
+        void setExcludeNightWorkFromBank(next);
       },
     });
     cache.pageSignature = pageSnapshot.signature;

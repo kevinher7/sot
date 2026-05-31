@@ -34,6 +34,12 @@ function normalizeMetricViews(
   };
 }
 
+function normalizeExcludeNightWorkFromBank(
+  value: boolean | undefined,
+): boolean {
+  return value === true;
+}
+
 function normalizeSeenBoxes(
   seenBoxes: Partial<SeenBoxes> | undefined,
 ): SeenBoxes {
@@ -62,6 +68,7 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
   workMode: "full",
   metricViews: DEFAULT_METRIC_VIEWS,
   seenBoxes: DEFAULT_SEEN_BOXES,
+  excludeNightWorkFromBank: false,
 };
 
 export function normalizeSettings(
@@ -73,5 +80,8 @@ export function normalizeSettings(
     workMode: normalizeWorkMode(settings?.workMode),
     metricViews: normalizeMetricViews(settings?.metricViews),
     seenBoxes: normalizeSeenBoxes(settings?.seenBoxes),
+    excludeNightWorkFromBank: normalizeExcludeNightWorkFromBank(
+      settings?.excludeNightWorkFromBank,
+    ),
   };
 }

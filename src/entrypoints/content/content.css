@@ -504,27 +504,49 @@
 }
 
 .sot-cta-icon {
-  font-size: 14px;
-  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: #16a34a;
   transition: transform 0.2s ease;
 }
 
-.sot-cta-icon.is-expanded {
+.sot-cta-icon[data-expanded="true"] {
   transform: rotate(180deg);
 }
 
-.sot-wip-panel {
-  padding: 16px 12px;
-  border: 1px dashed rgba(148, 163, 184, 0.45);
+.sot-settings-panel[hidden] {
+  display: none;
+}
+
+.sot-settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
   border-radius: 4px;
   background: #f8fafc;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-align: center;
-  text-transform: uppercase;
-  color: #64748b;
+}
+
+.sot-setting-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.sot-setting-checkbox {
+  margin: 1px 0 0;
+  flex: 0 0 auto;
+  cursor: pointer;
+  accent-color: #16a34a;
+}
+
+.sot-setting-label {
+  font-size: 11px;
+  line-height: 1.4;
+  color: #475569;
 }
 
 .sot-accent {

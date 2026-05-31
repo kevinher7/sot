@@ -310,6 +310,9 @@ export function createOverlayViewModel(
   return {
     headerBadge: createHeaderBadge(result),
     monthSection: createMonthSection(now, result, settings.seenBoxes),
+    settings: {
+      excludeNightWorkFromBank: settings.excludeNightWorkFromBank,
+    },
     sidebar: createSidebarModel(result.todayBadgeStatus, pendingAction),
     todaySection: createTodaySection(now, result, settings.seenBoxes),
   };
