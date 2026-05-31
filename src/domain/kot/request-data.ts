@@ -1,3 +1,5 @@
+export type KotLeaveKind = "fullLeave" | "halfLeave";
+
 export type KotRequestStatus =
   | "pending"
   | "approved"
@@ -43,10 +45,21 @@ export type KotTimeCorrectionRequest = {
   updatedAt: number;
 };
 
+export type KotScheduleLeaveRequest = {
+  cacheKey: string;
+  employeeId: string;
+  isoDate: string;
+  label: string;
+  leaveKind: KotLeaveKind;
+  status: KotRequestStatus;
+  updatedAt: number;
+};
+
 export type KotRequestCacheEntry = {
   employeeId: string;
   month: number;
   requests: readonly KotTimeCorrectionRequest[];
+  scheduleLeaveRequests: readonly KotScheduleLeaveRequest[];
   signature: string;
   syncedAt: number;
   year: number;

@@ -7,6 +7,7 @@ import type {
   KotDayScenarioInput,
   KotResolveDayContext,
 } from "@/domain/kot/calculation/day/calculation-types";
+import { getKotLeaveCreditMinutes } from "@/domain/kot/calculation/leave/leave-credit";
 
 export function calculateKotDay(
   scenario: KotDayScenarioInput,
@@ -34,9 +35,24 @@ export function calculateKotDay(
     timeIssueCodes: timeResult.issueCodes,
   });
 
+  const leaveCredit = getKotLeaveCreditMinutes(
+    row.dayKind,
+    context.standardWorkdayHours,
+  );
+  const interpretation =
+    leaveCredit > 0
+      ? {
+          ...timeResult.interpretation,
+          workedMinutesDisplay:
+            timeResult.interpretation.workedMinutesDisplay + leaveCredit,
+          workedMinutesFinalized:
+            timeResult.interpretation.workedMinutesFinalized + leaveCredit,
+        }
+      : timeResult.interpretation;
+
   return {
     dayKind: row.dayKind,
-    interpretation: timeResult.interpretation,
+    interpretation,
     isoDate: row.isoDate,
     issues,
     requestState: scenario.requestState,
@@ -44,10 +60,14 @@ export function calculateKotDay(
   };
 }
 
-export function createKotResolveDayContext(now: Date): KotResolveDayContext {
+export function createKotResolveDayContext(
+  now: Date,
+  standardWorkdayHours: number,
+): KotResolveDayContext {
   return {
     allowTodayEstimate: true,
     nowIsoDate: createIsoDateKey(now),
     nowMinutes: now.getHours() * 60 + now.getMinutes(),
+    standardWorkdayHours,
   };
 }

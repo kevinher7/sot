@@ -23,6 +23,7 @@ export type KotResolveDayContext = {
   allowTodayEstimate: boolean;
   nowIsoDate: string;
   nowMinutes: number;
+  standardWorkdayHours: number;
 };
 
 export type KotDayScenarioKind = "actual" | "effective";
