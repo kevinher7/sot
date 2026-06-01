@@ -1,6 +1,6 @@
 # Release checklist
 
-## Prepare v1.3.0 artifacts
+## Prepare v1.3.1 artifacts
 
 1. Run `npm ci`.
 2. Run `npm run release:prepare`.
@@ -12,10 +12,8 @@
 
 1. Open the existing SOT listing in AMO Developer Hub.
 2. Upload `releases/firefox.xpi` as a new version.
-3. Add release notes for v1.3.0:
-   - Add sidebar clock controls to the overlay
-   - Reload page after clock submission
-   - Fix: use recorder settings for gateway clock-in requests
+3. Add release notes for v1.3.1:
+   - Count sick leave and paid leave in monthly metrics
 4. Verify permissions and data disclosures still match the extension behavior.
 5. Submit the update for review.
 
