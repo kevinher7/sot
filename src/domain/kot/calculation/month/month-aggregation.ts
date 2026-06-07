@@ -9,8 +9,10 @@ export function aggregateKotMonth(input: {
 }): KotResolvedMonth {
   let actualWorkedMinutesSoFar = 0;
   let actualBankMinutesSoFar = 0;
+  let actualLateNightMinutesSoFar = 0;
   let effectiveWorkedMinutesSoFar = 0;
   let effectiveBankMinutesSoFar = 0;
+  let effectiveLateNightMinutesSoFar = 0;
   let errorDayCount = 0;
   let warningDayCount = 0;
   let isUsingEstimate = false;
@@ -23,9 +25,13 @@ export function aggregateKotMonth(input: {
     actualWorkedMinutesSoFar +=
       day.actual.calculatedDay.interpretation.workedMinutesDisplay;
     actualBankMinutesSoFar += day.actual.bank.bankMinutes;
+    actualLateNightMinutesSoFar +=
+      day.actual.calculatedDay.interpretation.lateNightMinutes;
     effectiveWorkedMinutesSoFar +=
       day.effective.calculatedDay.interpretation.workedMinutesDisplay;
     effectiveBankMinutesSoFar += day.effective.bank.bankMinutes;
+    effectiveLateNightMinutesSoFar +=
+      day.effective.calculatedDay.interpretation.lateNightMinutes;
 
     if (day.effective.calculatedDay.issues.resolution === "error") {
       errorDayCount += 1;
@@ -43,6 +49,7 @@ export function aggregateKotMonth(input: {
   return {
     actualSummary: {
       bankMinutesSoFar: actualBankMinutesSoFar,
+      lateNightMinutesSoFar: actualLateNightMinutesSoFar,
       workedMinutesSoFar: actualWorkedMinutesSoFar,
     },
     aggregateFlags: {
@@ -53,8 +60,10 @@ export function aggregateKotMonth(input: {
     days: input.days,
     effectiveSummary: {
       bankMinutesSoFar: effectiveBankMinutesSoFar,
+      lateNightMinutesSoFar: effectiveLateNightMinutesSoFar,
       workedMinutesSoFar: effectiveWorkedMinutesSoFar,
     },
-    todayDay: input.days.find((day) => day.isoDate === input.nowIsoDate) ?? null,
+    todayDay:
+      input.days.find((day) => day.isoDate === input.nowIsoDate) ?? null,
   };
 }

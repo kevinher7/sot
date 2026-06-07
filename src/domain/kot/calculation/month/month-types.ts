@@ -8,6 +8,7 @@ export type KotResolvedMonthDay = {
 
 export type KotMonthSummary = {
   bankMinutesSoFar: number;
+  lateNightMinutesSoFar: number;
   workedMinutesSoFar: number;
 };
 

@@ -45,6 +45,7 @@ export type KotResolvedBreaks = {
 export type KotWorkedTimeInterpretation = {
   breakMinutesDisplay: number;
   breakMinutesFinalized: number;
+  lateNightMinutes: number;
   usesEstimate: boolean;
   workedMinutesDisplay: number;
   workedMinutesFinalized: number;

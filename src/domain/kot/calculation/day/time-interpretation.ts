@@ -5,6 +5,7 @@ import type {
   KotResolvedDayIssueCode,
   KotWorkedTimeInterpretation,
 } from "@/domain/kot/calculation/day/calculation-types";
+import { calculateLateNightMinutes } from "@/domain/kot/calculation/day/night-work";
 
 export type KotTimeInterpretationResult = {
   interpretation: KotWorkedTimeInterpretation;
@@ -40,6 +41,7 @@ export function interpretKotDayTime(input: {
       interpretation: {
         breakMinutesDisplay: resolvedBreaks.breakMinutesDisplay,
         breakMinutesFinalized: resolvedBreaks.breakMinutesFinalized,
+        lateNightMinutes: 0,
         usesEstimate: false,
         workedMinutesDisplay: 0,
         workedMinutesFinalized: 0,
@@ -61,6 +63,12 @@ export function interpretKotDayTime(input: {
         interpretation: {
           breakMinutesDisplay: resolvedBreaks.breakMinutesDisplay,
           breakMinutesFinalized: resolvedBreaks.breakMinutesFinalized,
+          lateNightMinutes: calculateLateNightMinutes({
+            breakEndMinutes: row.breakEndMinutes,
+            breakStartMinutes: row.breakStartMinutes,
+            clockInMinutes: row.clockInMinutes,
+            endMinutes: context.nowMinutes,
+          }),
           usesEstimate: true,
           workedMinutesDisplay: Math.max(
             context.nowMinutes -
@@ -81,6 +89,7 @@ export function interpretKotDayTime(input: {
       interpretation: {
         breakMinutesDisplay: resolvedBreaks.breakMinutesFinalized,
         breakMinutesFinalized: resolvedBreaks.breakMinutesFinalized,
+        lateNightMinutes: 0,
         usesEstimate: false,
         workedMinutesDisplay: 0,
         workedMinutesFinalized: 0,
@@ -97,6 +106,7 @@ export function interpretKotDayTime(input: {
       interpretation: {
         breakMinutesDisplay: resolvedBreaks.breakMinutesFinalized,
         breakMinutesFinalized: resolvedBreaks.breakMinutesFinalized,
+        lateNightMinutes: 0,
         usesEstimate: false,
         workedMinutesDisplay: 0,
         workedMinutesFinalized: 0,
@@ -119,6 +129,12 @@ export function interpretKotDayTime(input: {
     interpretation: {
       breakMinutesDisplay: resolvedBreaks.breakMinutesFinalized,
       breakMinutesFinalized: resolvedBreaks.breakMinutesFinalized,
+      lateNightMinutes: calculateLateNightMinutes({
+        breakEndMinutes: row.breakEndMinutes,
+        breakStartMinutes: row.breakStartMinutes,
+        clockInMinutes: row.clockInMinutes,
+        endMinutes: row.clockOutMinutes,
+      }),
       usesEstimate: false,
       workedMinutesDisplay: workedMinutesFinalized,
       workedMinutesFinalized,
