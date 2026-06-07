@@ -40,11 +40,8 @@ function createMonthPrimaryMetric(
     cardTone: input.monthWorkedCardTone,
     format: "unsigned-duration",
     label: "Total",
-    minutes: input.resolvedMonth.effectiveSummary.workedMinutesSoFar,
-    tone:
-      input.resolvedMonth.effectiveSummary.workedMinutesSoFar > 0
-        ? "positive"
-        : "neutral",
+    minutes: input.monthWorkedMinutes,
+    tone: input.monthWorkedMinutes > 0 ? "positive" : "neutral",
     unit: "h",
     viewBinding: undefined,
   };

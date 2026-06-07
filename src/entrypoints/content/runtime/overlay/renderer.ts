@@ -24,6 +24,9 @@ const METRIC_TONE_CLASS_NAME: Record<OverlayMetricTone, string> = {
 
 let headerIconIdSequence = 0;
 let hasPulsedThisSession = false;
+// Persisted across re-renders so toggling a setting (which re-renders the
+// overlay) does not collapse the open Settings panel.
+let isSettingsPanelOpen = false;
 
 function createElement<K extends keyof HTMLElementTagNameMap>(
   doc: Document,
@@ -371,7 +374,7 @@ function createSettingsPanel(
 ): HTMLElement {
   const panel = createElement(doc, "section", "sot-settings-panel", undefined);
 
-  panel.hidden = true;
+  panel.hidden = !isSettingsPanelOpen;
   panel.append(
     createSettingControl(
       doc,
@@ -420,7 +423,8 @@ function createCtaSection(
   icon.append(createChevronIcon(doc));
 
   button.type = "button";
-  button.setAttribute("aria-expanded", "false");
+  button.setAttribute("aria-expanded", isSettingsPanelOpen ? "true" : "false");
+  icon.dataset.expanded = isSettingsPanelOpen ? "true" : "false";
   button.addEventListener("click", () => {
     const expanded = onToggle();
 
@@ -451,9 +455,10 @@ function createOverlayCard(
   );
 
   const toggleSettingsPanel = (): boolean => {
-    settingsPanel.hidden = !settingsPanel.hidden;
+    isSettingsPanelOpen = !isSettingsPanelOpen;
+    settingsPanel.hidden = !isSettingsPanelOpen;
 
-    return !settingsPanel.hidden;
+    return isSettingsPanelOpen;
   };
 
   content.append(

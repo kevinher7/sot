@@ -139,9 +139,9 @@ export function createRefreshExecutor(
           return;
         }
 
-        // Phase 1: persist only. Nothing consumes this value yet, so we skip the
-        // re-render that would otherwise collapse the open settings panel.
-        void setExcludeNightWorkFromBank(next);
+        void setExcludeNightWorkFromBank(next).then(() => {
+          queueModeRefresh();
+        });
       },
     });
     cache.pageSignature = pageSnapshot.signature;

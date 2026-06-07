@@ -28,7 +28,11 @@ export type OverlayMetricTone =
 
 export type OverlayCalculationSettings = Pick<
   ExtensionSettings,
-  "standardBreakMinutes" | "standardWorkdayHours" | "workMode" | "metricViews"
+  | "standardBreakMinutes"
+  | "standardWorkdayHours"
+  | "workMode"
+  | "metricViews"
+  | "excludeNightWorkFromBank"
 >;
 
 export type OverlayCalculationInput = {
@@ -283,16 +287,36 @@ function createModeProjectionInput(
     elapsedWorkdays,
     input.settings,
   );
-  const todayWorkedMinutes = calculateTodayWorkedMinutes(resolvedMonth);
+  const excludeNightWork = input.settings.excludeNightWorkFromBank;
+  const rawTodayWorkedMinutes = calculateTodayWorkedMinutes(resolvedMonth);
+  const todayLateNightMinutes =
+    resolvedMonth.todayDay?.effective.calculatedDay.interpretation
+      .lateNightMinutes ?? 0;
+  const todayWorkedMinutes = excludeNightWork
+    ? Math.max(rawTodayWorkedMinutes - todayLateNightMinutes, 0)
+    : rawTodayWorkedMinutes;
   const todayBreakMinutes = calculateTodayBreakMinutes(resolvedMonth);
+  // Break allowance is a legal entitlement based on time present, so it always
+  // uses full worked time — never the night-excluded value.
   const todayBreakAllowanceMinutes = calculateTodayBreakAllowanceMinutes(
-    todayWorkedMinutes,
+    rawTodayWorkedMinutes,
     input.settings,
   );
+  const bankableMinutesSoFar = excludeNightWork
+    ? resolvedMonth.effectiveSummary.bankMinutesSoFar -
+      resolvedMonth.effectiveSummary.bankableLateNightMinutesSoFar
+    : resolvedMonth.effectiveSummary.bankMinutesSoFar;
   const monthBankMinutes = calculateMonthBankMinutes(
-    resolvedMonth.effectiveSummary.bankMinutesSoFar,
+    bankableMinutesSoFar,
     requiredWorkedMinutesSoFar,
   );
+  const monthWorkedMinutes = excludeNightWork
+    ? Math.max(
+        resolvedMonth.effectiveSummary.workedMinutesSoFar -
+          resolvedMonth.effectiveSummary.lateNightMinutesSoFar,
+        0,
+      )
+    : resolvedMonth.effectiveSummary.workedMinutesSoFar;
   const requiredWorkdayMinutes = input.settings.standardWorkdayHours * 60;
   const rawTodayStatus = calculateTodayStatus(input.pageSnapshot);
   const monthBankEstimatedMinutes = calculateMonthBankEstimatedMinutes(
@@ -327,10 +351,11 @@ function createModeProjectionInput(
       isUsingEstimate: resolvedMonth.aggregateFlags.isUsingEstimate,
     }),
     monthWorkedCardTone: calculateAggregateTone({
-      displayMinutes: resolvedMonth.effectiveSummary.workedMinutesSoFar,
+      displayMinutes: monthWorkedMinutes,
       errorDayCount: resolvedMonth.aggregateFlags.errorDayCount,
       isUsingEstimate: resolvedMonth.aggregateFlags.isUsingEstimate,
     }),
+    monthWorkedMinutes,
     requiredWorkdayMinutes,
     resolvedMonth,
     todayBadgeStatus,

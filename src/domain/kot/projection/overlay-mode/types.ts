@@ -44,6 +44,7 @@ export type OverlayModeProjectionInput = {
   monthBankMinutes: number;
   monthBankTone: OverlayMetricTone;
   monthWorkedCardTone: OverlayMetricTone;
+  monthWorkedMinutes: number;
   requiredWorkdayMinutes: number;
   resolvedMonth: KotResolvedMonth;
   todayBadgeStatus: TodayBadgeStatus;

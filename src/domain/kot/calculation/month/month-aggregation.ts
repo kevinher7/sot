@@ -10,9 +10,11 @@ export function aggregateKotMonth(input: {
   let actualWorkedMinutesSoFar = 0;
   let actualBankMinutesSoFar = 0;
   let actualLateNightMinutesSoFar = 0;
+  let actualBankableLateNightMinutesSoFar = 0;
   let effectiveWorkedMinutesSoFar = 0;
   let effectiveBankMinutesSoFar = 0;
   let effectiveLateNightMinutesSoFar = 0;
+  let effectiveBankableLateNightMinutesSoFar = 0;
   let errorDayCount = 0;
   let warningDayCount = 0;
   let isUsingEstimate = false;
@@ -27,11 +29,22 @@ export function aggregateKotMonth(input: {
     actualBankMinutesSoFar += day.actual.bank.bankMinutes;
     actualLateNightMinutesSoFar +=
       day.actual.calculatedDay.interpretation.lateNightMinutes;
+
+    if (day.actual.bank.isBankSafe) {
+      actualBankableLateNightMinutesSoFar +=
+        day.actual.calculatedDay.interpretation.lateNightMinutes;
+    }
+
     effectiveWorkedMinutesSoFar +=
       day.effective.calculatedDay.interpretation.workedMinutesDisplay;
     effectiveBankMinutesSoFar += day.effective.bank.bankMinutes;
     effectiveLateNightMinutesSoFar +=
       day.effective.calculatedDay.interpretation.lateNightMinutes;
+
+    if (day.effective.bank.isBankSafe) {
+      effectiveBankableLateNightMinutesSoFar +=
+        day.effective.calculatedDay.interpretation.lateNightMinutes;
+    }
 
     if (day.effective.calculatedDay.issues.resolution === "error") {
       errorDayCount += 1;
@@ -49,6 +62,7 @@ export function aggregateKotMonth(input: {
   return {
     actualSummary: {
       bankMinutesSoFar: actualBankMinutesSoFar,
+      bankableLateNightMinutesSoFar: actualBankableLateNightMinutesSoFar,
       lateNightMinutesSoFar: actualLateNightMinutesSoFar,
       workedMinutesSoFar: actualWorkedMinutesSoFar,
     },
@@ -60,6 +74,7 @@ export function aggregateKotMonth(input: {
     days: input.days,
     effectiveSummary: {
       bankMinutesSoFar: effectiveBankMinutesSoFar,
+      bankableLateNightMinutesSoFar: effectiveBankableLateNightMinutesSoFar,
       lateNightMinutesSoFar: effectiveLateNightMinutesSoFar,
       workedMinutesSoFar: effectiveWorkedMinutesSoFar,
     },
