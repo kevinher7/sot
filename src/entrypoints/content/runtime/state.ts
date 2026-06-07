@@ -29,6 +29,7 @@ export function createSettingsSignature(
     standardWorkdayHours: settings.standardWorkdayHours,
     workMode: settings.workMode,
     metricViews: settings.metricViews,
+    excludeNightWorkFromBank: settings.excludeNightWorkFromBank,
   });
 }
 

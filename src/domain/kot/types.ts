@@ -20,4 +20,5 @@ export type ExtensionSettings = {
   workMode: WorkMode;
   metricViews: ExtensionMetricViews;
   seenBoxes: SeenBoxes;
+  excludeNightWorkFromBank: boolean;
 };

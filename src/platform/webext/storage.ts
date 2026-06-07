@@ -54,6 +54,20 @@ export async function setWorkMode(
   return nextSettings;
 }
 
+export async function setExcludeNightWorkFromBank(
+  value: boolean,
+): Promise<ExtensionSettings> {
+  const settings = await getSettings();
+  const nextSettings = normalizeSettings({
+    ...settings,
+    excludeNightWorkFromBank: value,
+  });
+
+  await setSettings(nextSettings);
+
+  return nextSettings;
+}
+
 export async function setMetricView<K extends MetricViewKey>(
   key: K,
   value: ExtensionMetricViews[K],

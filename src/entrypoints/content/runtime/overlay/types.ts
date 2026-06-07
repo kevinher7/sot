@@ -25,11 +25,13 @@ export type OnToggleMetricView = (
 ) => void;
 
 export type OnRecordAction = (action: RecordAction) => void;
+export type OnToggleNightWorkExclusion = (next: boolean) => void;
 
 export type OverlayRenderCallbacks = {
   onRecordAction: OnRecordAction;
   onSelectWorkMode: OnSelectWorkMode;
   onToggleMetricView: OnToggleMetricView;
+  onToggleNightWorkExclusion: OnToggleNightWorkExclusion;
 };
 
 export type OverlayBadgeTone = "error" | "warning";
@@ -83,9 +85,14 @@ export type SidebarModel = {
   visible: boolean;
 };
 
+export type OverlaySettingsModel = {
+  excludeNightWorkFromBank: boolean;
+};
+
 export type OverlayViewModel = {
   headerBadge: OverlayHeaderBadge;
   monthSection: OverlaySectionModel;
+  settings: OverlaySettingsModel;
   sidebar: SidebarModel;
   todaySection: OverlaySectionModel;
 };

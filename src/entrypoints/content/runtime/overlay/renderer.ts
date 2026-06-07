@@ -4,11 +4,13 @@ import { createSidebarElements } from "@/entrypoints/content/runtime/overlay/sid
 import type {
   OnSelectWorkMode,
   OnToggleMetricView,
+  OnToggleNightWorkExclusion,
   OverlayDurationMetric,
   OverlayHeaderBadge,
   OverlayModeSelector,
   OverlayRenderCallbacks,
   OverlaySectionModel,
+  OverlaySettingsModel,
   OverlayViewModel,
 } from "@/entrypoints/content/runtime/overlay/types";
 
@@ -22,6 +24,9 @@ const METRIC_TONE_CLASS_NAME: Record<OverlayMetricTone, string> = {
 
 let headerIconIdSequence = 0;
 let hasPulsedThisSession = false;
+// Persisted across re-renders so toggling a setting (which re-renders the
+// overlay) does not collapse the open Settings panel.
+let isSettingsPanelOpen = false;
 
 function createElement<K extends keyof HTMLElementTagNameMap>(
   doc: Document,
@@ -336,24 +341,95 @@ function createMonthSection(
   return section;
 }
 
-function createWipPanel(doc: Document): HTMLElement {
-  const panel = createElement(doc, "section", "sot-wip-panel", "WIP");
+function createSettingControl(
+  doc: Document,
+  labelText: string,
+  checked: boolean,
+  onChange: (next: boolean) => void,
+): HTMLLabelElement {
+  const row = createElement(doc, "label", "sot-setting-row", undefined);
+  const checkbox = createElement(
+    doc,
+    "input",
+    "sot-setting-checkbox",
+    undefined,
+  );
+  const label = createElement(doc, "span", "sot-setting-label", labelText);
 
-  panel.hidden = true;
+  checkbox.type = "checkbox";
+  checkbox.checked = checked;
+  checkbox.addEventListener("change", () => {
+    onChange(checkbox.checked);
+  });
+
+  row.append(checkbox, label);
+
+  return row;
+}
+
+function createSettingsPanel(
+  doc: Document,
+  settings: OverlaySettingsModel,
+  onToggleNightWorkExclusion: OnToggleNightWorkExclusion,
+): HTMLElement {
+  const panel = createElement(doc, "section", "sot-settings-panel", undefined);
+
+  panel.hidden = !isSettingsPanelOpen;
+  panel.append(
+    createSettingControl(
+      doc,
+      "深夜勤務を労働時間に含まない",
+      settings.excludeNightWorkFromBank,
+      onToggleNightWorkExclusion,
+    ),
+  );
 
   return panel;
 }
 
-function createCtaSection(doc: Document, onToggle: () => void): HTMLDivElement {
+const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
+
+function createChevronIcon(doc: Document): SVGSVGElement {
+  const svg = doc.createElementNS(SVG_NAMESPACE, "svg");
+
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("width", "14");
+  svg.setAttribute("height", "14");
+  svg.setAttribute("fill", "none");
+  svg.setAttribute("stroke", "currentColor");
+  svg.setAttribute("stroke-width", "3");
+  svg.setAttribute("stroke-linecap", "round");
+  svg.setAttribute("stroke-linejoin", "round");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("focusable", "false");
+
+  const path = doc.createElementNS(SVG_NAMESPACE, "path");
+
+  path.setAttribute("d", "M6 9l6 6 6-6");
+  svg.append(path);
+
+  return svg;
+}
+
+function createCtaSection(
+  doc: Document,
+  onToggle: () => boolean,
+): HTMLDivElement {
   const wrapper = createElement(doc, "div", "sot-cta-wrap", undefined);
   const button = createElement(doc, "button", "sot-cta-button", undefined);
-  const label = createElement(doc, "span", "sot-cta-label", "Month breakdown");
-  const icon = createElement(doc, "span", "sot-cta-icon", "▾");
+  const label = createElement(doc, "span", "sot-cta-label", "Settings");
+  const icon = createElement(doc, "span", "sot-cta-icon", undefined);
+
+  icon.append(createChevronIcon(doc));
 
   button.type = "button";
+  button.setAttribute("aria-expanded", isSettingsPanelOpen ? "true" : "false");
+  icon.dataset.expanded = isSettingsPanelOpen ? "true" : "false";
   button.addEventListener("click", () => {
-    icon.classList.toggle("is-expanded");
-    onToggle();
+    const expanded = onToggle();
+
+    button.setAttribute("aria-expanded", expanded ? "true" : "false");
+    icon.dataset.expanded = expanded ? "true" : "false";
   });
 
   button.append(label, icon);
@@ -372,17 +448,24 @@ function createOverlayCard(
   const divider = createElement(doc, "div", "sot-divider", undefined);
   const content = createElement(doc, "main", "sot-content", undefined);
   const accent = createElement(doc, "div", "sot-accent", undefined);
-  const wipPanel = createWipPanel(doc);
+  const settingsPanel = createSettingsPanel(
+    doc,
+    model.settings,
+    callbacks.onToggleNightWorkExclusion,
+  );
 
-  const toggleWipPanel = (): void => {
-    wipPanel.hidden = !wipPanel.hidden;
+  const toggleSettingsPanel = (): boolean => {
+    isSettingsPanelOpen = !isSettingsPanelOpen;
+    settingsPanel.hidden = !isSettingsPanelOpen;
+
+    return isSettingsPanelOpen;
   };
 
   content.append(
     createTodaySection(doc, model, callbacks, allowPulse),
     createMonthSection(doc, model, callbacks, allowPulse),
-    createCtaSection(doc, toggleWipPanel),
-    wipPanel,
+    createCtaSection(doc, toggleSettingsPanel),
+    settingsPanel,
   );
 
   shell.append(createHeader(doc, model), divider, content, accent);

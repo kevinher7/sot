@@ -164,6 +164,15 @@ function createHeaderBadge(
     };
   }
 
+  if (result.todayBadgeStatus === "night") {
+    return {
+      ariaLabel: "Today status: working night hours",
+      text: "N",
+      title: "Night work (after 22:00)",
+      tone: "night",
+    };
+  }
+
   if (result.todayBadgeStatus === "break") {
     return {
       ariaLabel: "Today status: on break",
@@ -259,6 +268,7 @@ const HIGHLIGHTED_ACTIONS: Record<
 > = {
   "not-started": new Set(["clock-in"]),
   "in-progress": new Set(["break-start", "clock-out"]),
+  night: new Set(["break-start", "clock-out"]),
   break: new Set(["break-end"]),
   finished: new Set(),
   "rest-day": new Set(),
@@ -310,6 +320,9 @@ export function createOverlayViewModel(
   return {
     headerBadge: createHeaderBadge(result),
     monthSection: createMonthSection(now, result, settings.seenBoxes),
+    settings: {
+      excludeNightWorkFromBank: settings.excludeNightWorkFromBank,
+    },
     sidebar: createSidebarModel(result.todayBadgeStatus, pendingAction),
     todaySection: createTodaySection(now, result, settings.seenBoxes),
   };

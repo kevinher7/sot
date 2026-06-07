@@ -25,6 +25,7 @@ import { getNow } from "@/platform/time/clock";
 import type { WorkMode } from "@/domain/kot/types";
 import {
   getSettings,
+  setExcludeNightWorkFromBank,
   setMetricView,
   setWorkMode,
 } from "@/platform/webext/storage";
@@ -130,6 +131,15 @@ export function createRefreshExecutor(
       },
       onToggleMetricView: (binding) => {
         void setMetricView(binding.viewKey, binding.nextView).then(() => {
+          queueModeRefresh();
+        });
+      },
+      onToggleNightWorkExclusion: (next) => {
+        if (next === settings.excludeNightWorkFromBank) {
+          return;
+        }
+
+        void setExcludeNightWorkFromBank(next).then(() => {
           queueModeRefresh();
         });
       },
