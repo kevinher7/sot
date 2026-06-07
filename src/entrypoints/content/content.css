@@ -127,6 +127,12 @@
   color: #a16207;
 }
 
+.sot-header-badge[data-tone="night"] {
+  border-color: rgba(99, 102, 241, 0.4);
+  background: rgba(224, 231, 255, 0.95);
+  color: #4f46e5;
+}
+
 .sot-header-badge[data-tone="rest-day"] {
   border-color: rgba(148, 163, 184, 0.35);
   background: #f3f4f6;

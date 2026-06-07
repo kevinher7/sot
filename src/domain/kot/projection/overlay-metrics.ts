@@ -2,6 +2,7 @@ import {
   calculateKotDay,
   createKotResolveDayContext,
 } from "@/domain/kot/calculation/day/day-calculator";
+import { NIGHT_WORK_START_MINUTES } from "@/domain/kot/calculation/day/night-work";
 import { buildEffectiveDayScenario } from "@/domain/kot/calculation/day/scenario-builders";
 import type { KotResolvedMonth } from "@/domain/kot/calculation/month/month-types";
 import { resolveKotMonth } from "@/domain/kot/calculation/month/month-resolver";
@@ -43,6 +44,7 @@ export type TodayBadgeStatus =
   | "break"
   | "finished"
   | "in-progress"
+  | "night"
   | "not-started"
   | "rest-day";
 
@@ -147,6 +149,12 @@ export function calculateTodayBadgeStatus(input: {
 
   if (effectiveScenario.interpretedRow.clockOutMinutes !== null) {
     return "finished";
+  }
+
+  const nowMinutes = input.now.getHours() * 60 + input.now.getMinutes();
+
+  if (nowMinutes >= NIGHT_WORK_START_MINUTES) {
+    return "night";
   }
 
   return "in-progress";
