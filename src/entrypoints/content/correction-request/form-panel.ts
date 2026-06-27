@@ -63,6 +63,17 @@ function el<K extends keyof HTMLElementTagNameMap>(
   return node;
 }
 
+// "2026-06-17" -> "06月17日", mirroring the overlay's date label.
+function formatPanelDate(isoDate: string): string {
+  const [, month, day] = isoDate.split("-");
+
+  if (month === undefined || day === undefined) {
+    return isoDate;
+  }
+
+  return `${month}月${day}日`;
+}
+
 function createTypeSelect(
   doc: Document,
   selectedCode: string,
@@ -237,17 +248,22 @@ export function openKotCorrectionForm(
   panel.id = CORRECTION_FORM_ID;
 
   const header = el(doc, "div", "sot-correction-header", undefined);
-  const title = el(
+  const headerLeft = el(doc, "div", "sot-correction-header-left", undefined);
+  const title = el(doc, "span", "sot-correction-title", "打刻申請");
+  const date = el(
     doc,
     "span",
-    "sot-correction-title",
-    `打刻申請 — ${options.need.isoDate}`,
+    "sot-correction-date",
+    formatPanelDate(options.need.isoDate),
   );
+
+  headerLeft.append(title, date);
+
   const closeButton = el(doc, "button", "sot-correction-close", "×");
 
   closeButton.type = "button";
   closeButton.title = "閉じる";
-  header.append(title, closeButton);
+  header.append(headerLeft, closeButton);
 
   const status = el(doc, "div", "sot-correction-status", undefined);
 
