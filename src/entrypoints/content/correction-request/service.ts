@@ -76,21 +76,9 @@ export async function submitKotCorrectionRequest(
       };
     }
 
-    // Temporary diagnostics: capture the success/failure response shape so the
-    // real success-vs-error detection can be finalized.
-    const html = await response.text();
-    const titleMatch = html.match(/<title>([^<]*)<\/title>/iu);
-
-    console.info("[SOT] 打刻申請 response", {
-      status: response.status,
-      redirected: response.redirected,
-      url: response.url,
-      length: html.length,
-      title: titleMatch?.[1]?.trim(),
-      hasEditForm: html.includes('id="working_edit_form"'),
-      errorHints: [...html.matchAll(/class="[^"]*error[^"]*"/giu)].length,
-    });
-
+    // NOTE: success is currently inferred from the HTTP status. KOT returns a
+    // full HTML page; real success-vs-error parsing of that response is a
+    // deliberate follow-up.
     return { ok: true };
   } catch (error) {
     return {
