@@ -310,6 +310,7 @@ export function openKotCorrectionForm(
   const footer = el(doc, "div", "sot-correction-footer", undefined);
 
   let pendingConfirm: HTMLInputElement | undefined;
+  let pendingWarning: HTMLLabelElement | undefined;
 
   if (options.hasPendingRequest) {
     const warning = el(doc, "label", "sot-correction-pending", undefined);
@@ -317,6 +318,7 @@ export function openKotCorrectionForm(
 
     checkbox.type = "checkbox";
     pendingConfirm = checkbox;
+    pendingWarning = warning;
     warning.append(
       checkbox,
       el(
@@ -326,7 +328,6 @@ export function openKotCorrectionForm(
         "未承認の申請があります。二重申請を承知のうえ送信します。",
       ),
     );
-    footer.append(warning);
   }
 
   const cancelButton = el(doc, "button", "sot-correction-cancel", "キャンセル");
@@ -392,8 +393,14 @@ export function openKotCorrectionForm(
     closeKotCorrectionForm(doc);
   });
 
-  footer.append(cancelButton, submitButton);
-  panel.append(header, status, table, addButton, footer);
+  footer.append(addButton, cancelButton, submitButton);
+  panel.append(header, status, table);
+
+  if (pendingWarning !== undefined) {
+    panel.append(pendingWarning);
+  }
+
+  panel.append(footer);
   doc.body.append(panel);
 
   const reposition = (): void => {

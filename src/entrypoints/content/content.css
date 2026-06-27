@@ -893,7 +893,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  margin-bottom: 10px;
+  margin-right: auto;
   padding: 5px 10px;
   border: 1px solid rgba(40, 167, 69, 0.3);
   border-radius: 4px;
@@ -923,7 +923,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-right: auto;
+  margin-bottom: 10px;
   padding: 5px 8px;
   border: 1px solid rgba(245, 158, 11, 0.4);
   border-radius: 4px;
