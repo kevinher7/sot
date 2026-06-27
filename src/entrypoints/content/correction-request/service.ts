@@ -61,22 +61,6 @@ export async function submitKotCorrectionRequest(
     body.append(entry.name, entry.value);
   }
 
-  // Temporary diagnostics while the wire format is being validated live.
-  console.info("[SOT] 打刻申請 POST", {
-    url: form.actionUrl,
-    entryCount: entries.length,
-    oneDayFlag: entries.find(
-      (entry) => entry.name === "request_one_day_schedule_flag",
-    )?.value,
-    unrenderedTemplates: entries
-      .filter(
-        (entry) =>
-          entry.name !== "selected_section_id" &&
-          (entry.value.startsWith("$") || entry.value.includes("{{")),
-      )
-      .map((entry) => entry.name),
-  });
-
   try {
     // Let fetch set the multipart boundary; do not set Content-Type manually.
     const response = await fetch(form.actionUrl, {
@@ -91,6 +75,21 @@ export async function submitKotCorrectionRequest(
         reason: `申請の送信に失敗しました (${response.status})`,
       };
     }
+
+    // Temporary diagnostics: capture the success/failure response shape so the
+    // real success-vs-error detection can be finalized.
+    const html = await response.text();
+    const titleMatch = html.match(/<title>([^<]*)<\/title>/iu);
+
+    console.info("[SOT] 打刻申請 response", {
+      status: response.status,
+      redirected: response.redirected,
+      url: response.url,
+      length: html.length,
+      title: titleMatch?.[1]?.trim(),
+      hasEditForm: html.includes('id="working_edit_form"'),
+      errorHints: [...html.matchAll(/class="[^"]*error[^"]*"/giu)].length,
+    });
 
     return { ok: true };
   } catch (error) {

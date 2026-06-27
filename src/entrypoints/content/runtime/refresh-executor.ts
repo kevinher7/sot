@@ -163,12 +163,7 @@ export function createRefreshExecutor(
       closeKotCorrectionForm(doc);
     }
 
-    const correction = detectKotCorrectionNeeds({
-      now,
-      pageSnapshot,
-      requestCacheEntry: cache.requestSnapshot,
-      standardWorkdayHours: settings.standardWorkdayHours,
-    });
+    const correction = detectKotCorrectionNeeds(result.resolvedMonth);
 
     syncKotCorrectionMarkers(doc, win, {
       needs: correction.needs,

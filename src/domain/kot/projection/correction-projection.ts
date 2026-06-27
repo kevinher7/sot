@@ -2,34 +2,18 @@ import {
   detectKotCorrectionNeed,
   type KotCorrectionNeed,
 } from "@/domain/kot/calculation/requests/correction-need";
-import { resolveKotMonth } from "@/domain/kot/calculation/month/month-resolver";
-import type { KotMonthlyPageSnapshot } from "@/domain/kot/monthly-page-types";
-import type { KotRequestCacheEntry } from "@/domain/kot/request-data";
+import type { KotResolvedMonth } from "@/domain/kot/calculation/month/month-types";
 
 export type KotCorrectionDetection = {
   needs: readonly KotCorrectionNeed[];
   pendingIsoDates: ReadonlySet<string>;
 };
 
-export type KotCorrectionDetectionInput = {
-  now: Date;
-  pageSnapshot: KotMonthlyPageSnapshot;
-  requestCacheEntry: KotRequestCacheEntry | null;
-  standardWorkdayHours: number;
-};
-
-// Resolve the month and surface, per day, which need a 打刻申請 and which
+// Map an already-resolved month to, per day, which need a 打刻申請 and which
 // already carry a pending request (drives the duplicate-request guard).
 export function detectKotCorrectionNeeds(
-  input: KotCorrectionDetectionInput,
+  resolvedMonth: KotResolvedMonth,
 ): KotCorrectionDetection {
-  const resolvedMonth = resolveKotMonth({
-    now: input.now,
-    pageSnapshot: input.pageSnapshot,
-    requestCacheEntry: input.requestCacheEntry,
-    standardWorkdayHours: input.standardWorkdayHours,
-  });
-
   const needs: KotCorrectionNeed[] = [];
   const pendingIsoDates = new Set<string>();
 

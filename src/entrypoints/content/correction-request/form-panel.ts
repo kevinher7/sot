@@ -214,11 +214,7 @@ function readDraftRows(controls: readonly RowControls[]): KotDraftPunchRow[] {
   }));
 }
 
-function positionPanel(
-  panel: HTMLElement,
-  row: HTMLTableRowElement,
-  win: Window,
-): void {
+function positionPanel(panel: HTMLElement, row: HTMLTableRowElement): void {
   const rect = row.getBoundingClientRect();
   const panelHeight = panel.offsetHeight;
   const margin = 8;
@@ -226,7 +222,6 @@ function positionPanel(
 
   panel.style.left = `${Math.max(margin, rect.left)}px`;
   panel.style.top = `${top > margin ? top : rect.bottom + margin}px`;
-  void win;
 }
 
 export function openKotCorrectionForm(
@@ -293,7 +288,7 @@ export function openKotCorrectionForm(
         controls,
       ),
     );
-    positionPanel(panel, options.row, win);
+    positionPanel(panel, options.row);
   });
 
   const footer = el(doc, "div", "sot-correction-footer", undefined);
@@ -386,7 +381,7 @@ export function openKotCorrectionForm(
   doc.body.append(panel);
 
   const reposition = (): void => {
-    positionPanel(panel, options.row, win);
+    positionPanel(panel, options.row);
   };
 
   reposition();
