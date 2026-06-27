@@ -1,4 +1,9 @@
+import { detectKotCorrectionNeeds } from "@/domain/kot/projection/correction-projection";
 import { calculateOverlayMetrics } from "@/domain/kot/projection/overlay-metrics";
+import {
+  closeKotCorrectionForm,
+  syncKotCorrectionMarkers,
+} from "@/entrypoints/content/correction-request";
 import { readMonthlyPageSnapshot } from "@/entrypoints/content/kot-page";
 import { applyTodayRowHighlight } from "@/entrypoints/content/runtime/day-highlight";
 import {
@@ -55,6 +60,13 @@ export function createRefreshExecutor(
       cache.pageSignature = null;
       clearRequestCache(cache);
       cache.settingsSignature = null;
+      closeKotCorrectionForm(doc);
+      syncKotCorrectionMarkers(doc, win, {
+        needs: [],
+        onSuccess: () => {},
+        payload: null,
+        pendingIsoDates: new Set(),
+      });
       scheduleNextMinuteRefresh();
 
       return;
@@ -144,6 +156,29 @@ export function createRefreshExecutor(
         });
       },
     });
+
+    // Close any open correction form when the table DOM actually changed (its
+    // row anchor is now stale); benign re-renders leave the form intact.
+    if (cache.pageSignature !== pageSnapshot.signature) {
+      closeKotCorrectionForm(doc);
+    }
+
+    const correction = detectKotCorrectionNeeds({
+      now,
+      pageSnapshot,
+      requestCacheEntry: cache.requestSnapshot,
+      standardWorkdayHours: settings.standardWorkdayHours,
+    });
+
+    syncKotCorrectionMarkers(doc, win, {
+      needs: correction.needs,
+      onSuccess: () => {
+        win.location.reload();
+      },
+      payload: requestContext?.payload ?? null,
+      pendingIsoDates: correction.pendingIsoDates,
+    });
+
     cache.pageSignature = pageSnapshot.signature;
     cache.requestContextKey = requestContext?.key ?? null;
     cache.requestSignature = cache.requestSnapshot?.signature ?? null;

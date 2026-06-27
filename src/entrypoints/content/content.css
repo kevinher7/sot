@@ -668,3 +668,170 @@
   cursor: wait;
   pointer-events: none;
 }
+
+/* --- Inline 打刻申請 (correction request) --- */
+
+.sot-correction-marker {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 11px;
+  line-height: 1.4;
+  font-weight: 600;
+  color: #b91c1c;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  border-radius: 9999px;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.sot-correction-marker:hover {
+  background: #fecaca;
+}
+
+.sot-correction-panel {
+  position: fixed;
+  z-index: 2147483600;
+  width: 520px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+  overflow: auto;
+  padding: 14px 16px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.25);
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+  font-size: 13px;
+  color: #1f2937;
+}
+
+.sot-correction-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.sot-correction-title {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.sot-correction-close {
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  line-height: 1;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.sot-correction-status {
+  min-height: 18px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #475569;
+}
+
+.sot-correction-status--error {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.sot-correction-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+
+.sot-correction-table th,
+.sot-correction-table td {
+  padding: 4px 6px;
+  text-align: left;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.sot-correction-table th {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.sot-correction-row--added {
+  background: #fffbeb;
+}
+
+.sot-correction-type {
+  width: 100%;
+}
+
+.sot-correction-time {
+  width: 64px;
+}
+
+.sot-correction-message {
+  width: 100%;
+}
+
+.sot-correction-delete-cell {
+  text-align: center;
+}
+
+.sot-correction-add {
+  margin-bottom: 12px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: #2563eb;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.sot-correction-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.sot-correction-pending {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: auto;
+  font-size: 11px;
+  color: #b45309;
+}
+
+.sot-correction-cancel,
+.sot-correction-submit {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.sot-correction-cancel {
+  color: #475569;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+}
+
+.sot-correction-submit {
+  color: #ffffff;
+  background: #16a34a;
+  border: 1px solid #15803d;
+}
+
+.sot-correction-submit:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
