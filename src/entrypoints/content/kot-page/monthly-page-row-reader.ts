@@ -18,6 +18,7 @@ import {
   MONTHLY_PAGE_CLOCK_OUT_SELECTOR,
   MONTHLY_PAGE_DATE_CELL_ERROR_ICON_SELECTOR,
   MONTHLY_PAGE_DATE_CELL_SELECTOR,
+  MONTHLY_PAGE_INJECTED_REQUEST_SELECTOR,
   MONTHLY_PAGE_OFFDAY_CLASS_NAMES,
   MONTHLY_PAGE_OFFDAY_WORK_DAY_TYPE_PATTERNS,
   MONTHLY_PAGE_REQUEST_MARKER_SELECTOR,
@@ -36,7 +37,7 @@ function normalizeCellTextExcludingRequests(element: Element | null): string {
   const clone = element.cloneNode(true) as Element;
 
   for (const requested of clone.querySelectorAll(
-    MONTHLY_PAGE_REQUEST_MARKER_SELECTOR,
+    `${MONTHLY_PAGE_REQUEST_MARKER_SELECTOR}, ${MONTHLY_PAGE_INJECTED_REQUEST_SELECTOR}`,
   )) {
     requested.remove();
   }
@@ -138,6 +139,10 @@ function hasExplicitRowRequestMarker(row: HTMLTableRowElement): boolean {
   }
 
   return row.textContent?.includes("[申]") ?? false;
+}
+
+export function readMonthlyRowIsoDate(row: HTMLTableRowElement): string | null {
+  return parseWorkingDateFromActionCell(row)?.isoDate ?? null;
 }
 
 export function readMonthlyPageRowSnapshot(

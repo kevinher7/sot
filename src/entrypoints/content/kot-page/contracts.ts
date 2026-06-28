@@ -18,6 +18,17 @@ export const MONTHLY_PAGE_BREAK_START_SELECTOR =
   'td[data-ht-sort-index="REST_START_TIMERECORD"]';
 export const MONTHLY_PAGE_BREAK_END_SELECTOR =
   'td[data-ht-sort-index="REST_END_TIMERECORD"]';
+export const MONTHLY_PAGE_BREAK_TOTAL_SELECTOR =
+  'td[data-ht-sort-index="REST_MINUTE"]';
+export const MONTHLY_PAGE_WORK_TOTAL_SELECTOR =
+  'td[data-ht-sort-index="ALL_WORK_MINUTE"]';
+
+// Marker for amber request times/totals we inject into host cells. The row
+// reader strips these before parsing so our writes never alter the snapshot.
+export const MONTHLY_PAGE_INJECTED_REQUEST_CLASS = "sot-requested";
+export const MONTHLY_PAGE_INJECTED_REQUEST_SELECTOR = ".sot-requested";
+export const MONTHLY_PAGE_INJECTED_REQUEST_MARKER_CLASS =
+  "sot-requested-marker";
 
 export const MONTHLY_PAGE_ACTION_CELL_WORKING_DATE_SELECTOR =
   'input[name="working_date"]';

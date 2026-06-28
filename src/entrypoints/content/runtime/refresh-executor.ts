@@ -1,11 +1,13 @@
 import { detectKotCorrectionNeeds } from "@/domain/kot/projection/correction-projection";
 import { calculateOverlayMetrics } from "@/domain/kot/projection/overlay-metrics";
+import { buildKotRequestInjections } from "@/domain/kot/projection/request-injection";
 import {
   closeKotCorrectionForm,
   syncKotCorrectionMarkers,
 } from "@/entrypoints/content/correction-request";
 import { readMonthlyPageSnapshot } from "@/entrypoints/content/kot-page";
 import { applyTodayRowHighlight } from "@/entrypoints/content/runtime/day-highlight";
+import { applyKotRequestInjections } from "@/entrypoints/content/runtime/request-injection";
 import {
   createKotRequestContext,
   getKotRequestData,
@@ -57,6 +59,7 @@ export function createRefreshExecutor(
         doc,
         "Monthly timecard data is not available on this page.",
       );
+      applyKotRequestInjections(doc, []);
       cache.pageSignature = null;
       clearRequestCache(cache);
       cache.settingsSignature = null;
@@ -101,6 +104,21 @@ export function createRefreshExecutor(
       cache.requestSignature = cache.requestSnapshot?.signature ?? null;
     }
 
+    const result = calculateOverlayMetrics({
+      now,
+      pageSnapshot,
+      requestCacheEntry: cache.requestSnapshot,
+      settings,
+    });
+
+    // Re-apply on every refresh (like the today-row highlight) so the amber
+    // request times survive host re-renders; reconciliation makes it a no-op
+    // when nothing changed.
+    applyKotRequestInjections(
+      doc,
+      buildKotRequestInjections(result.resolvedMonth),
+    );
+
     const shouldSkipRender =
       reason === "dom" &&
       cache.pageSignature === pageSnapshot.signature &&
@@ -114,12 +132,6 @@ export function createRefreshExecutor(
       return;
     }
 
-    const result = calculateOverlayMetrics({
-      now,
-      pageSnapshot,
-      requestCacheEntry: cache.requestSnapshot,
-      settings,
-    });
     const model = createOverlayViewModel(
       now,
       result,
