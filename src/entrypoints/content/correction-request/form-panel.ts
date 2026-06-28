@@ -3,6 +3,10 @@ import {
   type KotDraftPunchRow,
 } from "@/domain/kot/correction/draft";
 import {
+  type KotRequestedPunchView,
+  requestedPunchKey,
+} from "@/domain/kot/correction/requested-punches";
+import {
   KOT_PUNCH_TYPE_CODES,
   KOT_PUNCH_TYPE_LABELS,
   type KotEditForm,
@@ -10,6 +14,7 @@ import {
 } from "@/domain/kot/correction/types";
 import { validateKotCorrectionDraft } from "@/domain/kot/correction/validation";
 import type { KotPunchField } from "@/domain/kot/calculation/requests/correction-need";
+import { parseClockTextMinutes } from "@/domain/kot/time-text";
 import type { KotCorrectionSubmitResult } from "@/entrypoints/content/correction-request/service";
 
 export const CORRECTION_FORM_ID = "sot-correction-form";
@@ -26,12 +31,20 @@ type KotCorrectionFormOptions = {
   isoDate: string;
   affectedFields: readonly KotPunchField[];
   hasPendingRequest: boolean;
+  requestedPunches: KotRequestedPunchView;
   row: HTMLTableRowElement;
   onSubmit: (
     edits: ReturnType<typeof deriveKotPunchEdits>,
   ) => Promise<KotCorrectionSubmitResult>;
   onSuccess: () => void;
 };
+
+// A row in the panel table: an editable draft, a previously-requested punch
+// shown read-only (locked), or a recorded punch a pending 申請 asks to delete.
+type PanelRowSpec =
+  | { mode: "editable"; draft: KotDraftPunchRow }
+  | { mode: "locked"; typeCode: KotPunchTypeCode; time: string }
+  | { mode: "pendingDelete"; typeCode: string; time: string };
 
 type RowControls = {
   recordId: string | undefined;
@@ -116,45 +129,107 @@ function createMessageInput(doc: Document, value: string): HTMLInputElement {
   return input;
 }
 
-function buildInitialDraftRows(
+// Logical reading order for a day: 出勤 first, break pairs in the middle (so
+// 休憩終了 lands next to its 休憩開始), 退勤 last. Unknown/empty types sink last.
+const PHASE_RANK: Record<string, number> = { "1": 0, "2": 2, "3": 1, "4": 1 };
+const BREAK_ORDER: Record<string, number> = { "3": 0, "4": 1 };
+
+function specTypeAndTime(spec: PanelRowSpec): {
+  typeCode: string;
+  time: string;
+} {
+  if (spec.mode === "editable") {
+    return { time: spec.draft.time, typeCode: spec.draft.typeCode };
+  }
+
+  return { time: spec.time, typeCode: spec.typeCode };
+}
+
+function compareRowSpecs(left: PanelRowSpec, right: PanelRowSpec): number {
+  const a = specTypeAndTime(left);
+  const b = specTypeAndTime(right);
+
+  const phaseDiff =
+    (PHASE_RANK[a.typeCode] ?? 3) - (PHASE_RANK[b.typeCode] ?? 3);
+
+  if (phaseDiff !== 0) {
+    return phaseDiff;
+  }
+
+  const aMinutes = parseClockTextMinutes(a.time) ?? Number.POSITIVE_INFINITY;
+  const bMinutes = parseClockTextMinutes(b.time) ?? Number.POSITIVE_INFINITY;
+
+  if (aMinutes !== bMinutes) {
+    return aMinutes - bMinutes;
+  }
+
+  return (BREAK_ORDER[a.typeCode] ?? 0) - (BREAK_ORDER[b.typeCode] ?? 0);
+}
+
+function buildPanelRowSpecs(
   options: KotCorrectionFormOptions,
-): readonly KotDraftPunchRow[] {
-  const existing: KotDraftPunchRow[] = options.editForm.existingPunches.map(
-    (punch) => ({
-      deleted: false,
-      message: "",
-      original: { time: punch.time, typeCode: punch.typeCode },
-      recordId: punch.recordId,
-      time: punch.time,
-      typeCode: punch.typeCode,
-    }),
-  );
+): readonly PanelRowSpec[] {
+  const { lockedRows, pendingDeleteKeys } = options.requestedPunches;
+  const specs: PanelRowSpec[] = [];
 
-  const existingTypeCodes = new Set(
-    existing.map((row) => row.typeCode).filter((code) => code !== ""),
-  );
+  for (const punch of options.editForm.existingPunches) {
+    if (pendingDeleteKeys.has(requestedPunchKey(punch.typeCode, punch.time))) {
+      specs.push({
+        mode: "pendingDelete",
+        time: punch.time,
+        typeCode: punch.typeCode,
+      });
 
-  // Auto-add an empty, type-preset row for each affected field the day lacks.
-  const missing: KotDraftPunchRow[] = [];
-
-  for (const field of options.affectedFields) {
-    const typeCode = FIELD_TYPE_CODE[field];
-
-    if (existingTypeCodes.has(typeCode)) {
       continue;
     }
 
-    missing.push({
-      deleted: false,
-      message: "",
-      original: undefined,
-      recordId: undefined,
-      time: "",
-      typeCode,
+    specs.push({
+      draft: {
+        deleted: false,
+        message: "",
+        original: { time: punch.time, typeCode: punch.typeCode },
+        recordId: punch.recordId,
+        time: punch.time,
+        typeCode: punch.typeCode,
+      },
+      mode: "editable",
     });
   }
 
-  return [...existing, ...missing];
+  const existingTypeCodes = new Set(
+    options.editForm.existingPunches
+      .map((punch) => punch.typeCode)
+      .filter((code) => code !== ""),
+  );
+  const lockedTypeCodes = new Set(lockedRows.map((row) => row.typeCode));
+
+  // Auto-add an empty, type-preset row for each affected field the day lacks —
+  // unless a still-pending 申請 already covers that type (shown as a locked row).
+  for (const field of options.affectedFields) {
+    const typeCode = FIELD_TYPE_CODE[field];
+
+    if (existingTypeCodes.has(typeCode) || lockedTypeCodes.has(typeCode)) {
+      continue;
+    }
+
+    specs.push({
+      draft: {
+        deleted: false,
+        message: "",
+        original: undefined,
+        recordId: undefined,
+        time: "",
+        typeCode,
+      },
+      mode: "editable",
+    });
+  }
+
+  for (const row of lockedRows) {
+    specs.push({ mode: "locked", time: row.time, typeCode: row.typeCode });
+  }
+
+  return [...specs].sort(compareRowSpecs);
 }
 
 function createRowElement(
@@ -210,6 +285,107 @@ function createRowElement(
   });
 
   return tr;
+}
+
+// A read-only type/time pair styled to match the editable controls, used by the
+// locked and pending-delete rows so columns line up with the editable rows.
+function appendReadonlyTypeTime(
+  doc: Document,
+  tr: HTMLTableRowElement,
+  typeCode: string,
+  time: string,
+): void {
+  const typeSelect = createTypeSelect(doc, typeCode);
+
+  typeSelect.disabled = true;
+  typeSelect.tabIndex = -1;
+
+  const timeInput = createTimeInput(doc, time);
+
+  timeInput.disabled = true;
+  timeInput.tabIndex = -1;
+
+  const typeCell = el(doc, "td", undefined, undefined);
+
+  typeCell.append(typeSelect);
+
+  const timeCell = el(doc, "td", undefined, undefined);
+
+  timeCell.append(timeInput);
+
+  tr.append(typeCell, timeCell);
+}
+
+// A previously-requested punch from a still-pending 申請: read-only, so the user
+// can see what the open request already covers without re-submitting it.
+function createLockedRowElement(
+  doc: Document,
+  spec: Extract<PanelRowSpec, { mode: "locked" }>,
+): HTMLTableRowElement {
+  const tr = el(
+    doc,
+    "tr",
+    "sot-correction-row sot-correction-row--locked",
+    undefined,
+  );
+
+  appendReadonlyTypeTime(doc, tr, spec.typeCode, spec.time);
+
+  const deleteCell = el(doc, "td", "sot-correction-delete-cell", undefined);
+  const messageCell = el(doc, "td", undefined, undefined);
+
+  messageCell.append(el(doc, "span", "sot-correction-badge", "申請中"));
+  tr.append(deleteCell, messageCell);
+
+  return tr;
+}
+
+// A recorded punch a still-pending 申請 asks to delete: kept visible but locked
+// and struck through so the user knows a removal is already in flight.
+function createPendingDeleteRowElement(
+  doc: Document,
+  spec: Extract<PanelRowSpec, { mode: "pendingDelete" }>,
+): HTMLTableRowElement {
+  const tr = el(
+    doc,
+    "tr",
+    "sot-correction-row sot-correction-row--pending-delete",
+    undefined,
+  );
+
+  appendReadonlyTypeTime(doc, tr, spec.typeCode, spec.time);
+
+  const deleteCell = el(doc, "td", "sot-correction-delete-cell", undefined);
+  const checkbox = el(doc, "input", undefined, undefined);
+
+  checkbox.type = "checkbox";
+  checkbox.checked = true;
+  checkbox.disabled = true;
+  checkbox.tabIndex = -1;
+  deleteCell.append(checkbox);
+
+  const messageCell = el(doc, "td", undefined, undefined);
+
+  messageCell.append(el(doc, "span", "sot-correction-badge", "削除申請中"));
+  tr.append(deleteCell, messageCell);
+
+  return tr;
+}
+
+function createRowFromSpec(
+  doc: Document,
+  spec: PanelRowSpec,
+  controls: RowControls[],
+): HTMLTableRowElement {
+  if (spec.mode === "locked") {
+    return createLockedRowElement(doc, spec);
+  }
+
+  if (spec.mode === "pendingDelete") {
+    return createPendingDeleteRowElement(doc, spec);
+  }
+
+  return createRowElement(doc, spec.draft, controls);
 }
 
 function readDraftRows(controls: readonly RowControls[]): KotDraftPunchRow[] {
@@ -277,10 +453,10 @@ export function openKotCorrectionForm(
   thead.append(headRow);
 
   const tbody = el(doc, "tbody", undefined, undefined);
-  const initialRows = buildInitialDraftRows(options);
+  const initialRows = buildPanelRowSpecs(options);
 
-  for (const draft of initialRows) {
-    tbody.append(createRowElement(doc, draft, controls));
+  for (const spec of initialRows) {
+    tbody.append(createRowFromSpec(doc, spec, controls));
   }
 
   table.append(thead, tbody);

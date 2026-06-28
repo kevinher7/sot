@@ -888,6 +888,50 @@
   background: rgba(255, 251, 235, 0.7);
 }
 
+.sot-correction-row--locked td,
+.sot-correction-row--pending-delete td {
+  background: rgba(255, 251, 235, 0.95);
+}
+
+.sot-correction-row--locked .sot-correction-type,
+.sot-correction-row--locked .sot-correction-time,
+.sot-correction-row--pending-delete .sot-correction-type,
+.sot-correction-row--pending-delete .sot-correction-time {
+  border-color: rgba(245, 158, 11, 0.45);
+  background: rgba(255, 247, 224, 0.95);
+  color: #92400e;
+  opacity: 1;
+  cursor: default;
+}
+
+.sot-correction-row--pending-delete .sot-correction-type,
+.sot-correction-row--pending-delete .sot-correction-time {
+  text-decoration: line-through;
+}
+
+.sot-correction-row--pending-delete .sot-correction-delete-cell input {
+  accent-color: #d97706;
+  cursor: default;
+}
+
+.sot-correction-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100px;
+  padding: 4px 7px;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: 4px;
+  background: rgba(255, 251, 235, 0.9);
+  color: #92400e;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
 .sot-correction-type,
 .sot-correction-time,
 .sot-correction-message {
