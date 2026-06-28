@@ -56,9 +56,11 @@ function resolveKotMonthDay(input: {
     actual: attachKotBankEvaluation(
       calculateKotDay(scenarios.actual, input.dayContext),
     ),
+    actualRow: row,
     effective: attachKotBankEvaluation(
       calculateKotDay(scenarios.effective, input.dayContext),
     ),
+    effectiveRow: scenarios.effective.interpretedRow,
     isoDate: row.isoDate,
   };
 }

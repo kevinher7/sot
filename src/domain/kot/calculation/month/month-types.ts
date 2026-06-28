@@ -1,8 +1,13 @@
 import type { KotResolvedDay } from "@/domain/kot/calculation/bank/bank-types";
+import type { KotDayRowSnapshot } from "@/domain/kot/monthly-page-types";
 
 export type KotResolvedMonthDay = {
   actual: KotResolvedDay;
+  // Punches as recorded, and as simulated after pending requests apply. Kept so
+  // projections can diff per-field which times a request adds or changes.
+  actualRow: KotDayRowSnapshot;
   effective: KotResolvedDay;
+  effectiveRow: KotDayRowSnapshot;
   isoDate: string;
 };
 

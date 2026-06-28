@@ -20,6 +20,16 @@ export function formatMinutesAsClock(minutes: number): string {
   return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
 }
 
+// 534 -> "8.54". Matches the host monthly table's hours-dot-minutes display
+// (the fractional part is literal minutes, not a decimal fraction of an hour).
+export function formatMinutesAsHoursDot(minutes: number): string {
+  const safe = Math.max(0, Math.round(minutes));
+  const hours = Math.floor(safe / 60);
+  const mins = safe % 60;
+
+  return `${hours}.${mins.toString().padStart(2, "0")}`;
+}
+
 export function parseClockTextMinuteList(value: string): number[] {
   return Array.from(value.matchAll(/(\d{1,2}):(\d{2})/gu), (match) => {
     const hours = Number.parseInt(match[1], 10);
