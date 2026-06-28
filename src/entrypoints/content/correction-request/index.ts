@@ -1,5 +1,9 @@
 import type { KotCorrectionNeed } from "@/domain/kot/calculation/requests/correction-need";
-import type { KotRequestSyncPayload } from "@/domain/kot/request-data";
+import { deriveRequestedPunchView } from "@/domain/kot/correction/requested-punches";
+import type {
+  KotRequestSyncPayload,
+  KotTimeCorrectionRequest,
+} from "@/domain/kot/request-data";
 import {
   applyKotCorrectionMarkers,
   clearKotCorrectionMarkers,
@@ -22,6 +26,7 @@ export type KotCorrectionSyncParams = {
   needs: readonly KotCorrectionNeed[];
   payload: KotRequestSyncPayload | null;
   pendingIsoDates: ReadonlySet<string>;
+  pendingRequests: readonly KotTimeCorrectionRequest[];
   onSuccess: () => void;
 };
 
@@ -33,6 +38,23 @@ function createOpenHandler(
   const needByIsoDate = new Map(
     params.needs.map((need) => [need.isoDate, need]),
   );
+
+  const pendingRequestsByIsoDate = new Map<
+    string,
+    KotTimeCorrectionRequest[]
+  >();
+
+  for (const request of params.pendingRequests) {
+    const bucket = pendingRequestsByIsoDate.get(request.isoDate);
+
+    if (bucket === undefined) {
+      pendingRequestsByIsoDate.set(request.isoDate, [request]);
+
+      continue;
+    }
+
+    bucket.push(request);
+  }
 
   return (isoDate, row) => {
     // Clicking the 申 button of the day whose panel is already open toggles it
@@ -60,6 +82,11 @@ function createOpenHandler(
         return;
       }
 
+      const requestedPunches = deriveRequestedPunchView(
+        pendingRequestsByIsoDate.get(isoDate) ?? [],
+        editForm,
+      );
+
       openKotCorrectionForm(doc, win, {
         affectedFields: need?.affectedFields ?? [],
         editForm,
@@ -69,6 +96,7 @@ function createOpenHandler(
         isoDate,
         onSubmit: (edits) => submitKotCorrectionRequest(editForm, edits),
         onSuccess: params.onSuccess,
+        requestedPunches,
         row,
       });
     });

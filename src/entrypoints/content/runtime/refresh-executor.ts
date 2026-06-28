@@ -66,6 +66,7 @@ export function createRefreshExecutor(
         onSuccess: () => {},
         payload: null,
         pendingIsoDates: new Set(),
+        pendingRequests: [],
       });
       scheduleNextMinuteRefresh();
 
@@ -172,6 +173,9 @@ export function createRefreshExecutor(
       },
       payload: requestContext?.payload ?? null,
       pendingIsoDates: correction.pendingIsoDates,
+      pendingRequests: (cache.requestSnapshot?.requests ?? []).filter(
+        (request) => request.status === "pending",
+      ),
     });
 
     cache.pageSignature = pageSnapshot.signature;
