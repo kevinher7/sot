@@ -8,6 +8,7 @@ import {
 } from "@/entrypoints/content/correction-request/marker";
 import {
   closeKotCorrectionForm,
+  getOpenKotCorrectionFormIsoDate,
   openKotCorrectionForm,
 } from "@/entrypoints/content/correction-request/form-panel";
 import {
@@ -34,6 +35,14 @@ function createOpenHandler(
   );
 
   return (isoDate, row) => {
+    // Clicking the 申 button of the day whose panel is already open toggles it
+    // shut, so the same button opens and closes the panel.
+    if (getOpenKotCorrectionFormIsoDate(doc) === isoDate) {
+      closeKotCorrectionForm(doc);
+
+      return;
+    }
+
     const payload = params.payload;
 
     if (payload === null) {

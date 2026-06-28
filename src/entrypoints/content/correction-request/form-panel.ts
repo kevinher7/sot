@@ -244,6 +244,7 @@ export function openKotCorrectionForm(
   const panel = el(doc, "div", "sot-correction-panel", undefined);
 
   panel.id = CORRECTION_FORM_ID;
+  panel.dataset.isoDate = options.isoDate;
 
   const header = el(doc, "div", "sot-correction-header", undefined);
   const headerLeft = el(doc, "div", "sot-correction-header-left", undefined);
@@ -417,6 +418,14 @@ export function openKotCorrectionForm(
 }
 
 let activeCleanup: (() => void) | undefined;
+
+// The ISO date of the day whose panel is currently open, or undefined when no
+// panel is mounted. Read from the live element so it stays in sync with the DOM.
+export function getOpenKotCorrectionFormIsoDate(
+  doc: Document,
+): string | undefined {
+  return doc.getElementById(CORRECTION_FORM_ID)?.dataset.isoDate;
+}
 
 export function closeKotCorrectionForm(doc: Document): void {
   activeCleanup?.();
