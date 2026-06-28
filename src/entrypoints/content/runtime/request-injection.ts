@@ -10,6 +10,7 @@ import {
   MONTHLY_PAGE_CLOCK_IN_SELECTOR,
   MONTHLY_PAGE_CLOCK_OUT_SELECTOR,
   MONTHLY_PAGE_INJECTED_REQUEST_CLASS,
+  MONTHLY_PAGE_INJECTED_REQUEST_MARKER_CLASS,
   MONTHLY_PAGE_INJECTED_REQUEST_SELECTOR,
   MONTHLY_PAGE_REQUEST_MARKER_SELECTOR,
   MONTHLY_PAGE_ROW_SELECTOR,
@@ -19,6 +20,7 @@ import { readMonthlyRowIsoDate } from "@/entrypoints/content/kot-page/monthly-pa
 
 const HIDDEN_MARKER_ATTR = "data-sot-marker-hidden";
 const CREATED_PARAGRAPH_ATTR = "data-sot-paragraph";
+const REQUEST_TIME_PREFIX = "申";
 
 type ReferenceFont = {
   family: string;
@@ -55,11 +57,15 @@ function readReferenceFont(doc: Document): ReferenceFont | null {
 }
 
 function clockTexts(minutes: number | undefined): readonly string[] {
-  return minutes === undefined ? [] : [`申 ${formatMinutesAsClock(minutes)}`];
+  return minutes === undefined
+    ? []
+    : [`${REQUEST_TIME_PREFIX} ${formatMinutesAsClock(minutes)}`];
 }
 
 function breakTexts(minutes: readonly number[] | undefined): readonly string[] {
-  return (minutes ?? []).map((value) => `申 ${formatMinutesAsClock(value)}`);
+  return (minutes ?? []).map(
+    (value) => `${REQUEST_TIME_PREFIX} ${formatMinutesAsClock(value)}`,
+  );
 }
 
 function totalTexts(minutes: number | undefined): readonly string[] {
@@ -83,6 +89,27 @@ function applyHostMarkerVisibility(
       marker.removeAttribute(HIDDEN_MARKER_ATTR);
     }
   }
+}
+
+// Render the value into the span, wrapping the leading "申" in its own element
+// so it can be colored red (host "[申]" red) while the time stays amber. The
+// span's textContent stays equal to `text`, so the diff-before-write holds.
+function fillInjectedSpan(span: HTMLElement, text: string): void {
+  const doc = span.ownerDocument;
+  const prefix = `${REQUEST_TIME_PREFIX} `;
+
+  if (!text.startsWith(prefix)) {
+    span.textContent = text;
+
+    return;
+  }
+
+  const marker = doc.createElement("span");
+
+  marker.className = MONTHLY_PAGE_INJECTED_REQUEST_MARKER_CLASS;
+  marker.textContent = REQUEST_TIME_PREFIX;
+  span.appendChild(marker);
+  span.appendChild(doc.createTextNode(text.slice(REQUEST_TIME_PREFIX.length)));
 }
 
 // Resolve the <p> to inject into so the amber value occupies the host's own
@@ -169,13 +196,12 @@ function reconcileCell(
     const span = cell.ownerDocument.createElement("span");
 
     span.className = MONTHLY_PAGE_INJECTED_REQUEST_CLASS;
-    span.textContent = text;
+    fillInjectedSpan(span, text);
 
     if (font) {
       span.style.fontFamily = font.family;
       span.style.fontSize = font.size;
       span.style.fontStyle = font.style;
-      span.style.fontWeight = font.weight;
       span.style.lineHeight = font.lineHeight;
     }
 

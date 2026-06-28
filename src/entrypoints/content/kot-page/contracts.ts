@@ -27,6 +27,8 @@ export const MONTHLY_PAGE_WORK_TOTAL_SELECTOR =
 // reader strips these before parsing so our writes never alter the snapshot.
 export const MONTHLY_PAGE_INJECTED_REQUEST_CLASS = "sot-requested";
 export const MONTHLY_PAGE_INJECTED_REQUEST_SELECTOR = ".sot-requested";
+export const MONTHLY_PAGE_INJECTED_REQUEST_MARKER_CLASS =
+  "sot-requested-marker";
 
 export const MONTHLY_PAGE_ACTION_CELL_WORKING_DATE_SELECTOR =
   'input[name="working_date"]';
