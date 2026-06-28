@@ -7,6 +7,9 @@ import {
 
 export const CORRECTION_MARKER_CLASS = "sot-correction-marker";
 export const CORRECTION_CELL_CLASS = "sot-correction-cell";
+// Tints a whole day row amber when a pending 申請 already covers it, overriding
+// KOT's native red so the row reads as "request in flight" rather than "error".
+export const CORRECTION_PENDING_ROW_CLASS = "sot-correction-pending-row";
 
 // Visual state of a day's 申 button. "clean" days (no flag) still get a gray,
 // clickable button; "error"/"conflict" days replace KOT's native triangle.
@@ -66,6 +69,10 @@ function clearMarkers(doc: Document): void {
   // feature is inactive (the triangle is hidden purely via the cell class).
   for (const cell of doc.querySelectorAll(`.${CORRECTION_CELL_CLASS}`)) {
     cell.classList.remove(CORRECTION_CELL_CLASS);
+  }
+
+  for (const row of doc.querySelectorAll(`.${CORRECTION_PENDING_ROW_CLASS}`)) {
+    row.classList.remove(CORRECTION_PENDING_ROW_CLASS);
   }
 }
 
@@ -129,14 +136,13 @@ export function applyKotCorrectionMarkers(
 
     dateCell.classList.add(CORRECTION_CELL_CLASS);
 
+    const tone = tones.get(isoDate) ?? "clean";
+
+    // A pending 申請 with no outstanding error: repaint KOT's red row amber.
+    row.classList.toggle(CORRECTION_PENDING_ROW_CLASS, tone === "conflict");
+
     const host = findDateContentHost(dateCell);
-    const marker = createMarker(
-      doc,
-      isoDate,
-      tones.get(isoDate) ?? "clean",
-      row,
-      onOpen,
-    );
+    const marker = createMarker(doc, isoDate, tone, row, onOpen);
 
     // KOT formats the date as `<p>\n06/01（月）\n[<img>]</p>`. Insert the button
     // right after the date text node (not at the end, which on error days sits

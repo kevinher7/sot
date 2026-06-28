@@ -744,6 +744,10 @@
   outline-offset: 1px;
 }
 
+tr.sot-correction-pending-row > td {
+  background-color: #fef5d0 !important;
+}
+
 .sot-correction-panel {
   position: fixed;
   z-index: 2147483600;
