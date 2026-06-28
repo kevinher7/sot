@@ -1,5 +1,6 @@
 import { detectKotCorrectionNeeds } from "@/domain/kot/projection/correction-projection";
 import { calculateOverlayMetrics } from "@/domain/kot/projection/overlay-metrics";
+import { buildKotBreakWarnings } from "@/domain/kot/projection/break-warning";
 import { buildKotRequestInjections } from "@/domain/kot/projection/request-injection";
 import {
   closeKotCorrectionForm,
@@ -7,6 +8,7 @@ import {
 } from "@/entrypoints/content/correction-request";
 import { readMonthlyPageSnapshot } from "@/entrypoints/content/kot-page";
 import { applyTodayRowHighlight } from "@/entrypoints/content/runtime/day-highlight";
+import { applyKotBreakWarnings } from "@/entrypoints/content/runtime/break-warning";
 import { applyKotRequestInjections } from "@/entrypoints/content/runtime/request-injection";
 import {
   createKotRequestContext,
@@ -60,6 +62,7 @@ export function createRefreshExecutor(
         "Monthly timecard data is not available on this page.",
       );
       applyKotRequestInjections(doc, []);
+      applyKotBreakWarnings(doc, []);
       cache.pageSignature = null;
       clearRequestCache(cache);
       cache.settingsSignature = null;
@@ -118,6 +121,7 @@ export function createRefreshExecutor(
       doc,
       buildKotRequestInjections(result.resolvedMonth),
     );
+    applyKotBreakWarnings(doc, buildKotBreakWarnings(result.resolvedMonth));
 
     const shouldSkipRender =
       reason === "dom" &&

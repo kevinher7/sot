@@ -763,6 +763,10 @@ tr.sot-correction-pending-row > td {
   font-weight: 700;
 }
 
+tr > td.sot-break-warning {
+  background-color: #fed7aa !important;
+}
+
 .sot-correction-panel {
   position: fixed;
   z-index: 2147483600;
