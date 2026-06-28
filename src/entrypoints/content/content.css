@@ -802,9 +802,8 @@
 }
 
 .sot-correction-close {
+  position: relative;
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
   width: 20px;
   height: 20px;
   padding: 0;
@@ -812,9 +811,30 @@
   border-radius: 4px;
   background: #ffffff;
   color: #64748b;
-  font-size: 14px;
-  line-height: 1;
+  /* The "×" glyph sits on the font's math axis, so it never centers cleanly.
+     Hide it and draw the X from two absolutely-centered bars instead. */
+  font-size: 0;
   cursor: pointer;
+}
+
+.sot-correction-close::before,
+.sot-correction-close::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 1.5px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+.sot-correction-close::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.sot-correction-close::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
 }
 
 .sot-correction-close:hover {
