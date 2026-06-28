@@ -671,15 +671,28 @@
 
 /* --- Inline 打刻申請 (correction request) --- */
 
+/* The button is appended inside the date's <p> wrapper, so it flows inline right
+   after the date text. nowrap (!important to beat KOT's td[...] selector) keeps
+   the date and button on one line; the hidden triangle frees up its slot. */
+.sot-correction-cell {
+  white-space: nowrap !important;
+}
+
+.sot-correction-cell img[alt="エラー"] {
+  display: none !important;
+}
+
 .sot-correction-marker {
   display: inline-flex;
   align-items: center;
-  margin-left: 6px;
-  padding: 1px 7px;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 999px;
-  background: rgba(254, 226, 226, 0.85);
-  color: #b91c1c;
+  justify-content: center;
+  width: 20px;
+  height: 18px;
+  margin: 0 8px;
+  padding: 0;
+  vertical-align: middle;
+  border: 1px solid transparent;
+  border-radius: 4px;
   font-family:
     Inter,
     system-ui,
@@ -687,16 +700,48 @@
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.06em;
-  line-height: 1.5;
+  line-height: 1;
   cursor: pointer;
-  vertical-align: middle;
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease;
 }
 
-.sot-correction-marker:hover {
+.sot-correction-marker[data-tone="clean"] {
+  border-color: rgba(148, 163, 184, 0.4);
+  background: #f3f4f6;
+  color: #64748b;
+}
+
+.sot-correction-marker[data-tone="clean"]:hover {
+  background: #e5e7eb;
+}
+
+.sot-correction-marker[data-tone="conflict"] {
+  border-color: rgba(245, 158, 11, 0.5);
+  background: rgba(254, 243, 199, 0.95);
+  color: #b45309;
+}
+
+.sot-correction-marker[data-tone="conflict"]:hover {
+  background: rgba(253, 230, 138, 0.95);
+}
+
+.sot-correction-marker[data-tone="error"] {
+  border-color: rgba(239, 68, 68, 0.45);
+  background: rgba(254, 226, 226, 0.95);
+  color: #b91c1c;
+}
+
+.sot-correction-marker[data-tone="error"]:hover {
   background: rgba(254, 205, 205, 0.95);
+}
+
+.sot-correction-marker:focus-visible {
+  outline: 2px solid rgba(40, 167, 69, 0.45);
+  outline-offset: 1px;
 }
 
 .sot-correction-panel {

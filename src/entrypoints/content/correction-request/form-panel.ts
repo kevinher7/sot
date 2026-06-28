@@ -9,10 +9,7 @@ import {
   type KotPunchTypeCode,
 } from "@/domain/kot/correction/types";
 import { validateKotCorrectionDraft } from "@/domain/kot/correction/validation";
-import type {
-  KotCorrectionNeed,
-  KotPunchField,
-} from "@/domain/kot/calculation/requests/correction-need";
+import type { KotPunchField } from "@/domain/kot/calculation/requests/correction-need";
 import type { KotCorrectionSubmitResult } from "@/entrypoints/content/correction-request/service";
 
 export const CORRECTION_FORM_ID = "sot-correction-form";
@@ -26,7 +23,8 @@ const FIELD_TYPE_CODE: Record<KotPunchField, KotPunchTypeCode> = {
 
 type KotCorrectionFormOptions = {
   editForm: KotEditForm;
-  need: KotCorrectionNeed;
+  isoDate: string;
+  affectedFields: readonly KotPunchField[];
   hasPendingRequest: boolean;
   row: HTMLTableRowElement;
   onSubmit: (
@@ -139,7 +137,7 @@ function buildInitialDraftRows(
   // Auto-add an empty, type-preset row for each affected field the day lacks.
   const missing: KotDraftPunchRow[] = [];
 
-  for (const field of options.need.affectedFields) {
+  for (const field of options.affectedFields) {
     const typeCode = FIELD_TYPE_CODE[field];
 
     if (existingTypeCodes.has(typeCode)) {
@@ -254,7 +252,7 @@ export function openKotCorrectionForm(
     doc,
     "span",
     "sot-correction-date",
-    formatPanelDate(options.need.isoDate),
+    formatPanelDate(options.isoDate),
   );
 
   headerLeft.append(title, date);
