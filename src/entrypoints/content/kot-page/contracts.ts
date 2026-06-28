@@ -29,6 +29,7 @@ export const MONTHLY_PAGE_INJECTED_REQUEST_CLASS = "sot-requested";
 export const MONTHLY_PAGE_INJECTED_REQUEST_SELECTOR = ".sot-requested";
 export const MONTHLY_PAGE_INJECTED_REQUEST_MARKER_CLASS =
   "sot-requested-marker";
+export const MONTHLY_PAGE_BREAK_WARNING_CLASS = "sot-break-warning";
 
 export const MONTHLY_PAGE_ACTION_CELL_WORKING_DATE_SELECTOR =
   'input[name="working_date"]';

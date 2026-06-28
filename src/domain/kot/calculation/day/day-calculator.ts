@@ -1,5 +1,6 @@
 import { createIsoDateKey } from "@/domain/kot/date";
 import { calculateKotBreaks } from "@/domain/kot/calculation/day/break-calculation";
+import { evaluateKotBreakRequirement } from "@/domain/kot/calculation/day/break-requirement";
 import { assessKotDayIssues } from "@/domain/kot/calculation/day/issue-assessment";
 import { interpretKotDayTime } from "@/domain/kot/calculation/day/time-interpretation";
 import type {
@@ -35,6 +36,13 @@ export function calculateKotDay(
     timeIssueCodes: timeResult.issueCodes,
   });
 
+  const breakRequirement = evaluateKotBreakRequirement({
+    breakIssueCodes: resolvedBreaks.issueCodes,
+    breakMinutesFinalized: resolvedBreaks.breakMinutesFinalized,
+    workedMinutesFinalized: timeResult.interpretation.workedMinutesFinalized,
+    workedMinutesSource: timeResult.interpretation.workedMinutesSource,
+  });
+
   const leaveCredit = getKotLeaveCreditMinutes(
     row.dayKind,
     context.standardWorkdayHours,
@@ -51,6 +59,7 @@ export function calculateKotDay(
       : timeResult.interpretation;
 
   return {
+    breakRequirement,
     dayKind: row.dayKind,
     interpretation,
     isoDate: row.isoDate,

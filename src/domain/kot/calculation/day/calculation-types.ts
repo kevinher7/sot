@@ -52,6 +52,12 @@ export type KotWorkedTimeInterpretation = {
   workedMinutesSource: KotWorkedMinutesSource;
 };
 
+export type KotBreakRequirement = {
+  breakMinutes: number;
+  isSufficient: boolean;
+  requiredMinutes: number;
+};
+
 export type KotDayIssueSummary = {
   errorCount: number;
   issueCodes: readonly KotResolvedDayIssueCode[];
@@ -60,6 +66,7 @@ export type KotDayIssueSummary = {
 };
 
 export type KotCalculatedDay = {
+  breakRequirement: KotBreakRequirement | null;
   dayKind: KotDayKind;
   interpretation: KotWorkedTimeInterpretation;
   isoDate: string;
