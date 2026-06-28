@@ -55,6 +55,7 @@ export type TodayBadgeStatus =
 export type OverlayCalculationResult = OverlayModeProjectionResult & {
   monthErrorCount: number;
   monthWarningCount: number;
+  resolvedMonth: KotResolvedMonth;
   todayBadgeStatus: TodayBadgeStatus;
   todayErrorCount: number;
   todayWarningCount: number;
@@ -400,6 +401,7 @@ export function calculateOverlayMetrics(
     ...modeResult,
     monthErrorCount: resolvedMonth.aggregateFlags.errorDayCount,
     monthWarningCount: resolvedMonth.aggregateFlags.warningDayCount,
+    resolvedMonth,
     todayBadgeStatus: projectionInput.todayBadgeStatus,
     todayErrorCount: projectionInput.todayErrorCount,
     todayWarningCount:

@@ -668,3 +668,422 @@
   cursor: wait;
   pointer-events: none;
 }
+
+/* --- Inline 打刻申請 (correction request) --- */
+
+/* The button is appended inside the date's <p> wrapper, so it flows inline right
+   after the date text. nowrap (!important to beat KOT's td[...] selector) keeps
+   the date and button on one line; the hidden triangle frees up its slot. */
+.sot-correction-cell {
+  white-space: nowrap !important;
+}
+
+.sot-correction-cell img[alt="エラー"] {
+  display: none !important;
+}
+
+.sot-correction-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 18px;
+  margin: 0 8px;
+  padding: 0;
+  vertical-align: middle;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.sot-correction-marker[data-tone="clean"] {
+  border-color: rgba(148, 163, 184, 0.4);
+  background: #f3f4f6;
+  color: #64748b;
+}
+
+.sot-correction-marker[data-tone="clean"]:hover {
+  background: #e5e7eb;
+}
+
+.sot-correction-marker[data-tone="conflict"] {
+  border-color: rgba(245, 158, 11, 0.5);
+  background: rgba(254, 243, 199, 0.95);
+  color: #b45309;
+}
+
+.sot-correction-marker[data-tone="conflict"]:hover {
+  background: rgba(253, 230, 138, 0.95);
+}
+
+.sot-correction-marker[data-tone="error"] {
+  border-color: rgba(239, 68, 68, 0.45);
+  background: rgba(254, 226, 226, 0.95);
+  color: #b91c1c;
+}
+
+.sot-correction-marker[data-tone="error"]:hover {
+  background: rgba(254, 205, 205, 0.95);
+}
+
+.sot-correction-marker:focus-visible {
+  outline: 2px solid rgba(40, 167, 69, 0.45);
+  outline-offset: 1px;
+}
+
+tr.sot-correction-pending-row > td {
+  background-color: #fef5d0 !important;
+}
+
+.sot-correction-panel {
+  position: fixed;
+  z-index: 2147483600;
+  width: fit-content;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 16px 36px rgba(25, 28, 30, 0.14);
+  color: #191c1e;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.sot-correction-panel * {
+  box-sizing: border-box;
+}
+
+.sot-correction-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.sot-correction-header-left {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  min-width: 0;
+}
+
+.sot-correction-title {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #3e4a3c;
+}
+
+.sot-correction-date {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
+}
+
+.sot-correction-close {
+  position: relative;
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 4px;
+  background: #ffffff;
+  color: #64748b;
+  /* The "×" glyph sits on the font's math axis, so it never centers cleanly.
+     Hide it and draw the X from two absolutely-centered bars instead. */
+  font-size: 0;
+  cursor: pointer;
+}
+
+.sot-correction-close::before,
+.sot-correction-close::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 1.5px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+.sot-correction-close::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.sot-correction-close::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.sot-correction-close:hover {
+  background: rgba(241, 245, 249, 0.9);
+  color: #334155;
+}
+
+.sot-correction-status {
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #64748b;
+}
+
+.sot-correction-status:empty {
+  display: none;
+}
+
+.sot-correction-status--error {
+  color: #b91c1c;
+}
+
+.sot-correction-table {
+  width: auto;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+
+.sot-correction-table thead th {
+  padding: 0 6px 4px;
+  text-align: left;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: rgba(110, 123, 107, 0.85);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.24);
+}
+
+.sot-correction-table tbody td {
+  padding: 4px 6px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  vertical-align: middle;
+}
+
+.sot-correction-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.sot-correction-row--added td {
+  background: rgba(255, 251, 235, 0.7);
+}
+
+.sot-correction-row--locked td,
+.sot-correction-row--pending-delete td {
+  background: rgba(255, 251, 235, 0.95);
+}
+
+.sot-correction-row--locked .sot-correction-type,
+.sot-correction-row--locked .sot-correction-time,
+.sot-correction-row--pending-delete .sot-correction-type,
+.sot-correction-row--pending-delete .sot-correction-time {
+  border-color: rgba(245, 158, 11, 0.45);
+  background: rgba(255, 247, 224, 0.95);
+  color: #92400e;
+  opacity: 1;
+  cursor: default;
+}
+
+.sot-correction-row--pending-delete .sot-correction-type,
+.sot-correction-row--pending-delete .sot-correction-time {
+  text-decoration: line-through;
+}
+
+.sot-correction-row--pending-delete .sot-correction-delete-cell input {
+  accent-color: #d97706;
+  cursor: default;
+}
+
+.sot-correction-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100px;
+  padding: 4px 7px;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: 4px;
+  background: rgba(255, 251, 235, 0.9);
+  color: #92400e;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.sot-correction-type,
+.sot-correction-time,
+.sot-correction-message {
+  width: 100%;
+  padding: 4px 7px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 4px;
+  background: #ffffff;
+  color: #191c1e;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.sot-correction-type::placeholder,
+.sot-correction-time::placeholder,
+.sot-correction-message::placeholder {
+  color: #94a3b8;
+}
+
+.sot-correction-type:focus,
+.sot-correction-time:focus,
+.sot-correction-message:focus {
+  outline: 2px solid rgba(40, 167, 69, 0.4);
+  outline-offset: 1px;
+  border-color: rgba(40, 167, 69, 0.5);
+}
+
+.sot-correction-type {
+  width: 80px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 20px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2.5 4.5l3.5 3.5 3.5-3.5' fill='none' stroke='%2364748b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  cursor: pointer;
+}
+
+.sot-correction-time {
+  width: 62px;
+  font-variant-numeric: tabular-nums;
+}
+
+.sot-correction-message {
+  width: 100px;
+}
+
+.sot-correction-row--added .sot-correction-time {
+  border-color: rgba(245, 158, 11, 0.55);
+  background: rgba(255, 251, 235, 0.95);
+}
+
+.sot-correction-delete-cell {
+  width: 36px;
+  text-align: center;
+}
+
+.sot-correction-delete-cell input {
+  width: 14px;
+  height: 14px;
+  accent-color: #16a34a;
+  cursor: pointer;
+}
+
+.sot-correction-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-right: auto;
+  padding: 5px 10px;
+  border: 1px solid rgba(40, 167, 69, 0.3);
+  border-radius: 4px;
+  background: rgba(220, 252, 231, 0.55);
+  color: #15803d;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.sot-correction-add:hover {
+  background: rgba(220, 252, 231, 0.95);
+}
+
+.sot-correction-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.sot-correction-pending {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding: 5px 8px;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: 4px;
+  background: rgba(255, 251, 235, 0.9);
+  color: #92400e;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.sot-correction-pending input {
+  accent-color: #d97706;
+}
+
+.sot-correction-cancel,
+.sot-correction-submit {
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.sot-correction-cancel {
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: #ffffff;
+  color: #475569;
+}
+
+.sot-correction-cancel:hover {
+  background: rgba(241, 245, 249, 0.9);
+}
+
+.sot-correction-submit {
+  border: 1px solid #15803d;
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.sot-correction-submit:hover {
+  background: #15803d;
+}
+
+.sot-correction-submit:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
