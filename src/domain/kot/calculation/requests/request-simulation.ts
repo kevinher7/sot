@@ -138,44 +138,13 @@ function applyDeleteOperation(
   return removeMinute(row.breakEndMinutes, operation.minutes);
 }
 
-function mergeBreakMinutes(input: {
-  counterpartLength: number;
-  current: readonly number[];
-  requested: readonly number[];
-}): number[] {
-  const next = [...input.current];
-  const missingTrailingSlots = Math.max(
-    input.counterpartLength - next.length,
-    0,
-  );
-  const fillCount = Math.min(missingTrailingSlots, input.requested.length);
-
-  if (fillCount > 0) {
-    next.push(...input.requested.slice(0, fillCount));
-  }
-
-  const remainingRequested = input.requested.slice(fillCount);
-
-  if (remainingRequested.length === 0) {
-    next.sort((a, b) => a - b);
-
-    return next;
-  }
-
-  const replaceStartIndex = Math.max(
-    next.length - remainingRequested.length,
-    0,
-  );
-
-  next.splice(
-    replaceStartIndex,
-    remainingRequested.length,
-    ...remainingRequested,
-  );
-
-  next.sort((a, b) => a - b);
-
-  return next;
+// Superseded originals are already removed by `removeSupersededEntries`, so the
+// requested punches are pure additions to whatever remains.
+function addBreakMinutes(
+  current: readonly number[],
+  requested: readonly number[],
+): number[] {
+  return [...current, ...requested].sort((a, b) => a - b);
 }
 
 function removeSupersededEntries(
@@ -223,19 +192,17 @@ function applyPatchOperation(
   }
 
   if (operation.timePatch.breakStartMinutes !== undefined) {
-    row.breakStartMinutes = mergeBreakMinutes({
-      counterpartLength: row.breakEndMinutes.length,
-      current: row.breakStartMinutes,
-      requested: operation.timePatch.breakStartMinutes,
-    });
+    row.breakStartMinutes = addBreakMinutes(
+      row.breakStartMinutes,
+      operation.timePatch.breakStartMinutes,
+    );
   }
 
   if (operation.timePatch.breakEndMinutes !== undefined) {
-    row.breakEndMinutes = mergeBreakMinutes({
-      counterpartLength: row.breakStartMinutes.length,
-      current: row.breakEndMinutes,
-      requested: operation.timePatch.breakEndMinutes,
-    });
+    row.breakEndMinutes = addBreakMinutes(
+      row.breakEndMinutes,
+      operation.timePatch.breakEndMinutes,
+    );
   }
 }
 
