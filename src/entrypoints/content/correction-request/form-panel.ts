@@ -169,17 +169,24 @@ function compareRowSpecs(left: PanelRowSpec, right: PanelRowSpec): number {
 function buildPanelRowSpecs(
   options: KotCorrectionFormOptions,
 ): readonly PanelRowSpec[] {
-  const { lockedRows, pendingDeleteKeys } = options.requestedPunches;
+  const { lockedRows, pendingDeleteKeys, pendingSupersededKeys } =
+    options.requestedPunches;
   const specs: PanelRowSpec[] = [];
 
   for (const punch of options.editForm.existingPunches) {
-    if (pendingDeleteKeys.has(requestedPunchKey(punch.typeCode, punch.time))) {
+    const punchKey = requestedPunchKey(punch.typeCode, punch.time);
+
+    if (pendingDeleteKeys.has(punchKey)) {
       specs.push({
         mode: "pendingDelete",
         time: punch.time,
         typeCode: punch.typeCode,
       });
 
+      continue;
+    }
+
+    if (pendingSupersededKeys.has(punchKey)) {
       continue;
     }
 

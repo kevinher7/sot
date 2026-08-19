@@ -166,27 +166,6 @@ function parseOriginalEntries(
   return entries;
 }
 
-function computeSupersededEntries(
-  originalEntries: readonly { label: KotRequestTimeLabel; minutes: number }[],
-  timePatch: KotRequestTimePatch,
-): readonly { label: KotRequestTimeLabel; minutes: number }[] {
-  return originalEntries.filter((entry) => {
-    if (entry.label === "clockIn") {
-      return timePatch.clockInMinutes === undefined;
-    }
-
-    if (entry.label === "clockOut") {
-      return timePatch.clockOutMinutes === undefined;
-    }
-
-    if (entry.label === "breakStart") {
-      return timePatch.breakStartMinutes === undefined;
-    }
-
-    return timePatch.breakEndMinutes === undefined;
-  });
-}
-
 function createDeleteOperation(text: string): KotRequestOperation | null {
   const matches = Array.from(text.matchAll(REQUEST_ENTRY_PATTERN_GLOBAL));
 
@@ -234,11 +213,7 @@ function createRequestOperation(
   }
 
   const originalContentText = normalizeText(row.originalContentText);
-  const originalEntries = parseOriginalEntries(originalContentText);
-  const supersededEntries = computeSupersededEntries(
-    originalEntries,
-    timePatch,
-  );
+  const supersededEntries = parseOriginalEntries(originalContentText);
 
   return {
     supersededEntries,
