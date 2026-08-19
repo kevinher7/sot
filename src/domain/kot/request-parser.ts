@@ -213,10 +213,6 @@ function createRequestOperation(
   }
 
   const originalContentText = normalizeText(row.originalContentText);
-  // A patch removes exactly what 元の内容 lists, then adds exactly what
-  // 申請内容 lists. Both texts are deltas covering only the punches the request
-  // touches, so every original entry is superseded — including one replaced by a
-  // new value under the same label.
   const supersededEntries = parseOriginalEntries(originalContentText);
 
   return {

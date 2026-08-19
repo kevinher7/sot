@@ -186,8 +186,6 @@ function buildPanelRowSpecs(
       continue;
     }
 
-    // A pending patch 申請 replaces this punch; its new value shows as a locked
-    // 申請中 row, so hide the superseded original to avoid a stale duplicate.
     if (pendingSupersededKeys.has(punchKey)) {
       continue;
     }

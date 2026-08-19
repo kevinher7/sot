@@ -138,8 +138,6 @@ function applyDeleteOperation(
   return removeMinute(row.breakEndMinutes, operation.minutes);
 }
 
-// Superseded originals are already removed by `removeSupersededEntries`, so the
-// requested punches are pure additions to whatever remains.
 function addBreakMinutes(
   current: readonly number[],
   requested: readonly number[],
