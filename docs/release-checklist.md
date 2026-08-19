@@ -1,6 +1,6 @@
 # Release checklist
 
-## Prepare v1.4.0 artifacts
+## Prepare v1.4.1 artifacts
 
 1. Run `npm ci`.
 2. Run `npm run release:prepare`.
@@ -12,10 +12,8 @@
 
 1. Open the existing SOT listing in AMO Developer Hub.
 2. Upload `releases/firefox.xpi` as a new version.
-3. Add release notes for v1.4.0:
-   - Inline 打刻申請 with pending-request visibility on the monthly page
-   - Inject pending 申請 times and estimates into the monthly page
-   - Flag insufficient statutory break on the monthly page
+3. Add release notes for v1.4.1:
+   - Fix break and work totals when a pending 申請 replaces an existing punch
 4. Verify permissions and data disclosures still match the extension behavior.
 5. Submit the update for review.
 
