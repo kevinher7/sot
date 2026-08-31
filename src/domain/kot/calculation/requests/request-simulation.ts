@@ -42,10 +42,6 @@ function createSimulatedDayRow(row: KotDayRowSnapshot): SimulatedDayRow {
   };
 }
 
-// The recorded punches a request competes for: the entries it supersedes, plus
-// the single clock-in / clock-out slot it overwrites. Break punches a request
-// only adds claim nothing, so two requests editing different break punches on
-// the same day stay compatible.
 function collectClaimedPunches(
   operation: KotRequestOperation,
 ): readonly string[] {
@@ -66,6 +62,24 @@ function collectClaimedPunches(
   }
 
   return claimed;
+}
+
+function dropDuplicateResubmissions(
+  requests: readonly KotTimeCorrectionRequest[],
+): readonly KotTimeCorrectionRequest[] {
+  const seenSignatures = new Set<string>();
+
+  return requests.filter((request) => {
+    const signature = createKotRequestOperationSignature(request.operation);
+
+    if (seenSignatures.has(signature)) {
+      return false;
+    }
+
+    seenSignatures.add(signature);
+
+    return true;
+  });
 }
 
 function removeMinute(list: number[], minutes: number): boolean {
@@ -215,18 +229,8 @@ export function applyKotRequestsToDayRow(
 
   const simulatedRow = createSimulatedDayRow(row);
   const claimedPunches = new Set<string>();
-  const appliedSignatures = new Set<string>();
 
-  for (const request of requests) {
-    const signature = createKotRequestOperationSignature(request.operation);
-
-    // A resubmitted 二重申請 lands the same punches wherever it is approved.
-    if (appliedSignatures.has(signature)) {
-      continue;
-    }
-
-    appliedSignatures.add(signature);
-
+  for (const request of dropDuplicateResubmissions(requests)) {
     if (
       !applyRequestOperation(simulatedRow, claimedPunches, request.operation)
     ) {
