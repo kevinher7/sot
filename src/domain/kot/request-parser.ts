@@ -10,6 +10,7 @@ import type {
   KotScheduleLeaveRequest,
   KotTimeCorrectionRequest,
 } from "@/domain/kot/request-data";
+import { createKotRequestOperationSignature } from "@/domain/kot/request-operation-signature";
 
 export type KotRequestListRow = {
   dateFieldValues: readonly string[];
@@ -383,31 +384,6 @@ function parseScheduleLeaveRow(
   };
 }
 
-function createOperationSignature(operation: KotRequestOperation): string {
-  if (operation.type === "delete") {
-    return ["delete", operation.label, operation.minutes].join("|");
-  }
-
-  const breakStart = operation.timePatch.breakStartMinutes?.join(",") ?? "-";
-  const breakEnd = operation.timePatch.breakEndMinutes?.join(",") ?? "-";
-
-  const supersededEntriesPart =
-    operation.supersededEntries.length > 0
-      ? operation.supersededEntries
-          .map((entry) => `${entry.label}:${entry.minutes}`)
-          .join(",")
-      : "-";
-
-  return [
-    "patch",
-    operation.timePatch.clockInMinutes ?? "-",
-    operation.timePatch.clockOutMinutes ?? "-",
-    breakStart,
-    breakEnd,
-    supersededEntriesPart,
-  ].join("|");
-}
-
 function createSignature(
   requests: readonly KotTimeCorrectionRequest[],
   scheduleLeaveRequests: readonly KotScheduleLeaveRequest[],
@@ -418,7 +394,7 @@ function createSignature(
         request.cacheKey,
         request.isoDate,
         request.status,
-        createOperationSignature(request.operation),
+        createKotRequestOperationSignature(request.operation),
       ].join("|");
     })
     .join(";");
