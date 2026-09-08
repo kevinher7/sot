@@ -5,6 +5,7 @@ import type {
   KotRequestTimeLabel,
   KotTimeCorrectionRequest,
 } from "@/domain/kot/request-data";
+import { createKotRequestOperationSignature } from "@/domain/kot/request-operation-signature";
 
 type SimulatedDayRow = {
   breakEndMinutes: number[];
@@ -12,8 +13,6 @@ type SimulatedDayRow = {
   clockInMinutes: number | null;
   clockOutMinutes: number | null;
 };
-
-type RequestFieldKey = "breakEnd" | "breakStart" | "clockIn" | "clockOut";
 
 function createRequestMap(
   requestCacheEntry: KotRequestCacheEntry | null,
@@ -43,56 +42,44 @@ function createSimulatedDayRow(row: KotDayRowSnapshot): SimulatedDayRow {
   };
 }
 
-function createCompatibilityKey(
+function collectClaimedPunches(
   operation: KotRequestOperation,
-  field: RequestFieldKey,
-): string {
+): readonly string[] {
   if (operation.type === "delete") {
-    return `delete:${operation.minutes}`;
+    return [`${operation.label}:${operation.minutes}`];
   }
 
-  if (field === "clockIn") {
-    return `patch:${operation.timePatch.clockInMinutes ?? "-"}`;
+  const claimed = operation.supersededEntries.map(
+    (entry) => `${entry.label}:${entry.minutes}`,
+  );
+
+  if (operation.timePatch.clockInMinutes !== undefined) {
+    claimed.push("clockIn");
   }
 
-  if (field === "clockOut") {
-    return `patch:${operation.timePatch.clockOutMinutes ?? "-"}`;
+  if (operation.timePatch.clockOutMinutes !== undefined) {
+    claimed.push("clockOut");
   }
 
-  if (field === "breakStart") {
-    return `patch:${operation.timePatch.breakStartMinutes?.join(",") ?? "-"}`;
-  }
-
-  return `patch:${operation.timePatch.breakEndMinutes?.join(",") ?? "-"}`;
+  return claimed;
 }
 
-function markFieldOperation(
-  fieldStates: Map<RequestFieldKey, string>,
-  operation: KotRequestOperation,
-  field: RequestFieldKey,
-): boolean {
-  const nextKey = createCompatibilityKey(operation, field);
-  const currentKey = fieldStates.get(field);
+function dropDuplicateResubmissions(
+  requests: readonly KotTimeCorrectionRequest[],
+): readonly KotTimeCorrectionRequest[] {
+  const seenSignatures = new Set<string>();
 
-  if (currentKey === undefined) {
-    fieldStates.set(field, nextKey);
+  return requests.filter((request) => {
+    const signature = createKotRequestOperationSignature(request.operation);
+
+    if (seenSignatures.has(signature)) {
+      return false;
+    }
+
+    seenSignatures.add(signature);
 
     return true;
-  }
-
-  if (currentKey === nextKey) {
-    return true;
-  }
-
-  if (
-    (field === "breakStart" || field === "breakEnd") &&
-    currentKey.startsWith("delete:") &&
-    nextKey.startsWith("delete:")
-  ) {
-    return true;
-  }
-
-  return false;
+  });
 }
 
 function removeMinute(list: number[], minutes: number): boolean {
@@ -206,41 +193,19 @@ function applyPatchOperation(
 
 function applyRequestOperation(
   row: SimulatedDayRow,
-  fieldStates: Map<RequestFieldKey, string>,
+  claimedPunches: Set<string>,
   operation: KotRequestOperation,
 ): boolean {
-  if (operation.type === "delete") {
-    if (!markFieldOperation(fieldStates, operation, operation.label)) {
-      return false;
-    }
+  const claimed = collectClaimedPunches(operation);
 
-    return applyDeleteOperation(row, operation);
-  }
-
-  const affectedFields: RequestFieldKey[] = [];
-
-  if (operation.timePatch.clockInMinutes !== undefined) {
-    affectedFields.push("clockIn");
-  }
-
-  if (operation.timePatch.clockOutMinutes !== undefined) {
-    affectedFields.push("clockOut");
-  }
-
-  if (operation.timePatch.breakStartMinutes !== undefined) {
-    affectedFields.push("breakStart");
-  }
-
-  if (operation.timePatch.breakEndMinutes !== undefined) {
-    affectedFields.push("breakEnd");
-  }
-
-  if (
-    !affectedFields.every((field) =>
-      markFieldOperation(fieldStates, operation, field),
-    )
-  ) {
+  if (claimed.some((punch) => claimedPunches.has(punch))) {
     return false;
+  }
+
+  claimed.forEach((punch) => claimedPunches.add(punch));
+
+  if (operation.type === "delete") {
+    return applyDeleteOperation(row, operation);
   }
 
   applyPatchOperation(row, operation);
@@ -263,10 +228,12 @@ export function applyKotRequestsToDayRow(
   }
 
   const simulatedRow = createSimulatedDayRow(row);
-  const fieldStates = new Map<RequestFieldKey, string>();
+  const claimedPunches = new Set<string>();
 
-  for (const request of requests) {
-    if (!applyRequestOperation(simulatedRow, fieldStates, request.operation)) {
+  for (const request of dropDuplicateResubmissions(requests)) {
+    if (
+      !applyRequestOperation(simulatedRow, claimedPunches, request.operation)
+    ) {
       return null;
     }
   }
