@@ -39,6 +39,20 @@ Current v1 behavior:
 - stores extension settings locally in the browser
 - stays intentionally narrow in scope instead of running across the full KING OF TIME product
 
+## Automatic clock-out
+
+Enable "22:00（日本時間）に勤務中なら自動退勤" in the overlay settings to
+clock out automatically while working at 22:00 JST. It is off by default.
+
+Keep your monthly KOT page open, signed in, and your computer awake. SOT
+refreshes the timecard before checking your status and skips breaks, finished
+days, and missing data. It only submits between 22:00:00 and 22:00:59 JST;
+a timer delayed until 22:01 or later skips that day.
+
+SOT reserves one automatic attempt per employee per day across tabs and reloads
+after a successful submission. Failed or uncertain submissions are not retried
+automatically; check KOT before clocking out manually.
+
 ## Supported page scope
 
 The extension only runs on:
@@ -53,7 +67,7 @@ SOT keeps its access intentionally narrow.
 - **Extension permission:** `storage`
 - **Firefox AMO data disclosure:** `websiteContent`, `personallyIdentifyingInfo`
 - **Data handling:** settings and parsed request-cache data are stored locally in extension storage (`browser.storage.local` / `chrome.storage.local`)
-- **Network scope:** only the signed-in KING OF TIME pages needed for the monthly page and related request-list lookup
+- **Network scope:** signed-in KING OF TIME monthly and request-list pages, plus its recorder gateway for attendance actions
 - **Third-party services:** none
 
 For full details, see [PRIVACY.md](./PRIVACY.md).

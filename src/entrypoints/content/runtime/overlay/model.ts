@@ -322,6 +322,7 @@ export function createOverlayViewModel(
     monthSection: createMonthSection(now, result, settings.seenBoxes),
     settings: {
       excludeNightWorkFromBank: settings.excludeNightWorkFromBank,
+      autoClockOutAtTen: settings.autoClockOutAtTen,
     },
     sidebar: createSidebarModel(result.todayBadgeStatus, pendingAction),
     todaySection: createTodaySection(now, result, settings.seenBoxes),
