@@ -69,6 +69,7 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
   metricViews: DEFAULT_METRIC_VIEWS,
   seenBoxes: DEFAULT_SEEN_BOXES,
   excludeNightWorkFromBank: false,
+  autoClockOutAtTen: false,
 };
 
 export function normalizeSettings(
@@ -77,6 +78,7 @@ export function normalizeSettings(
   return {
     ...DEFAULT_SETTINGS,
     ...settings,
+    autoClockOutAtTen: settings?.autoClockOutAtTen === true,
     workMode: normalizeWorkMode(settings?.workMode),
     metricViews: normalizeMetricViews(settings?.metricViews),
     seenBoxes: normalizeSeenBoxes(settings?.seenBoxes),

@@ -126,3 +126,29 @@ export async function setCachedRequestEntry(
 
   return entry;
 }
+
+export async function setAutoClockOutAtTen(value: boolean): Promise<void> {
+  const settings = await getSettings();
+
+  await setSettings({ ...settings, autoClockOutAtTen: value });
+}
+
+// Call while holding the auto-clock-out Web Lock to serialize tabs.
+export async function claimAutoClockOut(
+  employeeId: string,
+  isoDate: string,
+): Promise<boolean> {
+  const key = `auto-clock-out:${employeeId}`;
+  const stored = await getStorageValues<Record<string, string | undefined>>({
+    [key]: undefined,
+  });
+
+  if (stored[key] === isoDate) {
+    return false;
+  }
+
+  // Reserve before sending: a failed response may still have recorded the punch.
+  await setStorageValues({ [key]: isoDate });
+
+  return true;
+}
