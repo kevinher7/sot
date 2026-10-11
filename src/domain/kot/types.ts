@@ -21,4 +21,5 @@ export type ExtensionSettings = {
   metricViews: ExtensionMetricViews;
   seenBoxes: SeenBoxes;
   excludeNightWorkFromBank: boolean;
+  autoClockOutAtTen: boolean;
 };

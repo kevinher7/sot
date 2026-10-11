@@ -7,6 +7,7 @@ import {
   syncKotCorrectionMarkers,
 } from "@/entrypoints/content/correction-request";
 import { readMonthlyPageSnapshot } from "@/entrypoints/content/kot-page";
+import { startAutoClockOut } from "@/entrypoints/content/runtime/auto-clock-out";
 import { applyTodayRowHighlight } from "@/entrypoints/content/runtime/day-highlight";
 import { applyKotBreakWarnings } from "@/entrypoints/content/runtime/break-warning";
 import { applyKotRequestInjections } from "@/entrypoints/content/runtime/request-injection";
@@ -34,6 +35,7 @@ import { getNow } from "@/platform/time/clock";
 import type { WorkMode } from "@/domain/kot/types";
 import {
   getSettings,
+  setAutoClockOutAtTen,
   setExcludeNightWorkFromBank,
   setMetricView,
   setWorkMode,
@@ -47,12 +49,29 @@ export function createRefreshExecutor(
   scheduleNextMinuteRefresh: () => void,
   queueModeRefresh: () => void,
 ): (reason: RefreshReason) => Promise<void> {
+  let stopAutoClockOut: (() => void) | undefined;
+
+  win.addEventListener("pagehide", () => {
+    stopAutoClockOut?.();
+    stopAutoClockOut = undefined;
+  });
+
   return async (reason: RefreshReason): Promise<void> => {
     const now = getNow();
 
     applyTodayRowHighlight(doc, now);
 
     const settings = await getSettings();
+
+    if (settings.autoClockOutAtTen && stopAutoClockOut === undefined) {
+      stopAutoClockOut = startAutoClockOut(win, doc, (message) => {
+        renderOverlayError(root, doc, message);
+      });
+    } else if (!settings.autoClockOutAtTen) {
+      stopAutoClockOut?.();
+      stopAutoClockOut = undefined;
+    }
+
     const pageSnapshot = readMonthlyPageSnapshot(now, doc);
 
     if (pageSnapshot === null) {
@@ -144,6 +163,16 @@ export function createRefreshExecutor(
     );
 
     renderOverlayResult(root, doc, model, {
+      onToggleAutoClockOut: (next) => {
+        if (!next) {
+          stopAutoClockOut?.();
+          stopAutoClockOut = undefined;
+        }
+
+        void setAutoClockOutAtTen(next).then(() => {
+          queueModeRefresh();
+        });
+      },
       onRecordAction: (action) => {
         void submitRecordAction(action).then(() => {
           win.location.reload();

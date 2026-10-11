@@ -28,6 +28,7 @@ export type OnRecordAction = (action: RecordAction) => void;
 export type OnToggleNightWorkExclusion = (next: boolean) => void;
 
 export type OverlayRenderCallbacks = {
+  onToggleAutoClockOut: (next: boolean) => void;
   onRecordAction: OnRecordAction;
   onSelectWorkMode: OnSelectWorkMode;
   onToggleMetricView: OnToggleMetricView;
@@ -87,6 +88,7 @@ export type SidebarModel = {
 
 export type OverlaySettingsModel = {
   excludeNightWorkFromBank: boolean;
+  autoClockOutAtTen: boolean;
 };
 
 export type OverlayViewModel = {

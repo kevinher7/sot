@@ -1,6 +1,6 @@
 # Privacy Policy
 
-_Last updated: April 12, 2026_
+_Last updated: October 10, 2026_
 
 SOT (SERVANT OF TIME) is an unofficial browser extension for the KING OF TIME admin monthly working page.
 
@@ -38,6 +38,8 @@ It currently stores:
 - extension settings:
   - `standardBreakMinutes`
   - `standardWorkdayHours`
+  - `autoClockOutAtTen`, disabled by default
+- the last automatic clock-out attempt date per employee, to prevent duplicate submissions across tabs
 - cached KING OF TIME request data used for overlay calculations, including:
   - employee ID
   - year / month
@@ -52,6 +54,11 @@ The extension communicates only with KING OF TIME pages required for its functio
 At this time, it talks only to the `s2.ta.kingoftime.jp` KING OF TIME site used by the extension's supported page flow.
 
 This includes fetching the related request-list page in the user's existing signed-in session so the extension can parse request-aware time-correction data for the active monthly page.
+
+When automatic clock-out is enabled, SOT also refreshes the monthly timecard
+and, if still working during the 22:00 JST minute, submits a clock-out to
+KING OF TIME's recorder gateway using the existing recorder credentials in
+the site's local storage.
 
 ## What the extension does not do
 

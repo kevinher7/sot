@@ -30,6 +30,7 @@ export function createSettingsSignature(
     workMode: settings.workMode,
     metricViews: settings.metricViews,
     excludeNightWorkFromBank: settings.excludeNightWorkFromBank,
+    autoClockOutAtTen: settings.autoClockOutAtTen,
   });
 }
 

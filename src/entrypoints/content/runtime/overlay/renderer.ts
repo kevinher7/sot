@@ -371,6 +371,7 @@ function createSettingsPanel(
   doc: Document,
   settings: OverlaySettingsModel,
   onToggleNightWorkExclusion: OnToggleNightWorkExclusion,
+  onToggleAutoClockOut: (next: boolean) => void,
 ): HTMLElement {
   const panel = createElement(doc, "section", "sot-settings-panel", undefined);
 
@@ -381,6 +382,12 @@ function createSettingsPanel(
       "深夜勤務を労働時間に含まない",
       settings.excludeNightWorkFromBank,
       onToggleNightWorkExclusion,
+    ),
+    createSettingControl(
+      doc,
+      "22:00（日本時間）に勤務中なら自動退勤",
+      settings.autoClockOutAtTen,
+      onToggleAutoClockOut,
     ),
   );
 
@@ -452,6 +459,7 @@ function createOverlayCard(
     doc,
     model.settings,
     callbacks.onToggleNightWorkExclusion,
+    callbacks.onToggleAutoClockOut,
   );
 
   const toggleSettingsPanel = (): boolean => {
