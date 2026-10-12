@@ -765,16 +765,18 @@
   white-space: nowrap !important;
 }
 
-/* The button is a 14px hit area around an 8px dot. */
+/* The button is a 1em hit area around an 8px dot. Matching the font's em box
+   and aligning to text-bottom centers the dot on the date glyphs, which
+   vertical-align: middle misses for Japanese text. */
 .sot-workplace-dot {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 14px;
-  height: 14px;
-  margin: 0 4px 0 0;
+  width: 1em;
+  height: 1em;
+  margin: 0 8px 0 0;
   padding: 0;
-  vertical-align: middle;
+  vertical-align: text-bottom;
   border: 0;
   border-radius: 50%;
   background: transparent;
