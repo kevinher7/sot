@@ -30,7 +30,6 @@ type KotCorrectionFormOptions = {
   editForm: KotEditForm;
   isoDate: string;
   affectedFields: readonly KotPunchField[];
-  hasPendingRequest: boolean;
   requestedPunches: KotRequestedPunchView;
   row: HTMLTableRowElement;
   onSubmit: (
@@ -395,6 +394,12 @@ function createRowFromSpec(
   return createRowElement(doc, spec.draft, controls);
 }
 
+function lockedPunchKeys(view: KotRequestedPunchView): ReadonlySet<string> {
+  return new Set(
+    view.lockedRows.map((row) => requestedPunchKey(row.typeCode, row.time)),
+  );
+}
+
 function readDraftRows(controls: readonly RowControls[]): KotDraftPunchRow[] {
   return controls.map((control) => ({
     deleted: control.deleteCheckbox?.checked ?? false,
@@ -491,27 +496,6 @@ export function openKotCorrectionForm(
 
   const footer = el(doc, "div", "sot-correction-footer", undefined);
 
-  let pendingConfirm: HTMLInputElement | undefined;
-  let pendingWarning: HTMLLabelElement | undefined;
-
-  if (options.hasPendingRequest) {
-    const warning = el(doc, "label", "sot-correction-pending", undefined);
-    const checkbox = el(doc, "input", undefined, undefined);
-
-    checkbox.type = "checkbox";
-    pendingConfirm = checkbox;
-    pendingWarning = warning;
-    warning.append(
-      checkbox,
-      el(
-        doc,
-        "span",
-        undefined,
-        "未承認の申請があります。二重申請を承知のうえ送信します。",
-      ),
-    );
-  }
-
   const cancelButton = el(doc, "button", "sot-correction-cancel", "キャンセル");
   const submitButton = el(doc, "button", "sot-correction-submit", "申請する");
 
@@ -525,7 +509,10 @@ export function openKotCorrectionForm(
 
   const submit = async (): Promise<void> => {
     const rows = readDraftRows(controls);
-    const validation = validateKotCorrectionDraft(rows);
+    const validation = validateKotCorrectionDraft(
+      rows,
+      lockedPunchKeys(options.requestedPunches),
+    );
 
     if (!validation.isValid) {
       setStatus(
@@ -540,12 +527,6 @@ export function openKotCorrectionForm(
 
     if (edits.length === 0) {
       setStatus("変更された打刻がありません。", true);
-
-      return;
-    }
-
-    if (pendingConfirm !== undefined && !pendingConfirm.checked) {
-      setStatus("未承認の申請の確認にチェックしてください。", true);
 
       return;
     }
@@ -576,13 +557,7 @@ export function openKotCorrectionForm(
   });
 
   footer.append(addButton, cancelButton, submitButton);
-  panel.append(header, status, table);
-
-  if (pendingWarning !== undefined) {
-    panel.append(pendingWarning);
-  }
-
-  panel.append(footer);
+  panel.append(header, status, table, footer);
   doc.body.append(panel);
 
   const reposition = (): void => {
