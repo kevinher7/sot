@@ -2,6 +2,7 @@ import {
   isKotDraftRowChanged,
   type KotDraftPunchRow,
 } from "@/domain/kot/correction/draft";
+import { requestedPunchKey } from "@/domain/kot/correction/requested-punches";
 
 export type KotCorrectionValidationError = {
   rowIndex: number;
@@ -25,6 +26,7 @@ export function isValidKotPunchTime(value: string): boolean {
 // time, and message when it was actually changed.
 export function validateKotCorrectionDraft(
   rows: readonly KotDraftPunchRow[],
+  lockedPunchKeys: ReadonlySet<string>,
 ): KotCorrectionValidationResult {
   const errors: KotCorrectionValidationError[] = [];
 
@@ -58,6 +60,14 @@ export function validateKotCorrectionDraft(
       errors.push({
         field: "time",
         message: "時刻を HH:MM 形式で入力してください。",
+        rowIndex,
+      });
+    }
+
+    if (lockedPunchKeys.has(requestedPunchKey(row.typeCode, row.time))) {
+      errors.push({
+        field: "time",
+        message: "同じ打刻がすでに申請中です。",
         rowIndex,
       });
     }

@@ -1346,25 +1346,6 @@ tr > td.sot-break-warning {
   border-top: 1px solid rgba(148, 163, 184, 0.2);
 }
 
-.sot-correction-pending {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 10px;
-  padding: 5px 8px;
-  border: 1px solid rgba(245, 158, 11, 0.4);
-  border-radius: 4px;
-  background: rgba(255, 251, 235, 0.9);
-  color: #92400e;
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1.3;
-}
-
-.sot-correction-pending input {
-  accent-color: #d97706;
-}
-
 .sot-correction-cancel,
 .sot-correction-submit {
   padding: 6px 14px;

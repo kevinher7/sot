@@ -91,9 +91,6 @@ function createOpenHandler(
       openKotCorrectionForm(doc, win, {
         affectedFields: need?.affectedFields ?? [],
         editForm,
-        hasPendingRequest:
-          (need?.reasons.includes("conflict") ?? false) ||
-          params.pendingIsoDates.has(isoDate),
         isoDate,
         onSubmit: (edits) => submitKotCorrectionRequest(editForm, edits),
         onSuccess: params.onSuccess,
