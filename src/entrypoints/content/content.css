@@ -271,8 +271,8 @@
 }
 
 .sot-office-count-dot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: #22c55e;
 }
@@ -765,8 +765,9 @@
   white-space: nowrap !important;
 }
 
-/* An empty inline-flex box sits on the baseline, so a 1cap-tall box spans the
-   digits exactly and centers the dot on them. */
+/* A 1cap-tall box on the baseline spans the digits and centers the dot on
+   them. Browsers seat an empty button slightly below the baseline, hence the
+   0.1em lift. */
 .sot-workplace-dot {
   display: inline-flex;
   align-items: center;
@@ -775,7 +776,7 @@
   height: 1cap;
   margin: 0 12px 0 0;
   padding: 0;
-  vertical-align: baseline;
+  vertical-align: 0.1em;
   border: 0;
   background: transparent;
   cursor: pointer;
@@ -784,8 +785,8 @@
 .sot-workplace-dot::before {
   content: "";
   flex: none;
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: #d1d5db;
   transition: transform 0.12s ease;
