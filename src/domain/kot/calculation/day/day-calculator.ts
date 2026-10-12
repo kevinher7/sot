@@ -31,6 +31,7 @@ export function calculateKotDay(
   });
   const issues = assessKotDayIssues({
     breakIssueCodes: resolvedBreaks.issueCodes,
+    hasPendingScheduleRequest: scenario.hasPendingScheduleRequest,
     requestState: scenario.requestState,
     rowHasError: row.hasError,
     timeIssueCodes: timeResult.issueCodes,

@@ -3,6 +3,7 @@ import {
   REQUEST_LIST_DATE_INPUT_CANDIDATES,
   REQUEST_LIST_EMPLOYEE_INPUT_CANDIDATES,
   REQUEST_LIST_ORIGINAL_CONTENT_SELECTOR,
+  REQUEST_LIST_REQUESTED_DATE_SELECTOR,
   REQUEST_LIST_REQUESTED_CONTENT_SELECTOR,
   REQUEST_LIST_REQUEST_ID_INPUT_SELECTOR,
   REQUEST_LIST_STATUS_SELECTORS,
@@ -52,11 +53,13 @@ function readRequestListRow(
   baseUrl: string,
 ): KotRequestListRow {
   const originalContentText =
-    row.querySelector<HTMLTableCellElement>(REQUEST_LIST_ORIGINAL_CONTENT_SELECTOR)
-      ?.textContent ?? "";
+    row.querySelector<HTMLTableCellElement>(
+      REQUEST_LIST_ORIGINAL_CONTENT_SELECTOR,
+    )?.textContent ?? "";
   const requestedContentText =
-    row.querySelector<HTMLTableCellElement>(REQUEST_LIST_REQUESTED_CONTENT_SELECTOR)
-      ?.textContent ?? "";
+    row.querySelector<HTMLTableCellElement>(
+      REQUEST_LIST_REQUESTED_CONTENT_SELECTOR,
+    )?.textContent ?? "";
   const targetDateText =
     row.querySelector<HTMLTableCellElement>(REQUEST_LIST_TARGET_DATE_SELECTOR)
       ?.textContent ?? "";
@@ -80,6 +83,11 @@ function readRequestListRow(
     ),
     linkEmployeeIds: readLinkEmployeeIds(row, baseUrl),
     originalContentText: normalizeText(originalContentText),
+    requestedAtText: normalizeText(
+      row.querySelector<HTMLTableCellElement>(
+        REQUEST_LIST_REQUESTED_DATE_SELECTOR,
+      )?.textContent ?? "",
+    ),
     requestId,
     requestedContentText: normalizeText(requestedContentText),
     rowText: normalizeText(row.textContent ?? ""),

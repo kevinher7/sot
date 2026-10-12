@@ -1,4 +1,5 @@
 export type KotLeaveKind = "fullLeave" | "halfLeave";
+export type KotScheduleKind = KotLeaveKind | "workday";
 
 export type KotRequestStatus =
   | "pending"
@@ -45,12 +46,13 @@ export type KotTimeCorrectionRequest = {
   updatedAt: number;
 };
 
-export type KotScheduleLeaveRequest = {
+export type KotScheduleRequest = {
   cacheKey: string;
   employeeId: string;
   isoDate: string;
   label: string;
-  leaveKind: KotLeaveKind;
+  requestedAt: string;
+  scheduleKind: KotScheduleKind;
   status: KotRequestStatus;
   updatedAt: number;
 };
@@ -59,7 +61,7 @@ export type KotRequestCacheEntry = {
   employeeId: string;
   month: number;
   requests: readonly KotTimeCorrectionRequest[];
-  scheduleLeaveRequests: readonly KotScheduleLeaveRequest[];
+  scheduleRequests: readonly KotScheduleRequest[];
   signature: string;
   syncedAt: number;
   year: number;

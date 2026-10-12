@@ -1,13 +1,13 @@
 import { parseKotIsoDate } from "@/domain/kot/date";
 import type {
-  KotLeaveKind,
   KotRequestCacheEntry,
   KotRequestOperation,
   KotRequestStatus,
   KotRequestSyncPayload,
   KotRequestTimeLabel,
   KotRequestTimePatch,
-  KotScheduleLeaveRequest,
+  KotScheduleRequest,
+  KotScheduleKind,
   KotTimeCorrectionRequest,
 } from "@/domain/kot/request-data";
 import { createKotRequestOperationSignature } from "@/domain/kot/request-operation-signature";
@@ -17,6 +17,7 @@ export type KotRequestListRow = {
   employeeFieldValues: readonly string[];
   linkEmployeeIds: readonly string[];
   originalContentText: string;
+  requestedAtText: string;
   requestId: string | null;
   requestedContentText: string;
   rowText: string;
@@ -45,8 +46,11 @@ const REQUEST_ENTRY_PATTERN_GLOBAL = new RegExp(
 );
 const DELETE_REQUEST_PATTERN = /^削除$/u;
 const FULL_LEAVE_PATTERN = /\(休暇\s+/u;
-const HALF_LEAVE_PATTERN = /\(通常勤務\s+AM/u;
-const PENDING_PATTERNS = [/対応中/u] as const;
+const HALF_LEAVE_PATTERN = /\(通常勤務\s+(?:AM|PM)/u;
+const WORKDAY_SCHEDULE_PATTERN =
+  /^(?:通常勤務|\(通常勤務(?:\s+通常勤務)?\))(?:\s|$)/u;
+const REQUESTED_AT_PATTERN = /^(\d{4})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2})$/u;
+const PENDING_PATTERNS = [/対応中/u, /申請中/u, /承認待ち/u] as const;
 const APPROVED_PATTERNS = [/承認済/u] as const;
 
 function normalizeText(value: string): string {
@@ -324,7 +328,7 @@ function parseRequestRow(
   };
 }
 
-function detectLeaveKind(text: string): KotLeaveKind | null {
+function detectScheduleKind(text: string): KotScheduleKind | null {
   if (FULL_LEAVE_PATTERN.test(text)) {
     return "fullLeave";
   }
@@ -333,21 +337,28 @@ function detectLeaveKind(text: string): KotLeaveKind | null {
     return "halfLeave";
   }
 
+  if (WORKDAY_SCHEDULE_PATTERN.test(text)) {
+    return "workday";
+  }
+
   return null;
 }
 
-function parseScheduleLeaveRow(
+function parseScheduleRequestRow(
   row: KotRequestListRow,
   context: KotRequestSyncPayload,
   syncedAt: number,
-): KotScheduleLeaveRequest | null {
+): KotScheduleRequest | null {
   const requestedContentText = normalizeText(row.requestedContentText);
   const statusText = normalizeText(row.statusText);
   const rowText = normalizeText(row.rowText);
 
-  const leaveKind = detectLeaveKind(requestedContentText);
+  const scheduleKind = detectScheduleKind(requestedContentText);
+  const requestedAtMatch = normalizeText(row.requestedAtText).match(
+    REQUESTED_AT_PATTERN,
+  );
 
-  if (leaveKind === null) {
+  if (scheduleKind === null || requestedAtMatch === null) {
     return null;
   }
 
@@ -378,7 +389,8 @@ function parseScheduleLeaveRow(
     employeeId,
     isoDate,
     label: rowText,
-    leaveKind,
+    requestedAt: `${requestedAtMatch[1]}-${requestedAtMatch[2]}-${requestedAtMatch[3]}T${requestedAtMatch[4]}:${requestedAtMatch[5]}`,
+    scheduleKind,
     status,
     updatedAt: syncedAt,
   };
@@ -386,7 +398,7 @@ function parseScheduleLeaveRow(
 
 function createSignature(
   requests: readonly KotTimeCorrectionRequest[],
-  scheduleLeaveRequests: readonly KotScheduleLeaveRequest[],
+  scheduleRequests: readonly KotScheduleRequest[],
 ): string {
   const timeCorrectionPart = requests
     .map((request) => {
@@ -399,13 +411,14 @@ function createSignature(
     })
     .join(";");
 
-  const schedulePart = scheduleLeaveRequests
+  const schedulePart = scheduleRequests
     .map((request) => {
       return [
         request.cacheKey,
         request.isoDate,
         request.status,
-        request.leaveKind,
+        request.requestedAt,
+        request.scheduleKind,
       ].join("|");
     })
     .join(";");
@@ -431,9 +444,9 @@ export function parseRequestListRows(
       return left.cacheKey.localeCompare(right.cacheKey);
     });
 
-  const scheduleLeaveRequests = rows
-    .map((row) => parseScheduleLeaveRow(row, context, syncedAt))
-    .filter((request): request is KotScheduleLeaveRequest => request !== null)
+  const scheduleRequests = rows
+    .map((row) => parseScheduleRequestRow(row, context, syncedAt))
+    .filter((request): request is KotScheduleRequest => request !== null)
     .sort((left, right) => {
       const dateCompare = left.isoDate.localeCompare(right.isoDate);
 
@@ -441,15 +454,19 @@ export function parseRequestListRows(
         return dateCompare;
       }
 
-      return left.cacheKey.localeCompare(right.cacheKey);
+      const timeCompare = left.requestedAt.localeCompare(right.requestedAt);
+
+      return timeCompare !== 0
+        ? timeCompare
+        : left.cacheKey.localeCompare(right.cacheKey);
     });
 
   return {
     employeeId: context.employeeId,
     month: context.month,
     requests,
-    scheduleLeaveRequests,
-    signature: createSignature(requests, scheduleLeaveRequests),
+    scheduleRequests,
+    signature: createSignature(requests, scheduleRequests),
     syncedAt,
     year: context.year,
   };

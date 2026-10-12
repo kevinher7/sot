@@ -9,7 +9,7 @@ function isInformationalIssueCode(issueCode: KotResolvedDayIssueCode): boolean {
 }
 
 function isWarningIssueCode(issueCode: KotResolvedDayIssueCode): boolean {
-  return issueCode === "requestEstimate";
+  return issueCode === "requestEstimate" || issueCode === "scheduleEstimate";
 }
 
 function getRequestIssueCode(
@@ -28,6 +28,7 @@ function getRequestIssueCode(
 
 export function assessKotDayIssues(input: {
   breakIssueCodes: readonly KotResolvedDayIssueCode[];
+  hasPendingScheduleRequest: boolean;
   requestState: KotDayRequestState;
   rowHasError: boolean;
   timeIssueCodes: readonly KotResolvedDayIssueCode[];
@@ -42,6 +43,10 @@ export function assessKotDayIssues(input: {
 
   if (requestIssueCode !== null) {
     issueCodeSet.add(requestIssueCode);
+  }
+
+  if (input.hasPendingScheduleRequest) {
+    issueCodeSet.add("scheduleEstimate");
   }
 
   input.breakIssueCodes.forEach((issueCode) => {

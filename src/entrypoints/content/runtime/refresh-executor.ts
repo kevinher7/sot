@@ -72,6 +72,7 @@ export function createRefreshExecutor(
         onSuccess: () => {},
         payload: null,
         pendingIsoDates: new Set(),
+        pendingScheduleIsoDates: new Set(),
         pendingRequests: [],
       });
       scheduleNextMinuteRefresh();
@@ -189,6 +190,7 @@ export function createRefreshExecutor(
       },
       payload: requestContext?.payload ?? null,
       pendingIsoDates: correction.pendingIsoDates,
+      pendingScheduleIsoDates: correction.pendingScheduleIsoDates,
       pendingRequests: (cache.requestSnapshot?.requests ?? []).filter(
         (request) => request.status === "pending",
       ),

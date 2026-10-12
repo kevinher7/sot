@@ -7,6 +7,7 @@ import type { KotResolvedMonth } from "@/domain/kot/calculation/month/month-type
 export type KotCorrectionDetection = {
   needs: readonly KotCorrectionNeed[];
   pendingIsoDates: ReadonlySet<string>;
+  pendingScheduleIsoDates: ReadonlySet<string>;
 };
 
 // Map an already-resolved month to, per day, which need a 打刻申請 and which
@@ -16,12 +17,17 @@ export function detectKotCorrectionNeeds(
 ): KotCorrectionDetection {
   const needs: KotCorrectionNeed[] = [];
   const pendingIsoDates = new Set<string>();
+  const pendingScheduleIsoDates = new Set<string>();
 
   for (const day of resolvedMonth.days) {
     const calculatedDay = day.effective.calculatedDay;
 
     if (calculatedDay.requestState !== "none") {
       pendingIsoDates.add(day.isoDate);
+    }
+
+    if (calculatedDay.issues.issueCodes.includes("scheduleEstimate")) {
+      pendingScheduleIsoDates.add(day.isoDate);
     }
 
     const need = detectKotCorrectionNeed(calculatedDay);
@@ -31,5 +37,5 @@ export function detectKotCorrectionNeeds(
     }
   }
 
-  return { needs, pendingIsoDates };
+  return { needs, pendingIsoDates, pendingScheduleIsoDates };
 }
