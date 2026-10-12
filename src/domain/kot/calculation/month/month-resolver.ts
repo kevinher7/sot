@@ -5,8 +5,9 @@ import {
 } from "@/domain/kot/calculation/day/day-calculator";
 import { buildDayScenarios } from "@/domain/kot/calculation/day/scenario-builders";
 import {
-  createKotApprovedLeaveMap,
-  resolveKotDayKindWithLeave,
+  createKotScheduleRequestMap,
+  resolveKotDayKindWithSchedule,
+  type KotDayScheduleRequests,
 } from "@/domain/kot/calculation/leave/leave-resolution";
 import { aggregateKotMonth } from "@/domain/kot/calculation/month/month-aggregation";
 import type {
@@ -20,17 +21,19 @@ import type {
   KotMonthlyPageSnapshot,
 } from "@/domain/kot/monthly-page-types";
 import type {
-  KotLeaveKind,
   KotRequestCacheEntry,
+  KotScheduleKind,
   KotTimeCorrectionRequest,
 } from "@/domain/kot/request-data";
 
-function applyLeaveKindToRow(
+function applyScheduleKindToRow(
   row: KotDayRowSnapshot,
-  leaveMap: ReadonlyMap<string, KotLeaveKind>,
+  scheduleKind: KotScheduleKind | undefined,
 ): KotDayRowSnapshot {
-  const leaveKind = leaveMap.get(row.isoDate);
-  const effectiveDayKind = resolveKotDayKindWithLeave(row.dayKind, leaveKind);
+  const effectiveDayKind = resolveKotDayKindWithSchedule(
+    row.dayKind,
+    scheduleKind,
+  );
 
   if (effectiveDayKind === row.dayKind) {
     return row;
@@ -41,16 +44,29 @@ function applyLeaveKindToRow(
 
 function resolveKotMonthDay(input: {
   dayContext: ReturnType<typeof createKotResolveDayContext>;
-  leaveMap: ReadonlyMap<string, KotLeaveKind>;
   requestMap: ReadonlyMap<string, readonly KotTimeCorrectionRequest[]>;
   row: KotDayRowSnapshot;
+  scheduleRequests: KotDayScheduleRequests | undefined;
 }): KotResolvedMonthDay {
-  const row = applyLeaveKindToRow(input.row, input.leaveMap);
+  const row = applyScheduleKindToRow(
+    input.row,
+    input.scheduleRequests?.approved?.scheduleKind,
+  );
   const pendingRequests = getKotPendingRequestsForDate(
     input.requestMap,
     row.isoDate,
   );
   const scenarios = buildDayScenarios(row, pendingRequests);
+  const latestScheduleRequest = input.scheduleRequests?.latest;
+  const effectiveRow = applyScheduleKindToRow(
+    scenarios.effective.interpretedRow,
+    latestScheduleRequest?.scheduleKind,
+  );
+  const effectiveScenario = {
+    ...scenarios.effective,
+    hasPendingScheduleRequest: latestScheduleRequest?.status === "pending",
+    interpretedRow: effectiveRow,
+  };
 
   return {
     actual: attachKotBankEvaluation(
@@ -58,9 +74,9 @@ function resolveKotMonthDay(input: {
     ),
     actualRow: row,
     effective: attachKotBankEvaluation(
-      calculateKotDay(scenarios.effective, input.dayContext),
+      calculateKotDay(effectiveScenario, input.dayContext),
     ),
-    effectiveRow: scenarios.effective.interpretedRow,
+    effectiveRow,
     isoDate: row.isoDate,
   };
 }
@@ -76,13 +92,13 @@ export function resolveKotMonth(input: {
     input.standardWorkdayHours,
   );
   const requestMap = createKotPendingRequestMap(input.requestCacheEntry);
-  const leaveMap = createKotApprovedLeaveMap(input.requestCacheEntry);
+  const scheduleMap = createKotScheduleRequestMap(input.requestCacheEntry);
   const days = input.pageSnapshot.rows.map((row) =>
     resolveKotMonthDay({
       dayContext,
-      leaveMap,
       requestMap,
       row,
+      scheduleRequests: scheduleMap.get(row.isoDate),
     }),
   );
 

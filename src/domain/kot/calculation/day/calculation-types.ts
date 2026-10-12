@@ -15,6 +15,7 @@ export type KotResolvedDayIssueCode =
   | "ongoingWork"
   | "requestConflict"
   | "requestEstimate"
+  | "scheduleEstimate"
   | "rowError"
   | "unmatchedBreakEnd"
   | "unmatchedBreakStart";
@@ -30,6 +31,7 @@ export type KotDayScenarioKind = "actual" | "effective";
 export type KotDayRequestState = "none" | "applied" | "conflict";
 
 export type KotDayScenarioInput = {
+  hasPendingScheduleRequest: boolean;
   kind: KotDayScenarioKind;
   interpretedRow: KotDayRowSnapshot;
   requestState: KotDayRequestState;

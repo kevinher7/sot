@@ -26,6 +26,7 @@ export type KotCorrectionSyncParams = {
   needs: readonly KotCorrectionNeed[];
   payload: KotRequestSyncPayload | null;
   pendingIsoDates: ReadonlySet<string>;
+  pendingScheduleIsoDates: ReadonlySet<string>;
   pendingRequests: readonly KotTimeCorrectionRequest[];
   onSuccess: () => void;
 };
@@ -144,6 +145,7 @@ export function syncKotCorrectionMarkers(
   applyKotCorrectionMarkers(
     doc,
     deriveKotCorrectionTones(params),
+    params.pendingScheduleIsoDates,
     createOpenHandler(doc, win, params),
   );
 }

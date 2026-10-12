@@ -54,7 +54,10 @@ export function aggregateKotMonth(input: {
       warningDayCount += 1;
     }
 
-    if (day.effective.calculatedDay.interpretation.usesEstimate) {
+    if (
+      day.effective.calculatedDay.interpretation.usesEstimate ||
+      day.effective.calculatedDay.issues.issueCodes.includes("scheduleEstimate")
+    ) {
       isUsingEstimate = true;
     }
   });

@@ -8,6 +8,7 @@ export function buildActualDayScenario(
   row: KotDayRowSnapshot,
 ): KotDayScenarioInput {
   return {
+    hasPendingScheduleRequest: false,
     interpretedRow: row,
     kind: "actual",
     requestState: "none",
@@ -27,6 +28,7 @@ export function buildEffectiveDayScenario(
   });
 
   return {
+    hasPendingScheduleRequest: false,
     interpretedRow: requestResult.interpretedRow,
     kind: "effective",
     requestState: requestResult.requestState,

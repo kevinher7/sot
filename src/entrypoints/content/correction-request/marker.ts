@@ -109,6 +109,7 @@ function createMarker(
 export function applyKotCorrectionMarkers(
   doc: Document,
   tones: ReadonlyMap<string, KotCorrectionTone>,
+  pendingScheduleIsoDates: ReadonlySet<string>,
   onOpen: KotCorrectionMarkerOpenHandler,
 ): void {
   clearMarkers(doc);
@@ -139,7 +140,11 @@ export function applyKotCorrectionMarkers(
     const tone = tones.get(isoDate) ?? "clean";
 
     // A pending 申請 with no outstanding error: repaint KOT's red row amber.
-    row.classList.toggle(CORRECTION_PENDING_ROW_CLASS, tone === "conflict");
+    row.classList.toggle(
+      CORRECTION_PENDING_ROW_CLASS,
+      tone !== "error" &&
+        (tone === "conflict" || pendingScheduleIsoDates.has(isoDate)),
+    );
 
     const host = findDateContentHost(dateCell);
     const marker = createMarker(doc, isoDate, tone, row, onOpen);
