@@ -1,5 +1,10 @@
 import { normalizeSettings } from "@/domain/kot/settings";
 import type { KotRequestCacheEntry } from "@/domain/kot/request-data";
+import {
+  normalizeWorkplaceChoices,
+  type Workplace,
+  type WorkplaceChoices,
+} from "@/domain/kot/workplace";
 import type {
   ExtensionMetricViews,
   ExtensionSettings,
@@ -151,4 +156,31 @@ export async function claimAutoClockOut(
   await setStorageValues({ [key]: isoDate });
 
   return true;
+}
+
+function createWorkplaceKey(employeeId: string): string {
+  return `workplaces:${employeeId}`;
+}
+
+export async function getWorkplaceChoices(
+  employeeId: string,
+): Promise<WorkplaceChoices> {
+  const key = createWorkplaceKey(employeeId);
+  const stored = await getStorageValues<Record<string, unknown>>({
+    [key]: undefined,
+  });
+
+  return normalizeWorkplaceChoices(stored[key]);
+}
+
+export async function setWorkplaceChoice(
+  employeeId: string,
+  isoDate: string,
+  workplace: Workplace,
+): Promise<void> {
+  const choices = await getWorkplaceChoices(employeeId);
+
+  await setStorageValues({
+    [createWorkplaceKey(employeeId)]: { ...choices, [isoDate]: workplace },
+  });
 }

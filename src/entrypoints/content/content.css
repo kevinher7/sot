@@ -254,6 +254,15 @@
   line-height: 1;
 }
 
+.sot-section-summary {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #15803d;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .sot-metric-stack {
   --sot-today-card-min-height: 34px;
 
@@ -667,6 +676,131 @@
   opacity: 0.5;
   cursor: wait;
   pointer-events: none;
+}
+
+/* ── Clock-in workplace prompt ── */
+
+.sot-workplace-prompt {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.sot-workplace-prompt-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #3e4a3c;
+}
+
+.sot-workplace-prompt-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+}
+
+.sot-workplace-prompt-button {
+  padding: 10px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sot-workplace-prompt-button[data-workplace="office"] {
+  border-color: rgba(22, 163, 74, 0.45);
+  background: #dcfce7;
+  color: #166534;
+}
+
+.sot-workplace-prompt-button[data-workplace="office"]:hover {
+  background: #bbf7d0;
+}
+
+.sot-workplace-prompt-button[data-workplace="remote"] {
+  border-color: rgba(249, 115, 22, 0.45);
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.sot-workplace-prompt-button[data-workplace="remote"]:hover {
+  background: #fed7aa;
+}
+
+.sot-workplace-prompt-button:focus-visible {
+  outline: 2px solid rgba(40, 167, 69, 0.45);
+  outline-offset: 2px;
+}
+
+/* ── Workplace pill in the 日付 cell ── */
+
+.sot-workplace-cell {
+  white-space: nowrap !important;
+}
+
+.sot-workplace-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 18px;
+  margin: 0 6px 0 0;
+  padding: 0;
+  vertical-align: middle;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+
+.sot-workplace-pill[data-workplace="office"] {
+  border-color: rgba(22, 163, 74, 0.5);
+  background: #bbf7d0;
+  color: #166534;
+}
+
+.sot-workplace-pill[data-workplace="office"]:hover {
+  background: #86efac;
+}
+
+.sot-workplace-pill[data-workplace="remote"] {
+  border-color: rgba(249, 115, 22, 0.45);
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.sot-workplace-pill[data-workplace="remote"]:hover {
+  background: #fed7aa;
+}
+
+.sot-workplace-pill[data-workplace="none"] {
+  border-color: rgba(148, 163, 184, 0.35);
+  background: #f3f4f6;
+  cursor: default;
+}
+
+.sot-workplace-pill:focus-visible {
+  outline: 2px solid rgba(40, 167, 69, 0.45);
+  outline-offset: 1px;
 }
 
 /* --- Inline 打刻申請 (correction request) --- */

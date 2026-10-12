@@ -237,6 +237,7 @@ function createTodaySection(
       ),
     ],
     modeSelector: createModeSelector(result),
+    summary: undefined,
   };
 }
 
@@ -244,6 +245,7 @@ function createMonthSection(
   now: Date,
   result: OverlayCalculationResult,
   seenBoxes: SeenBoxes,
+  officeDayCount: number | undefined,
 ): OverlaySectionModel {
   return {
     badges: createBadges(result.monthErrorCount, result.monthWarningCount),
@@ -252,6 +254,8 @@ function createMonthSection(
       createDurationMetricFromProjection(result.monthPrimaryMetric, seenBoxes),
     ],
     modeSelector: undefined,
+    summary:
+      officeDayCount === undefined ? undefined : `出社 ${officeDayCount}`,
   };
 }
 
@@ -316,10 +320,17 @@ export function createOverlayViewModel(
   result: OverlayCalculationResult,
   settings: ExtensionSettings,
   pendingAction: RecordAction | null,
+  officeDayCount: number | undefined,
 ): OverlayViewModel {
   return {
+    askWorkplaceOnClockIn: officeDayCount !== undefined,
     headerBadge: createHeaderBadge(result),
-    monthSection: createMonthSection(now, result, settings.seenBoxes),
+    monthSection: createMonthSection(
+      now,
+      result,
+      settings.seenBoxes,
+      officeDayCount,
+    ),
     settings: {
       excludeNightWorkFromBank: settings.excludeNightWorkFromBank,
       autoClockOutAtTen: settings.autoClockOutAtTen,

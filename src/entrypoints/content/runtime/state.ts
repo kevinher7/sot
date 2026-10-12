@@ -9,6 +9,7 @@ export type RefreshCache = {
   requestSignature: string | null;
   requestSnapshot: KotRequestCacheEntry | null;
   settingsSignature: string | null;
+  workplaceSignature: string | null;
 };
 
 export function createRefreshCache(): RefreshCache {
@@ -18,6 +19,7 @@ export function createRefreshCache(): RefreshCache {
     requestSignature: null,
     requestSnapshot: null,
     settingsSignature: null,
+    workplaceSignature: null,
   };
 }
 

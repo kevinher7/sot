@@ -4,6 +4,7 @@ import {
   MONTHLY_PAGE_DATE_CELL_SELECTOR,
   MONTHLY_PAGE_TABLE_BODY_SELECTOR,
 } from "@/entrypoints/content/kot-page/contracts";
+import { findMonthlyDateContentHost } from "@/entrypoints/content/kot-page/monthly-page-row-reader";
 
 export const CORRECTION_MARKER_CLASS = "sot-correction-marker";
 export const CORRECTION_CELL_CLASS = "sot-correction-cell";
@@ -38,26 +39,6 @@ function readRowIsoDate(row: HTMLTableRowElement): string | null {
   }
 
   return parseKotIsoDate(raw);
-}
-
-// KOT renders the date inside a block-level wrapper, so a button appended to the
-// <td> drops onto a new line beneath it. Append into the wrapper that actually
-// holds the date text so the button flows inline right after it. Anchors are
-// skipped (nesting a button inside one is invalid and could navigate).
-function findDateContentHost(dateCell: HTMLTableCellElement): HTMLElement {
-  for (const child of dateCell.children) {
-    if (
-      child instanceof HTMLElement &&
-      child.tagName !== "IMG" &&
-      child.tagName !== "INPUT" &&
-      child.tagName !== "A" &&
-      (child.textContent ?? "").trim() !== ""
-    ) {
-      return child;
-    }
-  }
-
-  return dateCell;
 }
 
 function clearMarkers(doc: Document): void {
@@ -146,7 +127,7 @@ export function applyKotCorrectionMarkers(
         (tone === "conflict" || pendingScheduleIsoDates.has(isoDate)),
     );
 
-    const host = findDateContentHost(dateCell);
+    const host = findMonthlyDateContentHost(dateCell);
     const marker = createMarker(doc, isoDate, tone, row, onOpen);
 
     // KOT formats the date as `<p>\n06/01（月）\n[<img>]</p>`. Insert the button
