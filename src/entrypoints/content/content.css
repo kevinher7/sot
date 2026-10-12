@@ -765,14 +765,15 @@
   white-space: nowrap !important;
 }
 
-/* Mirrors .sot-correction-marker so both boxes in the cell line up. */
+/* Mirrors .sot-correction-marker so both boxes in the cell line up. The
+   margin needs !important because KOT's td[...] rules reset it. */
 .sot-workplace-marker {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 20px;
   height: 18px;
-  margin: 0 12px 0 0;
+  margin: 0 12px 0 0 !important;
   padding: 0;
   vertical-align: middle;
   border: 1px solid transparent;
