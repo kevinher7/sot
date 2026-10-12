@@ -445,21 +445,27 @@ export function parseRequestListRows(
     });
 
   const scheduleRequests = rows
-    .map((row) => parseScheduleRequestRow(row, context, syncedAt))
-    .filter((request): request is KotScheduleRequest => request !== null)
+    .flatMap((row, listIndex) => {
+      const request = parseScheduleRequestRow(row, context, syncedAt);
+
+      return request === null ? [] : [{ listIndex, request }];
+    })
     .sort((left, right) => {
-      const dateCompare = left.isoDate.localeCompare(right.isoDate);
+      const dateCompare = left.request.isoDate.localeCompare(
+        right.request.isoDate,
+      );
 
       if (dateCompare !== 0) {
         return dateCompare;
       }
 
-      const timeCompare = left.requestedAt.localeCompare(right.requestedAt);
+      const timeCompare = left.request.requestedAt.localeCompare(
+        right.request.requestedAt,
+      );
 
-      return timeCompare !== 0
-        ? timeCompare
-        : left.cacheKey.localeCompare(right.cacheKey);
-    });
+      return timeCompare !== 0 ? timeCompare : right.listIndex - left.listIndex;
+    })
+    .map(({ request }) => request);
 
   return {
     employeeId: context.employeeId,
