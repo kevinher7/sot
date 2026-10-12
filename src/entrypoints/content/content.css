@@ -765,30 +765,30 @@
   white-space: nowrap !important;
 }
 
-/* The button is a 1em hit area around an 8px dot. Matching the font's em box
-   and aligning to text-bottom centers the dot on the date glyphs, which
-   vertical-align: middle misses for Japanese text. */
+/* An empty inline-flex box sits on the baseline, so a 1cap-tall box spans the
+   digits exactly and centers the dot on them. */
 .sot-workplace-dot {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1em;
-  height: 1em;
-  margin: 0 8px 0 0;
+  width: 14px;
+  height: 1cap;
+  margin: 0 10px 0 0;
   padding: 0;
-  vertical-align: text-bottom;
+  vertical-align: baseline;
   border: 0;
-  border-radius: 50%;
   background: transparent;
   cursor: pointer;
 }
 
 .sot-workplace-dot::before {
   content: "";
+  flex: none;
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: #d1d5db;
+  transition: transform 0.12s ease;
 }
 
 .sot-workplace-dot[data-workplace="office"]::before {
@@ -796,15 +796,15 @@
 }
 
 .sot-workplace-dot[data-workplace="remote"]::before {
-  background: #fb923c;
+  background: #fdba74;
 }
 
 .sot-workplace-dot[data-workplace="none"] {
   cursor: default;
 }
 
-.sot-workplace-dot:not([data-workplace="none"]):hover {
-  background: rgba(148, 163, 184, 0.2);
+.sot-workplace-dot:not([data-workplace="none"]):hover::before {
+  transform: scale(1.3);
 }
 
 .sot-workplace-dot:focus-visible {
