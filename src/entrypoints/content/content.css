@@ -773,7 +773,7 @@
   justify-content: center;
   width: 14px;
   height: 1cap;
-  margin: 0 10px 0 0;
+  margin: 0 12px 0 0;
   padding: 0;
   vertical-align: baseline;
   border: 0;
@@ -784,8 +784,8 @@
 .sot-workplace-dot::before {
   content: "";
   flex: none;
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: #d1d5db;
   transition: transform 0.12s ease;
