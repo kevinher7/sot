@@ -772,7 +772,7 @@
   justify-content: center;
   width: 20px;
   height: 18px;
-  margin: 0 8px 0 0;
+  margin: 0 12px 0 0;
   padding: 0;
   vertical-align: middle;
   border: 1px solid transparent;
@@ -802,13 +802,13 @@
 }
 
 .sot-workplace-marker[data-workplace="remote"] {
-  border-color: rgba(249, 115, 22, 0.45);
-  background: #ffedd5;
-  color: #c2410c;
+  border-color: rgba(251, 146, 60, 0.3);
+  background: #fff7ed;
+  color: #ea580c;
 }
 
 .sot-workplace-marker[data-workplace="remote"]:hover {
-  background: #fed7aa;
+  background: #ffedd5;
 }
 
 .sot-workplace-marker[data-workplace="none"] {
