@@ -754,9 +754,27 @@
   background: #fed7aa;
 }
 
-.sot-workplace-prompt-button:focus-visible {
+.sot-workplace-prompt-button:focus-visible,
+.sot-workplace-prompt-cancel:focus-visible {
   outline: 2px solid rgba(40, 167, 69, 0.45);
   outline-offset: 2px;
+}
+
+.sot-workplace-prompt-cancel {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 6px;
+  background: #f3f4f6;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.sot-workplace-prompt-cancel:hover {
+  background: #e5e7eb;
 }
 
 /* ── Workplace marker in the 日付 cell ── */

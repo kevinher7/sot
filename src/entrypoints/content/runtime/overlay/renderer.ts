@@ -494,8 +494,26 @@ function createWorkplacePrompt(
     undefined,
   );
 
+  const closePrompt = (): void => {
+    isWorkplacePromptOpen = false;
+    prompt.remove();
+  };
+  const cancel = createElement(
+    doc,
+    "button",
+    "sot-workplace-prompt-cancel",
+    "キャンセル",
+  );
+
   prompt.setAttribute("role", "dialog");
   prompt.ariaLabel = "Choose today's workplace";
+  prompt.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closePrompt();
+    }
+  });
+  cancel.type = "button";
+  cancel.addEventListener("click", closePrompt);
 
   WORKPLACE_PROMPT_OPTIONS.forEach(({ label, workplace }) => {
     const button = createElement(
@@ -508,14 +526,13 @@ function createWorkplacePrompt(
     button.type = "button";
     button.dataset.workplace = workplace;
     button.addEventListener("click", () => {
-      isWorkplacePromptOpen = false;
-      prompt.remove();
+      closePrompt();
       onClockInWithWorkplace(workplace);
     });
     options.append(button);
   });
 
-  prompt.append(title, options);
+  prompt.append(title, options, cancel);
 
   return prompt;
 }
@@ -641,8 +658,15 @@ export function renderOverlayResult(
     }
 
     if (!isWorkplacePromptOpen) {
+      const prompt = createWorkplacePrompt(
+        doc,
+        callbacks.onClockInWithWorkplace,
+      );
+
       isWorkplacePromptOpen = true;
-      card.append(createWorkplacePrompt(doc, callbacks.onClockInWithWorkplace));
+      card.append(prompt);
+      // Focus inside the prompt so Esc reaches its keydown listener.
+      prompt.querySelector<HTMLButtonElement>("button")?.focus();
     }
   };
   const { sidebar, trigger } = createSidebarElements(

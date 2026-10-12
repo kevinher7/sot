@@ -320,9 +320,10 @@ export function createOverlayViewModel(
   settings: ExtensionSettings,
   pendingAction: RecordAction | null,
   officeDayCount: number | undefined,
+  askWorkplaceOnClockIn: boolean,
 ): OverlayViewModel {
   return {
-    askWorkplaceOnClockIn: officeDayCount !== undefined,
+    askWorkplaceOnClockIn,
     headerBadge: createHeaderBadge(result),
     monthSection: createMonthSection(
       now,

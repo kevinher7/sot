@@ -213,6 +213,7 @@ export function createRefreshExecutor(
       workplaceChoices === null
         ? undefined
         : countOfficeDays(pageSnapshot.rows, workplaceChoices),
+      employeeId !== null,
     );
 
     renderOverlayResult(root, doc, model, {
@@ -226,13 +227,14 @@ export function createRefreshExecutor(
                 workplace,
               );
 
-        // A failed save must never block the punch itself.
-        void saveChoice
-          .catch(() => {})
-          .then(() => submitRecordAction("clock-in"))
-          .then(() => {
-            win.location.reload();
-          });
+        // Run side by side so a slow or failed save can't delay or block the
+        // punch.
+        void Promise.allSettled([
+          saveChoice,
+          submitRecordAction("clock-in"),
+        ]).then(() => {
+          win.location.reload();
+        });
       },
       onToggleAutoClockOut: (next) => {
         if (!next) {

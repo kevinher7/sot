@@ -4,6 +4,7 @@ export const WORKPLACE_CONFIRM_ID = "sot-workplace-confirm";
 
 const VIEWPORT_MARGIN_PX = 8;
 const ANCHOR_GAP_PX = 8;
+const ARROW_EDGE_INSET_PX = 12;
 
 export type WorkplaceConfirmRequest = {
   anchor: HTMLElement;
@@ -54,9 +55,16 @@ function createCard(
   const cancel = createButton(doc, "sot-confirm-cancel", "キャンセル", () => {
     closeWorkplaceConfirm(doc);
   });
+  // KOT can redraw the table under an open card; never save for a marker that
+  // is no longer on the page.
   const confirm = createButton(doc, "sot-confirm-submit", "変更", () => {
+    const isAnchorAttached = request.anchor.isConnected;
+
     closeWorkplaceConfirm(doc);
-    request.onConfirm();
+
+    if (isAnchorAttached) {
+      request.onConfirm();
+    }
   });
 
   card.id = WORKPLACE_CONFIRM_ID;
@@ -78,7 +86,7 @@ function createCard(
 
 // Opens above the anchor, or below it when there is no room at the top of the
 // viewport. The arrow tracks the anchor's center even when the card is clamped
-// to the viewport edge.
+// to the viewport edge, but stays clear of the card's rounded corners.
 function placeCard(
   card: HTMLDivElement,
   anchor: HTMLElement,
@@ -97,10 +105,12 @@ function placeCard(
   card.dataset.placement = fitsAbove ? "above" : "below";
   card.style.left = `${left}px`;
   card.style.top = `${fitsAbove ? topAbove : anchorRect.bottom + ANCHOR_GAP_PX}px`;
-  card.style.setProperty(
-    "--sot-confirm-arrow-left",
-    `${anchorCenter - left}px`,
+  const arrowLeft = Math.min(
+    Math.max(anchorCenter - left, ARROW_EDGE_INSET_PX),
+    cardRect.width - ARROW_EDGE_INSET_PX,
   );
+
+  card.style.setProperty("--sot-confirm-arrow-left", `${arrowLeft}px`);
 }
 
 // Scroll closes the card instead of repositioning it, so no scroll handler has

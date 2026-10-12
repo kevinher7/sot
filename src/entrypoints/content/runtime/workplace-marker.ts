@@ -114,6 +114,8 @@ function syncMarker(
 }
 
 export function clearWorkplaceMarkers(doc: Document): void {
+  closeWorkplaceConfirm(doc);
+
   for (const marker of doc.querySelectorAll(`.${MARKER_CLASS}`)) {
     marker.remove();
   }
@@ -153,6 +155,10 @@ export function applyWorkplaceMarkers(
     let marker = dateCell.querySelector<HTMLButtonElement>(`.${MARKER_CLASS}`);
 
     if (marker === null || marker.dataset.isoDate !== isoDate) {
+      if (marker !== null && isWorkplaceConfirmOpenFor(marker)) {
+        closeWorkplaceConfirm(doc);
+      }
+
       marker?.remove();
       marker = createMarker(doc, isoDate, onToggle);
       insertMarker(findMonthlyDateContentHost(dateCell), marker);
