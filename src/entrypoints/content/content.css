@@ -773,7 +773,7 @@
   justify-content: center;
   width: 20px;
   height: 18px;
-  margin: 0 12px 0 0 !important;
+  margin: 0 6px 0 0 !important;
   padding: 0;
   vertical-align: middle;
   border: 1px solid transparent;
@@ -793,23 +793,23 @@
 }
 
 .sot-workplace-marker[data-workplace="office"] {
-  border-color: rgba(22, 163, 74, 0.45);
-  background: #dcfce7;
-  color: #166534;
+  border-color: #cdebd8;
+  background: #f3fbf6;
+  color: #3f9f62;
 }
 
 .sot-workplace-marker[data-workplace="office"]:hover {
-  background: #bbf7d0;
+  background: #e6f6ec;
 }
 
 .sot-workplace-marker[data-workplace="remote"] {
-  border-color: rgba(251, 146, 60, 0.3);
-  background: #fff7ed;
-  color: #ea580c;
+  border-color: #fbdcc5;
+  background: #fff8f2;
+  color: #e8894a;
 }
 
 .sot-workplace-marker[data-workplace="remote"]:hover {
-  background: #ffedd5;
+  background: #fff0e3;
 }
 
 .sot-workplace-marker[data-workplace="none"] {
