@@ -1,11 +1,12 @@
 import { ROOT_ID } from "@/entrypoints/content/runtime/overlay/root";
+import { WORKPLACE_CONFIRM_ID } from "@/entrypoints/content/runtime/workplace-confirm";
+
+const EXTENSION_LAYER_SELECTOR = `#${ROOT_ID}, #${WORKPLACE_CONFIRM_ID}`;
 
 function isOverlayMutationTarget(node: Node): boolean {
-  if (node instanceof HTMLElement) {
-    return node.id === ROOT_ID || node.closest(`#${ROOT_ID}`) !== null;
-  }
+  const element = node instanceof HTMLElement ? node : node.parentElement;
 
-  return node.parentElement?.closest(`#${ROOT_ID}`) !== null;
+  return element !== null && element.closest(EXTENSION_LAYER_SELECTOR) !== null;
 }
 
 export function observeDocumentChanges(

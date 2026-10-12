@@ -7,6 +7,11 @@ import {
   findMonthlyDateContentHost,
   readMonthlyRowIsoDate,
 } from "@/entrypoints/content/kot-page/monthly-page-row-reader";
+import {
+  closeWorkplaceConfirm,
+  isWorkplaceConfirmOpenFor,
+  openWorkplaceConfirm,
+} from "@/entrypoints/content/runtime/workplace-confirm";
 
 const MARKER_CLASS = "sot-workplace-marker";
 const CELL_CLASS = "sot-workplace-cell";
@@ -29,6 +34,11 @@ const MARKER_TITLE: Record<WorkplaceMarkerState, string> = {
   remote: "リモート: クリックで出社に切替",
 };
 
+const CONFIRM_MESSAGE: Record<Workplace, string> = {
+  office: "出社に変更しますか？",
+  remote: "リモートに変更しますか？",
+};
+
 function createMarker(
   doc: Document,
   isoDate: string,
@@ -49,7 +59,23 @@ function createMarker(
       return;
     }
 
-    onToggle(isoDate, current === "office" ? "remote" : "office");
+    if (isWorkplaceConfirmOpenFor(marker)) {
+      closeWorkplaceConfirm(doc);
+
+      return;
+    }
+
+    const next = current === "office" ? "remote" : "office";
+
+    openWorkplaceConfirm(doc, {
+      anchor: marker,
+      message: CONFIRM_MESSAGE[next],
+      next,
+      nextMarkerText: MARKER_TEXT[next],
+      onConfirm: () => {
+        onToggle(isoDate, next);
+      },
+    });
   });
 
   return marker;
