@@ -13,7 +13,11 @@ import {
   closeKotCorrectionForm,
   syncKotCorrectionMarkers,
 } from "@/entrypoints/content/correction-request";
-import { readMonthlyPageSnapshot } from "@/entrypoints/content/kot-page";
+import {
+  captureKotColumnWidths,
+  readMonthlyPageSnapshot,
+  resyncKotFloatingHeaderIfColumnsChanged,
+} from "@/entrypoints/content/kot-page";
 import { startAutoClockOut } from "@/entrypoints/content/runtime/auto-clock-out";
 import { applyTodayRowHighlight } from "@/entrypoints/content/runtime/day-highlight";
 import { applyKotBreakWarnings } from "@/entrypoints/content/runtime/break-warning";
@@ -84,6 +88,18 @@ export function createRefreshExecutor(
   });
 
   return async (reason: RefreshReason): Promise<void> => {
+    // Every exit path below writes into the host table, so compare widths in
+    // `finally` rather than after each individual write.
+    const columnWidthsBefore = captureKotColumnWidths(doc);
+
+    try {
+      await refresh(reason);
+    } finally {
+      resyncKotFloatingHeaderIfColumnsChanged(doc, win, columnWidthsBefore);
+    }
+  };
+
+  async function refresh(reason: RefreshReason): Promise<void> {
     const now = getNow();
 
     applyTodayRowHighlight(doc, now);
@@ -303,5 +319,5 @@ export function createRefreshExecutor(
     cache.settingsSignature = settingsSignature;
     cache.workplaceSignature = workplaceSignature;
     scheduleNextMinuteRefresh();
-  };
+  }
 }
