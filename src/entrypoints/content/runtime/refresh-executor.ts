@@ -87,18 +87,6 @@ export function createRefreshExecutor(
     stopAutoClockOut = undefined;
   });
 
-  return async (reason: RefreshReason): Promise<void> => {
-    // Every exit path below writes into the host table, so compare widths in
-    // `finally` rather than after each individual write.
-    const columnWidthsBefore = captureKotColumnWidths(doc);
-
-    try {
-      await refresh(reason);
-    } finally {
-      resyncKotFloatingHeaderIfColumnsChanged(doc, win, columnWidthsBefore);
-    }
-  };
-
   async function refresh(reason: RefreshReason): Promise<void> {
     const now = getNow();
 
@@ -320,4 +308,16 @@ export function createRefreshExecutor(
     cache.workplaceSignature = workplaceSignature;
     scheduleNextMinuteRefresh();
   }
+
+  return async (reason: RefreshReason): Promise<void> => {
+    // Every exit path in `refresh` writes into the host table, so compare
+    // widths in `finally` rather than after each individual write.
+    const columnWidthsBefore = captureKotColumnWidths(doc);
+
+    try {
+      await refresh(reason);
+    } finally {
+      resyncKotFloatingHeaderIfColumnsChanged(doc, win, columnWidthsBefore);
+    }
+  };
 }
