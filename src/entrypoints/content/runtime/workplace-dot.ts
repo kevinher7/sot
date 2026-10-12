@@ -8,42 +8,36 @@ import {
   readMonthlyRowIsoDate,
 } from "@/entrypoints/content/kot-page/monthly-page-row-reader";
 
-const PILL_CLASS = "sot-workplace-pill";
+const DOT_CLASS = "sot-workplace-dot";
 const CELL_CLASS = "sot-workplace-cell";
 
-// Days without a 出勤 still get an inert gray pill so the date column keeps the
+// Days without a 出勤 still get an inert gray dot so the date column keeps the
 // same width on every row.
-export type WorkplacePillState = Workplace | "none";
+export type WorkplaceDotState = Workplace | "none";
 
 export type OnToggleWorkplace = (isoDate: string, next: Workplace) => void;
 
-const PILL_TEXT: Record<WorkplacePillState, string> = {
-  none: "",
-  office: "社",
-  remote: "宅",
-};
-
-const PILL_TITLE: Record<WorkplacePillState, string> = {
+const DOT_TITLE: Record<WorkplaceDotState, string> = {
   none: "出勤打刻のない日",
   office: "出社: クリックでリモートに切替",
   remote: "リモート: クリックで出社に切替",
 };
 
-function createPill(
+function createDot(
   doc: Document,
   isoDate: string,
   onToggle: OnToggleWorkplace,
 ): HTMLButtonElement {
-  const pill = doc.createElement("button");
+  const dot = doc.createElement("button");
 
-  pill.type = "button";
-  pill.className = PILL_CLASS;
-  pill.dataset.isoDate = isoDate;
-  pill.addEventListener("click", (event) => {
+  dot.type = "button";
+  dot.className = DOT_CLASS;
+  dot.dataset.isoDate = isoDate;
+  dot.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
 
-    const current = pill.dataset.workplace;
+    const current = dot.dataset.workplace;
 
     if (current !== "office" && current !== "remote") {
       return;
@@ -52,41 +46,40 @@ function createPill(
     onToggle(isoDate, current === "office" ? "remote" : "office");
   });
 
-  return pill;
+  return dot;
 }
 
 // KOT's date text starts with a newline that would render as a gap after the
-// pill, so trim it.
-function insertPill(host: HTMLElement, pill: HTMLButtonElement): void {
+// dot, so trim it.
+function insertDot(host: HTMLElement, dot: HTMLButtonElement): void {
   const dateText = Array.from(host.childNodes).find(
     (node): node is Text =>
       node instanceof Text && (node.textContent ?? "").trim() !== "",
   );
 
   if (dateText === undefined) {
-    host.prepend(pill);
+    host.prepend(dot);
 
     return;
   }
 
   dateText.textContent = dateText.textContent?.replace(/^\s+/u, "") ?? "";
-  dateText.before(pill);
+  dateText.before(dot);
 }
 
-function syncPill(pill: HTMLButtonElement, state: WorkplacePillState): void {
-  if (pill.dataset.workplace === state) {
+function syncDot(dot: HTMLButtonElement, state: WorkplaceDotState): void {
+  if (dot.dataset.workplace === state) {
     return;
   }
 
-  pill.dataset.workplace = state;
-  pill.textContent = PILL_TEXT[state];
-  pill.title = PILL_TITLE[state];
-  pill.disabled = state === "none";
+  dot.dataset.workplace = state;
+  dot.title = DOT_TITLE[state];
+  dot.disabled = state === "none";
 }
 
-export function clearWorkplacePills(doc: Document): void {
-  for (const pill of doc.querySelectorAll(`.${PILL_CLASS}`)) {
-    pill.remove();
+export function clearWorkplaceDots(doc: Document): void {
+  for (const dot of doc.querySelectorAll(`.${DOT_CLASS}`)) {
+    dot.remove();
   }
 
   for (const cell of doc.querySelectorAll(`.${CELL_CLASS}`)) {
@@ -94,11 +87,11 @@ export function clearWorkplacePills(doc: Document): void {
   }
 }
 
-// Updates pills in place rather than rebuilding them, since every DOM write
+// Updates dots in place rather than rebuilding them, since every DOM write
 // wakes the page observer and triggers another refresh.
-export function applyWorkplacePills(
+export function applyWorkplaceDots(
   doc: Document,
-  states: ReadonlyMap<string, WorkplacePillState>,
+  states: ReadonlyMap<string, WorkplaceDotState>,
   onToggle: OnToggleWorkplace,
 ): void {
   const tableBody = doc.querySelector(MONTHLY_PAGE_TABLE_BODY_SELECTOR);
@@ -121,14 +114,14 @@ export function applyWorkplacePills(
       dateCell.classList.add(CELL_CLASS);
     }
 
-    let pill = dateCell.querySelector<HTMLButtonElement>(`.${PILL_CLASS}`);
+    let dot = dateCell.querySelector<HTMLButtonElement>(`.${DOT_CLASS}`);
 
-    if (pill === null || pill.dataset.isoDate !== isoDate) {
-      pill?.remove();
-      pill = createPill(doc, isoDate, onToggle);
-      insertPill(findMonthlyDateContentHost(dateCell), pill);
+    if (dot === null || dot.dataset.isoDate !== isoDate) {
+      dot?.remove();
+      dot = createDot(doc, isoDate, onToggle);
+      insertDot(findMonthlyDateContentHost(dateCell), dot);
     }
 
-    syncPill(pill, states.get(isoDate) ?? "none");
+    syncDot(dot, states.get(isoDate) ?? "none");
   }
 }

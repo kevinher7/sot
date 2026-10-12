@@ -254,13 +254,31 @@
   line-height: 1;
 }
 
-.sot-section-summary {
+.sot-office-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 7px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 4px;
+  background: #ffffff;
   font-size: 9px;
   font-weight: 800;
-  letter-spacing: 0.1em;
-  color: #15803d;
-  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  color: #334155;
   white-space: nowrap;
+}
+
+.sot-office-count-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+}
+
+.sot-office-count-value {
+  font-variant-numeric: tabular-nums;
 }
 
 .sot-metric-stack {
@@ -741,64 +759,53 @@
   outline-offset: 2px;
 }
 
-/* ── Workplace pill in the 日付 cell ── */
+/* ── Workplace dot in the 日付 cell ── */
 
 .sot-workplace-cell {
   white-space: nowrap !important;
 }
 
-.sot-workplace-pill {
+/* The button is a 14px hit area around an 8px dot. */
+.sot-workplace-dot {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 18px;
-  margin: 0 6px 0 0;
+  width: 14px;
+  height: 14px;
+  margin: 0 4px 0 0;
   padding: 0;
   vertical-align: middle;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  font-family:
-    Inter,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-  font-size: 10px;
-  font-weight: 800;
-  line-height: 1;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
   cursor: pointer;
-  transition: background-color 0.12s ease;
 }
 
-.sot-workplace-pill[data-workplace="office"] {
-  border-color: rgba(22, 163, 74, 0.5);
-  background: #bbf7d0;
-  color: #166534;
+.sot-workplace-dot::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d1d5db;
 }
 
-.sot-workplace-pill[data-workplace="office"]:hover {
-  background: #86efac;
+.sot-workplace-dot[data-workplace="office"]::before {
+  background: #22c55e;
 }
 
-.sot-workplace-pill[data-workplace="remote"] {
-  border-color: rgba(249, 115, 22, 0.45);
-  background: #ffedd5;
-  color: #c2410c;
+.sot-workplace-dot[data-workplace="remote"]::before {
+  background: #fb923c;
 }
 
-.sot-workplace-pill[data-workplace="remote"]:hover {
-  background: #fed7aa;
-}
-
-.sot-workplace-pill[data-workplace="none"] {
-  border-color: rgba(148, 163, 184, 0.35);
-  background: #f3f4f6;
+.sot-workplace-dot[data-workplace="none"] {
   cursor: default;
 }
 
-.sot-workplace-pill:focus-visible {
+.sot-workplace-dot:not([data-workplace="none"]):hover {
+  background: rgba(148, 163, 184, 0.2);
+}
+
+.sot-workplace-dot:focus-visible {
   outline: 2px solid rgba(40, 167, 69, 0.45);
   outline-offset: 1px;
 }

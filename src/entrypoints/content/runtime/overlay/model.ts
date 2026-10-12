@@ -237,7 +237,7 @@ function createTodaySection(
       ),
     ],
     modeSelector: createModeSelector(result),
-    summary: undefined,
+    officeDayCount: undefined,
   };
 }
 
@@ -254,8 +254,7 @@ function createMonthSection(
       createDurationMetricFromProjection(result.monthPrimaryMetric, seenBoxes),
     ],
     modeSelector: undefined,
-    summary:
-      officeDayCount === undefined ? undefined : `出社 ${officeDayCount}`,
+    officeDayCount,
   };
 }
 

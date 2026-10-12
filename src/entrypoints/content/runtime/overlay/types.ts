@@ -70,7 +70,7 @@ export type OverlaySectionModel = {
   label: string;
   metrics: readonly OverlayDurationMetric[];
   modeSelector: OverlayModeSelector | undefined;
-  summary: string | undefined;
+  officeDayCount: number | undefined;
 };
 
 export type SidebarButtonStatus =

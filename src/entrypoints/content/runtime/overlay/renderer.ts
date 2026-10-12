@@ -144,6 +144,19 @@ function createModeSelector(
   return group;
 }
 
+function createOfficeDayCount(doc: Document, count: number): HTMLSpanElement {
+  const chip = createElement(doc, "span", "sot-office-count", undefined);
+
+  chip.title = `今月の出社日数: ${count}日`;
+  chip.append(
+    createElement(doc, "span", "sot-office-count-dot", undefined),
+    createElement(doc, "span", undefined, "出社"),
+    createElement(doc, "span", "sot-office-count-value", count.toString()),
+  );
+
+  return chip;
+}
+
 function createSectionLabel(
   doc: Document,
   model: OverlaySectionModel,
@@ -182,10 +195,8 @@ function createSectionLabel(
 
   wrapper.append(left);
 
-  if (model.summary !== undefined) {
-    wrapper.append(
-      createElement(doc, "span", "sot-section-summary", model.summary),
-    );
+  if (model.officeDayCount !== undefined) {
+    wrapper.append(createOfficeDayCount(doc, model.officeDayCount));
   }
 
   if (model.modeSelector && onSelectWorkMode) {
