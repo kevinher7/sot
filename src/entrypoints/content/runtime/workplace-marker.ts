@@ -8,36 +8,42 @@ import {
   readMonthlyRowIsoDate,
 } from "@/entrypoints/content/kot-page/monthly-page-row-reader";
 
-const DOT_CLASS = "sot-workplace-dot";
+const MARKER_CLASS = "sot-workplace-marker";
 const CELL_CLASS = "sot-workplace-cell";
 
-// Days without a 出勤 still get an inert gray dot so the date column keeps the
-// same width on every row.
-export type WorkplaceDotState = Workplace | "none";
+// Days without a 出勤 still get an inert gray marker so the date column keeps
+// the same width on every row.
+export type WorkplaceMarkerState = Workplace | "none";
 
 export type OnToggleWorkplace = (isoDate: string, next: Workplace) => void;
 
-const DOT_TITLE: Record<WorkplaceDotState, string> = {
+const MARKER_TEXT: Record<WorkplaceMarkerState, string> = {
+  none: "",
+  office: "社",
+  remote: "宅",
+};
+
+const MARKER_TITLE: Record<WorkplaceMarkerState, string> = {
   none: "出勤打刻のない日",
   office: "出社: クリックでリモートに切替",
   remote: "リモート: クリックで出社に切替",
 };
 
-function createDot(
+function createMarker(
   doc: Document,
   isoDate: string,
   onToggle: OnToggleWorkplace,
 ): HTMLButtonElement {
-  const dot = doc.createElement("button");
+  const marker = doc.createElement("button");
 
-  dot.type = "button";
-  dot.className = DOT_CLASS;
-  dot.dataset.isoDate = isoDate;
-  dot.addEventListener("click", (event) => {
+  marker.type = "button";
+  marker.className = MARKER_CLASS;
+  marker.dataset.isoDate = isoDate;
+  marker.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
 
-    const current = dot.dataset.workplace;
+    const current = marker.dataset.workplace;
 
     if (current !== "office" && current !== "remote") {
       return;
@@ -46,40 +52,44 @@ function createDot(
     onToggle(isoDate, current === "office" ? "remote" : "office");
   });
 
-  return dot;
+  return marker;
 }
 
 // KOT's date text starts with a newline that would render as a gap after the
-// dot, so trim it.
-function insertDot(host: HTMLElement, dot: HTMLButtonElement): void {
+// marker, so trim it.
+function insertMarker(host: HTMLElement, marker: HTMLButtonElement): void {
   const dateText = Array.from(host.childNodes).find(
     (node): node is Text =>
       node instanceof Text && (node.textContent ?? "").trim() !== "",
   );
 
   if (dateText === undefined) {
-    host.prepend(dot);
+    host.prepend(marker);
 
     return;
   }
 
   dateText.textContent = dateText.textContent?.replace(/^\s+/u, "") ?? "";
-  dateText.before(dot);
+  dateText.before(marker);
 }
 
-function syncDot(dot: HTMLButtonElement, state: WorkplaceDotState): void {
-  if (dot.dataset.workplace === state) {
+function syncMarker(
+  marker: HTMLButtonElement,
+  state: WorkplaceMarkerState,
+): void {
+  if (marker.dataset.workplace === state) {
     return;
   }
 
-  dot.dataset.workplace = state;
-  dot.title = DOT_TITLE[state];
-  dot.disabled = state === "none";
+  marker.dataset.workplace = state;
+  marker.textContent = MARKER_TEXT[state];
+  marker.title = MARKER_TITLE[state];
+  marker.disabled = state === "none";
 }
 
-export function clearWorkplaceDots(doc: Document): void {
-  for (const dot of doc.querySelectorAll(`.${DOT_CLASS}`)) {
-    dot.remove();
+export function clearWorkplaceMarkers(doc: Document): void {
+  for (const marker of doc.querySelectorAll(`.${MARKER_CLASS}`)) {
+    marker.remove();
   }
 
   for (const cell of doc.querySelectorAll(`.${CELL_CLASS}`)) {
@@ -87,11 +97,11 @@ export function clearWorkplaceDots(doc: Document): void {
   }
 }
 
-// Updates dots in place rather than rebuilding them, since every DOM write
+// Updates markers in place rather than rebuilding them, since every DOM write
 // wakes the page observer and triggers another refresh.
-export function applyWorkplaceDots(
+export function applyWorkplaceMarkers(
   doc: Document,
-  states: ReadonlyMap<string, WorkplaceDotState>,
+  states: ReadonlyMap<string, WorkplaceMarkerState>,
   onToggle: OnToggleWorkplace,
 ): void {
   const tableBody = doc.querySelector(MONTHLY_PAGE_TABLE_BODY_SELECTOR);
@@ -114,14 +124,14 @@ export function applyWorkplaceDots(
       dateCell.classList.add(CELL_CLASS);
     }
 
-    let dot = dateCell.querySelector<HTMLButtonElement>(`.${DOT_CLASS}`);
+    let marker = dateCell.querySelector<HTMLButtonElement>(`.${MARKER_CLASS}`);
 
-    if (dot === null || dot.dataset.isoDate !== isoDate) {
-      dot?.remove();
-      dot = createDot(doc, isoDate, onToggle);
-      insertDot(findMonthlyDateContentHost(dateCell), dot);
+    if (marker === null || marker.dataset.isoDate !== isoDate) {
+      marker?.remove();
+      marker = createMarker(doc, isoDate, onToggle);
+      insertMarker(findMonthlyDateContentHost(dateCell), marker);
     }
 
-    syncDot(dot, states.get(isoDate) ?? "none");
+    syncMarker(marker, states.get(isoDate) ?? "none");
   }
 }

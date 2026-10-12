@@ -759,56 +759,65 @@
   outline-offset: 2px;
 }
 
-/* ── Workplace dot in the 日付 cell ── */
+/* ── Workplace marker in the 日付 cell ── */
 
 .sot-workplace-cell {
   white-space: nowrap !important;
 }
 
-/* A 1cap-tall box on the baseline spans the digits and centers the dot on
-   them. Browsers seat an empty button slightly below the baseline, hence the
-   0.1em lift. */
-.sot-workplace-dot {
+/* Mirrors .sot-correction-marker so both boxes in the cell line up. */
+.sot-workplace-marker {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 14px;
-  height: 1cap;
-  margin: 0 12px 0 0;
+  width: 20px;
+  height: 18px;
+  margin: 0 8px 0 0;
   padding: 0;
-  vertical-align: 0.1em;
-  border: 0;
-  background: transparent;
+  vertical-align: middle;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
   cursor: pointer;
+  transition: background-color 0.12s ease;
 }
 
-.sot-workplace-dot::before {
-  content: "";
-  flex: none;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #d1d5db;
-  transition: transform 0.12s ease;
+.sot-workplace-marker[data-workplace="office"] {
+  border-color: rgba(22, 163, 74, 0.45);
+  background: #dcfce7;
+  color: #166534;
 }
 
-.sot-workplace-dot[data-workplace="office"]::before {
-  background: #22c55e;
+.sot-workplace-marker[data-workplace="office"]:hover {
+  background: #bbf7d0;
 }
 
-.sot-workplace-dot[data-workplace="remote"]::before {
-  background: #fb923c;
+.sot-workplace-marker[data-workplace="remote"] {
+  border-color: rgba(249, 115, 22, 0.45);
+  background: #ffedd5;
+  color: #c2410c;
 }
 
-.sot-workplace-dot[data-workplace="none"] {
+.sot-workplace-marker[data-workplace="remote"]:hover {
+  background: #fed7aa;
+}
+
+.sot-workplace-marker[data-workplace="none"] {
+  border-color: rgba(148, 163, 184, 0.25);
+  background: rgba(243, 244, 246, 0.6);
   cursor: default;
 }
 
-.sot-workplace-dot:not([data-workplace="none"]):hover::before {
-  transform: scale(1.3);
-}
-
-.sot-workplace-dot:focus-visible {
+.sot-workplace-marker:focus-visible {
   outline: 2px solid rgba(40, 167, 69, 0.45);
   outline-offset: 1px;
 }

@@ -19,10 +19,10 @@ import { applyTodayRowHighlight } from "@/entrypoints/content/runtime/day-highli
 import { applyKotBreakWarnings } from "@/entrypoints/content/runtime/break-warning";
 import { applyKotRequestInjections } from "@/entrypoints/content/runtime/request-injection";
 import {
-  applyWorkplaceDots,
-  clearWorkplaceDots,
-  type WorkplaceDotState,
-} from "@/entrypoints/content/runtime/workplace-dot";
+  applyWorkplaceMarkers,
+  clearWorkplaceMarkers,
+  type WorkplaceMarkerState,
+} from "@/entrypoints/content/runtime/workplace-marker";
 import {
   createKotRequestContext,
   getKotRequestData,
@@ -56,10 +56,10 @@ import {
   setWorkplaceChoice,
 } from "@/platform/webext/storage";
 
-function createWorkplaceDotStates(
+function createWorkplaceMarkerStates(
   pageSnapshot: KotMonthlyPageSnapshot,
   choices: WorkplaceChoices,
-): Map<string, WorkplaceDotState> {
+): Map<string, WorkplaceMarkerState> {
   return new Map(
     pageSnapshot.rows.map((row) => [
       row.isoDate,
@@ -109,7 +109,7 @@ export function createRefreshExecutor(
       );
       applyKotRequestInjections(doc, []);
       applyKotBreakWarnings(doc, []);
-      clearWorkplaceDots(doc);
+      clearWorkplaceMarkers(doc);
       cache.pageSignature = null;
       clearRequestCache(cache);
       cache.settingsSignature = null;
@@ -178,11 +178,11 @@ export function createRefreshExecutor(
     const workplaceSignature = JSON.stringify(workplaceChoices);
 
     if (employeeId === null || workplaceChoices === null) {
-      clearWorkplaceDots(doc);
+      clearWorkplaceMarkers(doc);
     } else {
-      applyWorkplaceDots(
+      applyWorkplaceMarkers(
         doc,
-        createWorkplaceDotStates(pageSnapshot, workplaceChoices),
+        createWorkplaceMarkerStates(pageSnapshot, workplaceChoices),
         (isoDate, next) => {
           void setWorkplaceChoice(employeeId, isoDate, next).then(() => {
             queueModeRefresh();
