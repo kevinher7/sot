@@ -85,8 +85,8 @@ function createCard(
 }
 
 // Opens above the anchor, or below it when there is no room at the top of the
-// viewport. The arrow tracks the anchor's center even when the card is clamped
-// to the viewport edge, but stays clear of the card's rounded corners.
+// viewport. Aligns with the table row like the correction panel, while the
+// arrow still points to the marker.
 function placeCard(
   card: HTMLDivElement,
   anchor: HTMLElement,
@@ -95,8 +95,9 @@ function placeCard(
   const anchorRect = anchor.getBoundingClientRect();
   const cardRect = card.getBoundingClientRect();
   const anchorCenter = anchorRect.left + anchorRect.width / 2;
+  const rowLeft = anchor.closest("tr")?.getBoundingClientRect().left;
   const left = Math.min(
-    Math.max(anchorCenter - cardRect.width / 2, VIEWPORT_MARGIN_PX),
+    Math.max(rowLeft ?? anchorRect.left, VIEWPORT_MARGIN_PX),
     win.innerWidth - cardRect.width - VIEWPORT_MARGIN_PX,
   );
   const topAbove = anchorRect.top - cardRect.height - ANCHOR_GAP_PX;
