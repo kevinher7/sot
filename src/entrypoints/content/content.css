@@ -254,6 +254,33 @@
   line-height: 1;
 }
 
+.sot-office-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 7px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 4px;
+  background: #ffffff;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.sot-office-count-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+}
+
+.sot-office-count-value {
+  font-variant-numeric: tabular-nums;
+}
+
 .sot-metric-stack {
   --sot-today-card-min-height: 34px;
 
@@ -667,6 +694,274 @@
   opacity: 0.5;
   cursor: wait;
   pointer-events: none;
+}
+
+/* ── Clock-in workplace prompt ── */
+
+.sot-workplace-prompt {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.sot-workplace-prompt-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #3e4a3c;
+}
+
+.sot-workplace-prompt-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+}
+
+.sot-workplace-prompt-button {
+  padding: 10px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sot-workplace-prompt-button[data-workplace="office"] {
+  border-color: rgba(22, 163, 74, 0.45);
+  background: #dcfce7;
+  color: #166534;
+}
+
+.sot-workplace-prompt-button[data-workplace="office"]:hover {
+  background: #bbf7d0;
+}
+
+.sot-workplace-prompt-button[data-workplace="remote"] {
+  border-color: rgba(249, 115, 22, 0.45);
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.sot-workplace-prompt-button[data-workplace="remote"]:hover {
+  background: #fed7aa;
+}
+
+.sot-workplace-prompt-button:focus-visible,
+.sot-workplace-prompt-cancel:focus-visible {
+  outline: 2px solid rgba(40, 167, 69, 0.45);
+  outline-offset: 2px;
+}
+
+.sot-workplace-prompt-cancel {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 6px;
+  background: #f3f4f6;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.sot-workplace-prompt-cancel:hover {
+  background: #e5e7eb;
+}
+
+/* ── Workplace marker in the 日付 cell ── */
+
+.sot-workplace-cell {
+  white-space: nowrap !important;
+}
+
+/* Mirrors .sot-correction-marker so both boxes in the cell line up. The
+   margin needs !important because KOT's td[...] rules reset it. */
+.sot-workplace-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 18px;
+  margin: 0 6px 0 0 !important;
+  padding: 0;
+  vertical-align: middle;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+
+.sot-workplace-marker[data-workplace="office"] {
+  border-color: #cdebd8;
+  background: #f3fbf6;
+  color: #3f9f62;
+}
+
+.sot-workplace-marker[data-workplace="office"]:hover {
+  background: #e6f6ec;
+}
+
+.sot-workplace-marker[data-workplace="remote"] {
+  border-color: #fbdcc5;
+  background: #fff8f2;
+  color: #e8894a;
+}
+
+.sot-workplace-marker[data-workplace="remote"]:hover {
+  background: #fff0e3;
+}
+
+.sot-workplace-marker[data-workplace="none"] {
+  border-color: rgba(148, 163, 184, 0.25);
+  background: rgba(243, 244, 246, 0.6);
+  cursor: default;
+}
+
+.sot-workplace-marker:focus-visible {
+  outline: 2px solid rgba(40, 167, 69, 0.45);
+  outline-offset: 1px;
+}
+
+/* ── Workplace change confirmation ── */
+
+#sot-workplace-confirm {
+  position: fixed;
+  z-index: 2147483647;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(25, 28, 30, 0.12);
+  color: #191c1e;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+#sot-workplace-confirm::after {
+  content: "";
+  position: absolute;
+  left: var(--sot-confirm-arrow-left);
+  width: 8px;
+  height: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: #ffffff;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+#sot-workplace-confirm[data-placement="above"]::after {
+  bottom: -5px;
+  border-top: 0;
+  border-left: 0;
+}
+
+#sot-workplace-confirm[data-placement="below"]::after {
+  top: -5px;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+#sot-workplace-confirm .sot-confirm-message {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-weight: 700;
+  color: #3e4a3c;
+}
+
+#sot-workplace-confirm .sot-confirm-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 18px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+#sot-workplace-confirm .sot-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+#sot-workplace-confirm button {
+  margin: 0;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+
+#sot-workplace-confirm .sot-confirm-cancel {
+  border-color: rgba(148, 163, 184, 0.4);
+  background: #f3f4f6;
+  color: #64748b;
+}
+
+#sot-workplace-confirm .sot-confirm-cancel:hover {
+  background: #e5e7eb;
+}
+
+#sot-workplace-confirm button:focus-visible {
+  outline: 2px solid rgba(40, 167, 69, 0.45);
+  outline-offset: 1px;
+}
+
+#sot-workplace-confirm [data-workplace="office"] {
+  border-color: #cdebd8;
+  background: #f3fbf6;
+  color: #3f9f62;
+}
+
+#sot-workplace-confirm button[data-workplace="office"]:hover {
+  background: #e6f6ec;
+}
+
+#sot-workplace-confirm [data-workplace="remote"] {
+  border-color: #fbdcc5;
+  background: #fff8f2;
+  color: #e8894a;
+}
+
+#sot-workplace-confirm button[data-workplace="remote"]:hover {
+  background: #fff0e3;
 }
 
 /* --- Inline 打刻申請 (correction request) --- */

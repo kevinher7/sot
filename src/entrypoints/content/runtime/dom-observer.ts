@@ -1,11 +1,29 @@
 import { ROOT_ID } from "@/entrypoints/content/runtime/overlay/root";
+import { WORKPLACE_CONFIRM_ID } from "@/entrypoints/content/runtime/workplace-confirm";
+
+const EXTENSION_LAYER_SELECTOR = `#${ROOT_ID}, #${WORKPLACE_CONFIRM_ID}`;
 
 function isOverlayMutationTarget(node: Node): boolean {
-  if (node instanceof HTMLElement) {
-    return node.id === ROOT_ID || node.closest(`#${ROOT_ID}`) !== null;
+  const element = node instanceof HTMLElement ? node : node.parentElement;
+
+  return element !== null && element.closest(EXTENSION_LAYER_SELECTOR) !== null;
+}
+
+function isExtensionNode(node: Node): boolean {
+  return node instanceof HTMLElement && node.matches(EXTENSION_LAYER_SELECTOR);
+}
+
+// Appending or removing our own layers on <body> targets <body> itself, so
+// also check what was added or removed. An empty node list must not count, or
+// attribute changes on <body> would be ignored.
+function isExtensionMutation(record: MutationRecord): boolean {
+  if (isOverlayMutationTarget(record.target)) {
+    return true;
   }
 
-  return node.parentElement?.closest(`#${ROOT_ID}`) !== null;
+  const changedNodes = [...record.addedNodes, ...record.removedNodes];
+
+  return changedNodes.length > 0 && changedNodes.every(isExtensionNode);
 }
 
 export function observeDocumentChanges(
@@ -18,7 +36,7 @@ export function observeDocumentChanges(
 
   const observer = new MutationObserver((records) => {
     const hasNonOverlayMutation = records.some(
-      (record) => !isOverlayMutationTarget(record.target),
+      (record) => !isExtensionMutation(record),
     );
 
     if (hasNonOverlayMutation) {

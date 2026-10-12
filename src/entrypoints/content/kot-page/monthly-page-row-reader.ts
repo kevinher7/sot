@@ -141,6 +141,28 @@ function hasExplicitRowRequestMarker(row: HTMLTableRowElement): boolean {
   return row.textContent?.includes("[申]") ?? false;
 }
 
+// KOT renders the date inside a block-level wrapper, so an element appended to
+// the <td> drops onto a new line beneath it. Insert into the wrapper that
+// actually holds the date text so it flows inline with the date. Anchors are
+// skipped (nesting a button inside one is invalid and could navigate).
+export function findMonthlyDateContentHost(
+  dateCell: HTMLTableCellElement,
+): HTMLElement {
+  for (const child of dateCell.children) {
+    if (
+      child instanceof HTMLElement &&
+      child.tagName !== "IMG" &&
+      child.tagName !== "INPUT" &&
+      child.tagName !== "A" &&
+      (child.textContent ?? "").trim() !== ""
+    ) {
+      return child;
+    }
+  }
+
+  return dateCell;
+}
+
 export function readMonthlyRowIsoDate(row: HTMLTableRowElement): string | null {
   return parseWorkingDateFromActionCell(row)?.isoDate ?? null;
 }

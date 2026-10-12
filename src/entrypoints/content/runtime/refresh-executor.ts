@@ -3,6 +3,13 @@ import { calculateOverlayMetrics } from "@/domain/kot/projection/overlay-metrics
 import { buildKotBreakWarnings } from "@/domain/kot/projection/break-warning";
 import { buildKotRequestInjections } from "@/domain/kot/projection/request-injection";
 import {
+  countOfficeDays,
+  resolveWorkplace,
+  type Workplace,
+  type WorkplaceChoices,
+} from "@/domain/kot/workplace";
+import type { KotMonthlyPageSnapshot } from "@/domain/kot/monthly-page-types";
+import {
   closeKotCorrectionForm,
   syncKotCorrectionMarkers,
 } from "@/entrypoints/content/correction-request";
@@ -11,6 +18,11 @@ import { startAutoClockOut } from "@/entrypoints/content/runtime/auto-clock-out"
 import { applyTodayRowHighlight } from "@/entrypoints/content/runtime/day-highlight";
 import { applyKotBreakWarnings } from "@/entrypoints/content/runtime/break-warning";
 import { applyKotRequestInjections } from "@/entrypoints/content/runtime/request-injection";
+import {
+  applyWorkplaceMarkers,
+  clearWorkplaceMarkers,
+  type WorkplaceMarkerState,
+} from "@/entrypoints/content/runtime/workplace-marker";
 import {
   createKotRequestContext,
   getKotRequestData,
@@ -31,15 +43,30 @@ import {
   type RefreshReason,
   shouldSyncRequestData,
 } from "@/entrypoints/content/runtime/state";
+import { createIsoDateKey } from "@/domain/kot/date";
 import { getNow } from "@/platform/time/clock";
 import type { WorkMode } from "@/domain/kot/types";
 import {
   getSettings,
+  getWorkplaceChoices,
   setAutoClockOutAtTen,
   setExcludeNightWorkFromBank,
   setMetricView,
   setWorkMode,
+  setWorkplaceChoice,
 } from "@/platform/webext/storage";
+
+function createWorkplaceMarkerStates(
+  pageSnapshot: KotMonthlyPageSnapshot,
+  choices: WorkplaceChoices,
+): Map<string, WorkplaceMarkerState> {
+  return new Map(
+    pageSnapshot.rows.map((row) => [
+      row.isoDate,
+      row.hasClockIn ? resolveWorkplace(choices, row.isoDate) : "none",
+    ]),
+  );
+}
 
 export function createRefreshExecutor(
   win: Window,
@@ -82,9 +109,11 @@ export function createRefreshExecutor(
       );
       applyKotRequestInjections(doc, []);
       applyKotBreakWarnings(doc, []);
+      clearWorkplaceMarkers(doc);
       cache.pageSignature = null;
       clearRequestCache(cache);
       cache.settingsSignature = null;
+      cache.workplaceSignature = null;
       closeKotCorrectionForm(doc);
       syncKotCorrectionMarkers(doc, win, {
         needs: [],
@@ -143,10 +172,30 @@ export function createRefreshExecutor(
     );
     applyKotBreakWarnings(doc, buildKotBreakWarnings(result.resolvedMonth));
 
+    const employeeId = requestContext?.payload.employeeId ?? null;
+    const workplaceChoices =
+      employeeId === null ? null : await getWorkplaceChoices(employeeId);
+    const workplaceSignature = JSON.stringify(workplaceChoices);
+
+    if (employeeId === null || workplaceChoices === null) {
+      clearWorkplaceMarkers(doc);
+    } else {
+      applyWorkplaceMarkers(
+        doc,
+        createWorkplaceMarkerStates(pageSnapshot, workplaceChoices),
+        (isoDate, next) => {
+          void setWorkplaceChoice(employeeId, isoDate, next).then(() => {
+            queueModeRefresh();
+          });
+        },
+      );
+    }
+
     const shouldSkipRender =
       reason === "dom" &&
       cache.pageSignature === pageSnapshot.signature &&
       cache.settingsSignature === settingsSignature &&
+      cache.workplaceSignature === workplaceSignature &&
       cache.requestContextKey === (requestContext?.key ?? null) &&
       cache.requestSignature === (cache.requestSnapshot?.signature ?? null);
 
@@ -161,9 +210,32 @@ export function createRefreshExecutor(
       result,
       settings,
       getPendingAction(),
+      workplaceChoices === null
+        ? undefined
+        : countOfficeDays(pageSnapshot.rows, workplaceChoices),
+      employeeId !== null,
     );
 
     renderOverlayResult(root, doc, model, {
+      onClockInWithWorkplace: (workplace: Workplace) => {
+        const saveChoice =
+          employeeId === null
+            ? Promise.resolve()
+            : setWorkplaceChoice(
+                employeeId,
+                createIsoDateKey(getNow()),
+                workplace,
+              );
+
+        // Run side by side so a slow or failed save can't delay or block the
+        // punch.
+        void Promise.allSettled([
+          saveChoice,
+          submitRecordAction("clock-in"),
+        ]).then(() => {
+          win.location.reload();
+        });
+      },
       onToggleAutoClockOut: (next) => {
         if (!next) {
           stopAutoClockOut?.();
@@ -229,6 +301,7 @@ export function createRefreshExecutor(
     cache.requestContextKey = requestContext?.key ?? null;
     cache.requestSignature = cache.requestSnapshot?.signature ?? null;
     cache.settingsSignature = settingsSignature;
+    cache.workplaceSignature = workplaceSignature;
     scheduleNextMinuteRefresh();
   };
 }

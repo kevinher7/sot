@@ -1,7 +1,10 @@
 import { sotSvg } from "@/assets/branding/sot-svg";
 import type { OverlayMetricTone } from "@/domain/kot/projection/overlay-metrics";
+import type { Workplace } from "@/domain/kot/workplace";
 import { createSidebarElements } from "@/entrypoints/content/runtime/overlay/sidebar";
 import type {
+  OnClockInWithWorkplace,
+  OnRecordAction,
   OnSelectWorkMode,
   OnToggleMetricView,
   OnToggleNightWorkExclusion,
@@ -27,6 +30,9 @@ let hasPulsedThisSession = false;
 // Persisted across re-renders so toggling a setting (which re-renders the
 // overlay) does not collapse the open Settings panel.
 let isSettingsPanelOpen = false;
+// Same idea for the clock-in workplace prompt: a minute refresh must not
+// dismiss it while the user is choosing.
+let isWorkplacePromptOpen = false;
 
 function createElement<K extends keyof HTMLElementTagNameMap>(
   doc: Document,
@@ -138,6 +144,19 @@ function createModeSelector(
   return group;
 }
 
+function createOfficeDayCount(doc: Document, count: number): HTMLSpanElement {
+  const chip = createElement(doc, "span", "sot-office-count", undefined);
+
+  chip.title = `今月の出社日数: ${count}日`;
+  chip.append(
+    createElement(doc, "span", "sot-office-count-dot", undefined),
+    createElement(doc, "span", undefined, "出社"),
+    createElement(doc, "span", "sot-office-count-value", count.toString()),
+  );
+
+  return chip;
+}
+
 function createSectionLabel(
   doc: Document,
   model: OverlaySectionModel,
@@ -175,6 +194,10 @@ function createSectionLabel(
   });
 
   wrapper.append(left);
+
+  if (model.officeDayCount !== undefined) {
+    wrapper.append(createOfficeDayCount(doc, model.officeDayCount));
+  }
 
   if (model.modeSelector && onSelectWorkMode) {
     wrapper.append(
@@ -445,6 +468,75 @@ function createCtaSection(
   return wrapper;
 }
 
+const WORKPLACE_PROMPT_OPTIONS: readonly {
+  label: string;
+  workplace: Workplace;
+}[] = [
+  { label: "出社", workplace: "office" },
+  { label: "リモート", workplace: "remote" },
+];
+
+function createWorkplacePrompt(
+  doc: Document,
+  onClockInWithWorkplace: OnClockInWithWorkplace,
+): HTMLDivElement {
+  const prompt = createElement(doc, "div", "sot-workplace-prompt", undefined);
+  const title = createElement(
+    doc,
+    "span",
+    "sot-workplace-prompt-title",
+    "今日の勤務場所は？",
+  );
+  const options = createElement(
+    doc,
+    "div",
+    "sot-workplace-prompt-options",
+    undefined,
+  );
+
+  const closePrompt = (): void => {
+    isWorkplacePromptOpen = false;
+    prompt.remove();
+  };
+  const cancel = createElement(
+    doc,
+    "button",
+    "sot-workplace-prompt-cancel",
+    "キャンセル",
+  );
+
+  prompt.setAttribute("role", "dialog");
+  prompt.ariaLabel = "Choose today's workplace";
+  prompt.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closePrompt();
+    }
+  });
+  cancel.type = "button";
+  cancel.addEventListener("click", closePrompt);
+
+  WORKPLACE_PROMPT_OPTIONS.forEach(({ label, workplace }) => {
+    const button = createElement(
+      doc,
+      "button",
+      "sot-workplace-prompt-button",
+      label,
+    );
+
+    button.type = "button";
+    button.dataset.workplace = workplace;
+    button.addEventListener("click", () => {
+      closePrompt();
+      onClockInWithWorkplace(workplace);
+    });
+    options.append(button);
+  });
+
+  prompt.append(title, options, cancel);
+
+  return prompt;
+}
+
 function createOverlayCard(
   doc: Document,
   model: OverlayViewModel,
@@ -477,6 +569,10 @@ function createOverlayCard(
   );
 
   shell.append(createHeader(doc, model), divider, content, accent);
+
+  if (isWorkplacePromptOpen) {
+    shell.append(createWorkplacePrompt(doc, callbacks.onClockInWithWorkplace));
+  }
 
   return shell;
 }
@@ -553,15 +649,31 @@ export function renderOverlayResult(
 
   hasPulsedThisSession = true;
 
+  const card = createOverlayCard(doc, model, callbacks, allowPulse);
+  const onRecordAction: OnRecordAction = (action) => {
+    if (action !== "clock-in" || !model.askWorkplaceOnClockIn) {
+      callbacks.onRecordAction(action);
+
+      return;
+    }
+
+    if (!isWorkplacePromptOpen) {
+      const prompt = createWorkplacePrompt(
+        doc,
+        callbacks.onClockInWithWorkplace,
+      );
+
+      isWorkplacePromptOpen = true;
+      card.append(prompt);
+      // Focus inside the prompt so Esc reaches its keydown listener.
+      prompt.querySelector<HTMLButtonElement>("button")?.focus();
+    }
+  };
   const { sidebar, trigger } = createSidebarElements(
     doc,
     model.sidebar,
-    callbacks.onRecordAction,
+    onRecordAction,
   );
 
-  renderOverlayChildren(
-    root,
-    [createOverlayCard(doc, model, callbacks, allowPulse), sidebar, trigger],
-    "ready",
-  );
+  renderOverlayChildren(root, [card, sidebar, trigger], "ready");
 }

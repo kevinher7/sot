@@ -5,6 +5,7 @@ import type {
 import type { OverlayDurationMetricViewBinding } from "@/domain/kot/projection/overlay-mode/types";
 import type { RecordAction } from "@/entrypoints/content/runtime/recorder/types";
 import type { WorkMode } from "@/domain/kot/types";
+import type { Workplace } from "@/domain/kot/workplace";
 
 export type OverlayDurationMetricAppearance = "default" | "rest-day" | "subtle";
 
@@ -26,8 +27,10 @@ export type OnToggleMetricView = (
 
 export type OnRecordAction = (action: RecordAction) => void;
 export type OnToggleNightWorkExclusion = (next: boolean) => void;
+export type OnClockInWithWorkplace = (workplace: Workplace) => void;
 
 export type OverlayRenderCallbacks = {
+  onClockInWithWorkplace: OnClockInWithWorkplace;
   onToggleAutoClockOut: (next: boolean) => void;
   onRecordAction: OnRecordAction;
   onSelectWorkMode: OnSelectWorkMode;
@@ -67,6 +70,7 @@ export type OverlaySectionModel = {
   label: string;
   metrics: readonly OverlayDurationMetric[];
   modeSelector: OverlayModeSelector | undefined;
+  officeDayCount: number | undefined;
 };
 
 export type SidebarButtonStatus =
@@ -92,6 +96,7 @@ export type OverlaySettingsModel = {
 };
 
 export type OverlayViewModel = {
+  askWorkplaceOnClockIn: boolean;
   headerBadge: OverlayHeaderBadge;
   monthSection: OverlaySectionModel;
   settings: OverlaySettingsModel;

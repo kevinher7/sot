@@ -237,6 +237,7 @@ function createTodaySection(
       ),
     ],
     modeSelector: createModeSelector(result),
+    officeDayCount: undefined,
   };
 }
 
@@ -244,6 +245,7 @@ function createMonthSection(
   now: Date,
   result: OverlayCalculationResult,
   seenBoxes: SeenBoxes,
+  officeDayCount: number | undefined,
 ): OverlaySectionModel {
   return {
     badges: createBadges(result.monthErrorCount, result.monthWarningCount),
@@ -252,6 +254,7 @@ function createMonthSection(
       createDurationMetricFromProjection(result.monthPrimaryMetric, seenBoxes),
     ],
     modeSelector: undefined,
+    officeDayCount,
   };
 }
 
@@ -316,10 +319,18 @@ export function createOverlayViewModel(
   result: OverlayCalculationResult,
   settings: ExtensionSettings,
   pendingAction: RecordAction | null,
+  officeDayCount: number | undefined,
+  askWorkplaceOnClockIn: boolean,
 ): OverlayViewModel {
   return {
+    askWorkplaceOnClockIn,
     headerBadge: createHeaderBadge(result),
-    monthSection: createMonthSection(now, result, settings.seenBoxes),
+    monthSection: createMonthSection(
+      now,
+      result,
+      settings.seenBoxes,
+      officeDayCount,
+    ),
     settings: {
       excludeNightWorkFromBank: settings.excludeNightWorkFromBank,
       autoClockOutAtTen: settings.autoClockOutAtTen,
