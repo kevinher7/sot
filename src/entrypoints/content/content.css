@@ -796,7 +796,7 @@
 }
 
 .sot-workplace-dot[data-workplace="remote"]::before {
-  background: #fdba74;
+  background: #fb923c;
 }
 
 .sot-workplace-dot[data-workplace="none"] {
