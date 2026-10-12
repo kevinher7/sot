@@ -1,10 +1,6 @@
 import { normalizeSettings } from "@/domain/kot/settings";
 import type { KotRequestCacheEntry } from "@/domain/kot/request-data";
-import {
-  normalizeWorkplaceChoices,
-  type Workplace,
-  type WorkplaceChoices,
-} from "@/domain/kot/workplace";
+import type { Workplace, WorkplaceChoices } from "@/domain/kot/workplace";
 import type {
   ExtensionMetricViews,
   ExtensionSettings,
@@ -166,11 +162,11 @@ export async function getWorkplaceChoices(
   employeeId: string,
 ): Promise<WorkplaceChoices> {
   const key = createWorkplaceKey(employeeId);
-  const stored = await getStorageValues<Record<string, unknown>>({
-    [key]: undefined,
+  const stored = await getStorageValues<Record<string, WorkplaceChoices>>({
+    [key]: {},
   });
 
-  return normalizeWorkplaceChoices(stored[key]);
+  return stored[key];
 }
 
 export async function setWorkplaceChoice(

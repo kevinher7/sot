@@ -20,23 +20,3 @@ export function countOfficeDays(
       row.hasClockIn && resolveWorkplace(choices, row.isoDate) === "office",
   ).length;
 }
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-export function normalizeWorkplaceChoices(value: unknown): WorkplaceChoices {
-  if (!isRecord(value)) {
-    return {};
-  }
-
-  const choices: Record<string, Workplace> = {};
-
-  for (const [isoDate, workplace] of Object.entries(value)) {
-    if (workplace === "office" || workplace === "remote") {
-      choices[isoDate] = workplace;
-    }
-  }
-
-  return choices;
-}
