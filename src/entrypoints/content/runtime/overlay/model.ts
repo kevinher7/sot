@@ -334,6 +334,7 @@ export function createOverlayViewModel(
     settings: {
       excludeNightWorkFromBank: settings.excludeNightWorkFromBank,
       autoClockOutAtTen: settings.autoClockOutAtTen,
+      officeCountStartDay: settings.officeCountStartDay,
     },
     sidebar: createSidebarModel(result.todayBadgeStatus, pendingAction),
     todaySection: createTodaySection(now, result, settings.seenBoxes),

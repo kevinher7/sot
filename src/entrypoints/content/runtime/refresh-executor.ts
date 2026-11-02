@@ -56,6 +56,7 @@ import {
   setAutoClockOutAtTen,
   setExcludeNightWorkFromBank,
   setMetricView,
+  setOfficeCountStartDay,
   setWorkMode,
   setWorkplaceChoice,
 } from "@/platform/webext/storage";
@@ -216,7 +217,11 @@ export function createRefreshExecutor(
       getPendingAction(),
       workplaceChoices === null
         ? undefined
-        : countOfficeDays(pageSnapshot.rows, workplaceChoices),
+        : countOfficeDays(
+            pageSnapshot.rows,
+            workplaceChoices,
+            settings.officeCountStartDay,
+          ),
       employeeId !== null,
     );
 
@@ -238,6 +243,15 @@ export function createRefreshExecutor(
           submitRecordAction("clock-in"),
         ]).then(() => {
           win.location.reload();
+        });
+      },
+      onChangeOfficeCountStartDay: (next) => {
+        if (next === settings.officeCountStartDay) {
+          return;
+        }
+
+        void setOfficeCountStartDay(next).then(() => {
+          queueModeRefresh();
         });
       },
       onToggleAutoClockOut: (next) => {

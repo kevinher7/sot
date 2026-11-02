@@ -390,11 +390,58 @@ function createSettingControl(
   return row;
 }
 
+function createOfficeCountStartDayControl(
+  doc: Document,
+  startDay: number,
+  onChange: (next: number) => void,
+): HTMLElement {
+  const control = createElement(doc, "div", "sot-count-start", undefined);
+  const row = createElement(doc, "label", "sot-count-start-row", undefined);
+  const label = createElement(
+    doc,
+    "span",
+    "sot-setting-label",
+    "出社カウント開始日",
+  );
+  const input = createElement(doc, "input", "sot-count-start-input", undefined);
+  const unit = createElement(doc, "span", "sot-setting-label", "日");
+  const hint = createElement(
+    doc,
+    "p",
+    "sot-count-start-hint",
+    "毎月、指定した日から月末までをカウントします。",
+  );
+
+  hint.id = "sot-count-start-hint";
+  input.type = "number";
+  input.min = "1";
+  input.max = "31";
+  input.step = "1";
+  input.required = true;
+  input.value = String(startDay);
+  input.setAttribute("aria-describedby", hint.id);
+  input.addEventListener("change", () => {
+    if (!input.reportValidity()) {
+      input.value = String(startDay);
+
+      return;
+    }
+
+    onChange(input.valueAsNumber);
+  });
+
+  row.append(label, input, unit);
+  control.append(row, hint);
+
+  return control;
+}
+
 function createSettingsPanel(
   doc: Document,
   settings: OverlaySettingsModel,
   onToggleNightWorkExclusion: OnToggleNightWorkExclusion,
   onToggleAutoClockOut: (next: boolean) => void,
+  onChangeOfficeCountStartDay: (next: number) => void,
 ): HTMLElement {
   const panel = createElement(doc, "section", "sot-settings-panel", undefined);
 
@@ -411,6 +458,11 @@ function createSettingsPanel(
       "22:00（日本時間）に勤務中なら自動退勤",
       settings.autoClockOutAtTen,
       onToggleAutoClockOut,
+    ),
+    createOfficeCountStartDayControl(
+      doc,
+      settings.officeCountStartDay,
+      onChangeOfficeCountStartDay,
     ),
   );
 
@@ -552,6 +604,7 @@ function createOverlayCard(
     model.settings,
     callbacks.onToggleNightWorkExclusion,
     callbacks.onToggleAutoClockOut,
+    callbacks.onChangeOfficeCountStartDay,
   );
 
   const toggleSettingsPanel = (): boolean => {
