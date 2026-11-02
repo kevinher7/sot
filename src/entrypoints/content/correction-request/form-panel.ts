@@ -2,6 +2,7 @@ import {
   deriveKotPunchEdits,
   type KotDraftPunchRow,
 } from "@/domain/kot/correction/draft";
+import { normalizeKotPunchTime } from "@/domain/kot/correction/punch-time";
 import {
   type KotRequestedPunchView,
   requestedPunchKey,
@@ -111,8 +112,25 @@ function createTimeInput(doc: Document, value: string): HTMLInputElement {
 
   input.type = "text";
   input.placeholder = "HH:MM";
-  input.maxLength = 5;
   input.value = value;
+
+  let isComposing = false;
+
+  input.addEventListener("compositionstart", () => {
+    isComposing = true;
+  });
+  input.addEventListener("compositionend", () => {
+    isComposing = false;
+
+    if (doc.activeElement !== input) {
+      input.value = normalizeKotPunchTime(input.value);
+    }
+  });
+  input.addEventListener("blur", () => {
+    if (!isComposing) {
+      input.value = normalizeKotPunchTime(input.value);
+    }
+  });
 
   return input;
 }
@@ -508,6 +526,10 @@ export function openKotCorrectionForm(
   };
 
   const submit = async (): Promise<void> => {
+    for (const { timeInput } of controls) {
+      timeInput.value = normalizeKotPunchTime(timeInput.value);
+    }
+
     const rows = readDraftRows(controls);
     const validation = validateKotCorrectionDraft(
       rows,
