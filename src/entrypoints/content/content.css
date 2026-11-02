@@ -599,6 +599,7 @@
 }
 
 #sot-root .sot-count-start-input {
+  appearance: textfield;
   width: 48px;
   padding: 3px 4px;
   border: 1px solid #94a3b8;
@@ -607,6 +608,12 @@
   color: #475569;
   font: inherit;
   font-size: 11px;
+}
+
+#sot-root .sot-count-start-input::-webkit-inner-spin-button,
+#sot-root .sot-count-start-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 #sot-root .sot-count-start-input:focus-visible,
