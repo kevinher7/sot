@@ -601,6 +601,7 @@
 #sot-root .sot-count-start-input {
   appearance: textfield;
   width: 32px;
+  margin-left: auto;
   padding: 3px 4px;
   border: 1px solid #94a3b8;
   border-radius: 4px;
