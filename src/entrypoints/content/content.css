@@ -595,11 +595,13 @@
 #sot-root .sot-count-start-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 #sot-root .sot-count-start-input {
-  width: 48px;
+  appearance: textfield;
+  width: 32px;
+  margin-left: auto;
   padding: 3px 4px;
   border: 1px solid #94a3b8;
   border-radius: 4px;
@@ -607,6 +609,13 @@
   color: #475569;
   font: inherit;
   font-size: 11px;
+  text-align: center;
+}
+
+#sot-root .sot-count-start-input::-webkit-inner-spin-button,
+#sot-root .sot-count-start-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 #sot-root .sot-count-start-input:focus-visible,
