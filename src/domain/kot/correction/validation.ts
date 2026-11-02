@@ -2,6 +2,7 @@ import {
   isKotDraftRowChanged,
   type KotDraftPunchRow,
 } from "@/domain/kot/correction/draft";
+import { isValidKotPunchTime } from "@/domain/kot/correction/punch-time";
 import { requestedPunchKey } from "@/domain/kot/correction/requested-punches";
 
 export type KotCorrectionValidationError = {
@@ -14,12 +15,6 @@ export type KotCorrectionValidationResult = {
   errors: readonly KotCorrectionValidationError[];
   isValid: boolean;
 };
-
-const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/u;
-
-export function isValidKotPunchTime(value: string): boolean {
-  return TIME_PATTERN.test(value.trim());
-}
 
 // Hard, local-only pre-validation. KOT's server validation is too lenient, so
 // we block obviously-broken submits before POSTing. A row only needs a type,
