@@ -615,6 +615,12 @@
   outline-offset: 2px;
 }
 
+#sot-root .sot-count-start-help {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
 #sot-root .sot-count-start-info {
   display: inline-flex;
   align-items: center;
@@ -628,6 +634,7 @@
   color: #475569;
   font: inherit;
   font-size: 10px;
+  line-height: 1;
   cursor: help;
 }
 
