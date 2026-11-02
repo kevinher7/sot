@@ -556,6 +556,12 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+#sot-root .sot-settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   padding: 10px 12px;
   border: 1px solid rgba(148, 163, 184, 0.3);
   border-radius: 4px;
@@ -580,6 +586,76 @@
   font-size: 11px;
   line-height: 1.4;
   color: #475569;
+}
+
+#sot-root .sot-count-start {
+  position: relative;
+}
+
+#sot-root .sot-count-start-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#sot-root .sot-count-start-input {
+  width: 48px;
+  padding: 3px 4px;
+  border: 1px solid #94a3b8;
+  border-radius: 4px;
+  background: #fff;
+  color: #475569;
+  font: inherit;
+  font-size: 11px;
+}
+
+#sot-root .sot-count-start-input:focus-visible,
+#sot-root .sot-count-start-info:focus-visible {
+  outline: 2px solid #16a34a;
+  outline-offset: 2px;
+}
+
+#sot-root .sot-count-start-help {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+#sot-root .sot-count-start-info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  padding: 0;
+  border: 1px solid #64748b;
+  border-radius: 50%;
+  background: transparent;
+  color: #475569;
+  font: inherit;
+  font-size: 10px;
+  line-height: 1;
+  cursor: help;
+}
+
+#sot-root .sot-count-start-hint {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 1;
+  visibility: hidden;
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: #334155;
+  color: #fff;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+#sot-root .sot-count-start-help:hover .sot-count-start-hint,
+#sot-root .sot-count-start-help:focus-within .sot-count-start-hint {
+  visibility: visible;
 }
 
 .sot-accent {

@@ -32,6 +32,7 @@ export type OnClockInWithWorkplace = (workplace: Workplace) => void;
 export type OverlayRenderCallbacks = {
   onClockInWithWorkplace: OnClockInWithWorkplace;
   onToggleAutoClockOut: (next: boolean) => void;
+  onChangeOfficeCountStartDay: (next: number) => void;
   onRecordAction: OnRecordAction;
   onSelectWorkMode: OnSelectWorkMode;
   onToggleMetricView: OnToggleMetricView;
@@ -93,6 +94,7 @@ export type SidebarModel = {
 export type OverlaySettingsModel = {
   excludeNightWorkFromBank: boolean;
   autoClockOutAtTen: boolean;
+  officeCountStartDay: number;
 };
 
 export type OverlayViewModel = {

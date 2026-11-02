@@ -14,9 +14,12 @@ export function resolveWorkplace(
 export function countOfficeDays(
   rows: readonly KotDayRowSnapshot[],
   choices: WorkplaceChoices,
+  startDay: number,
 ): number {
   return rows.filter(
     (row) =>
-      row.hasClockIn && resolveWorkplace(choices, row.isoDate) === "office",
+      row.day >= startDay &&
+      row.hasClockIn &&
+      resolveWorkplace(choices, row.isoDate) === "office",
   ).length;
 }

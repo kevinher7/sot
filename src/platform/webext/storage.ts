@@ -128,6 +128,12 @@ export async function setCachedRequestEntry(
   return entry;
 }
 
+export async function setOfficeCountStartDay(value: number): Promise<void> {
+  const settings = await getSettings();
+
+  await setSettings({ ...settings, officeCountStartDay: value });
+}
+
 export async function setAutoClockOutAtTen(value: boolean): Promise<void> {
   const settings = await getSettings();
 

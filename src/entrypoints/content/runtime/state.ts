@@ -33,6 +33,7 @@ export function createSettingsSignature(
     metricViews: settings.metricViews,
     excludeNightWorkFromBank: settings.excludeNightWorkFromBank,
     autoClockOutAtTen: settings.autoClockOutAtTen,
+    officeCountStartDay: settings.officeCountStartDay,
   });
 }
 

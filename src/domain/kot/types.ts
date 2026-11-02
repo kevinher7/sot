@@ -22,4 +22,5 @@ export type ExtensionSettings = {
   seenBoxes: SeenBoxes;
   excludeNightWorkFromBank: boolean;
   autoClockOutAtTen: boolean;
+  officeCountStartDay: number;
 };
