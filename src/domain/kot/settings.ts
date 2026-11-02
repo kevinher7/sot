@@ -70,7 +70,7 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
   seenBoxes: DEFAULT_SEEN_BOXES,
   excludeNightWorkFromBank: false,
   autoClockOutAtTen: false,
-  officeCountStartDay: 1,
+  officeCountStartDay: 25,
 };
 
 export function normalizeSettings(

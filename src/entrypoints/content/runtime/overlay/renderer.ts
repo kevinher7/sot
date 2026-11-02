@@ -396,23 +396,31 @@ function createOfficeCountStartDayControl(
   onChange: (next: number) => void,
 ): HTMLElement {
   const control = createElement(doc, "div", "sot-count-start", undefined);
-  const row = createElement(doc, "label", "sot-count-start-row", undefined);
+  const row = createElement(doc, "div", "sot-count-start-row", undefined);
   const label = createElement(
     doc,
-    "span",
+    "label",
     "sot-setting-label",
     "出社カウント開始日",
   );
   const input = createElement(doc, "input", "sot-count-start-input", undefined);
   const unit = createElement(doc, "span", "sot-setting-label", "日");
+  const help = createElement(doc, "span", "sot-count-start-help", undefined);
+  const info = createElement(doc, "button", "sot-count-start-info", "i");
   const hint = createElement(
     doc,
-    "p",
+    "span",
     "sot-count-start-hint",
     "毎月、指定した日から月末までをカウントします。",
   );
 
   hint.id = "sot-count-start-hint";
+  hint.setAttribute("role", "tooltip");
+  info.type = "button";
+  info.setAttribute("aria-label", "出社カウント開始日の説明");
+  info.setAttribute("aria-describedby", hint.id);
+  input.id = "sot-count-start-day";
+  label.htmlFor = input.id;
   input.type = "number";
   input.min = "1";
   input.max = "31";
@@ -430,8 +438,9 @@ function createOfficeCountStartDayControl(
     onChange(input.valueAsNumber);
   });
 
-  row.append(label, input, unit);
-  control.append(row, hint);
+  help.append(info, hint);
+  row.append(label, help, input, unit);
+  control.append(row);
 
   return control;
 }
@@ -444,9 +453,11 @@ function createSettingsPanel(
   onChangeOfficeCountStartDay: (next: number) => void,
 ): HTMLElement {
   const panel = createElement(doc, "section", "sot-settings-panel", undefined);
+  const checkboxGroup = createElement(doc, "div", "sot-settings-group", undefined);
+  const detailGroup = createElement(doc, "div", "sot-settings-group", undefined);
 
   panel.hidden = !isSettingsPanelOpen;
-  panel.append(
+  checkboxGroup.append(
     createSettingControl(
       doc,
       "深夜勤務を労働時間に含まない",
@@ -459,12 +470,15 @@ function createSettingsPanel(
       settings.autoClockOutAtTen,
       onToggleAutoClockOut,
     ),
+  );
+  detailGroup.append(
     createOfficeCountStartDayControl(
       doc,
       settings.officeCountStartDay,
       onChangeOfficeCountStartDay,
     ),
   );
+  panel.append(checkboxGroup, detailGroup);
 
   return panel;
 }
